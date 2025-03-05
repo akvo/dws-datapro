@@ -45,9 +45,9 @@ const uiText = {
         <br />
         <br />
         The RUSH protocol has paved the way for developing the Real-time
-        Monitoring Information System (IWSIMS) based on a graded system that aims
-        for safely managed sanitation and hygiene services in rural and urban
-        areas. The IWSIMS provides real-time information on sanitation and
+        Monitoring Information System (IWSIMS) based on a graded system that
+        aims for safely managed sanitation and hygiene services in rural and
+        urban areas. The IWSIMS provides real-time information on sanitation and
         hygiene, aggregates county and national data based on national and
         global M&E framework (RuSH Protocol, JMP, GLAAS), and facilitates data
         analysis, report generation, and visualization.
