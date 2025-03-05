@@ -11,7 +11,7 @@ geo_config = [
     {"id": 5, "level": 4, "name": "NAME_4", "alias": "Village"},
 ]
 
-source_file = "./source/kenya-2024.csv"
+SOURCE_FILE = "./source/fiji-2024.csv"
 
 MAX_LEVEL_IN_SOURCE_FILE = 4
 
@@ -87,11 +87,9 @@ def seed_administration_prod():
     Levels.objects.all().delete()
     seed_levels()
     levels = [
-        c["alias"]
-        for c in geo_config
-        if c["level"] <= MAX_LEVEL_IN_SOURCE_FILE
+        c["alias"] for c in geo_config if c["level"] <= MAX_LEVEL_IN_SOURCE_FILE
     ]
-    properties = pd.read_csv(source_file).to_dict("records")
+    properties = pd.read_csv(SOURCE_FILE).to_dict("records")
     df = pd.DataFrame(properties)
     # remove duplicates
     df = df.drop_duplicates()
@@ -99,9 +97,7 @@ def seed_administration_prod():
     res = []
     for i, r in enumerate(rec):
         for iv, v in enumerate(levels):
-            lv = list(filter(lambda x: x["alias"] == v, geo_config))[0][
-                "level"
-            ]
+            lv = list(filter(lambda x: x["alias"] == v, geo_config))[0]["level"]
             parent_id = None
             if lv > 0:
                 plv = levels[iv - 1]
