@@ -1,0 +1,362 @@
+{
+  "id": 974754029,
+  "form": "CLTS",
+  "type": 1,
+  "submission_types": ["registration", "monitoring"],
+  "question_groups": [
+    {
+      "id": 9747540291,
+      "order": 1,
+      "name": "location",
+      "label": "Location",
+      "questions": [
+        {
+          "id": 9747540291,
+          "order": 1,
+          "name": "location",
+          "label": "location",
+          "short_label": null,
+          "required": true,
+          "type": "administration",
+          "meta": true
+        }
+      ]
+    },
+    {
+      "id": 9747540292,
+      "order": 2,
+      "name": "village_information",
+      "label": "Village Information",
+      "questions": [
+        {
+          "id": 569070281,
+          "order": 1,
+          "name": "village",
+          "label": "Village",
+          "short_label": null,
+          "meta": true,
+          "type": "administration",
+          "required": true
+        },
+        {
+          "id": 567440335,
+          "order": 2,
+          "name": "households",
+          "label": "Number of households in the Village",
+          "short_label": null,
+          "meta": false,
+          "type": "number",
+          "required": true
+        },
+        {
+          "id": 571070201,
+          "order": 3,
+          "name": "gps",
+          "label": "Take GPS Location of Village",
+          "short_label": null,
+          "meta": true,
+          "type": "geo",
+          "required": true
+        }
+      ]
+    },
+    {
+      "id": 9747540293,
+      "order": 3,
+      "name": "clts_intervention_information",
+      "label": "CLTS Intervention Information",
+      "questions": [
+        {
+          "id": 494780324,
+          "order": 1,
+          "name": "implementing_partner",
+          "label": "Implementing partner",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": true,
+          "options": [
+            {
+              "label": "Amref",
+              "value": "amref"
+            },
+            {
+              "label": "Amref and Local Government",
+              "value": "amref_and_local_government"
+            },
+            {
+              "label": "Other",
+              "value": "other"
+            }
+          ]
+        },
+        {
+          "id": 559830326,
+          "order": 2,
+          "name": "trigger_date",
+          "label": "Date Triggered",
+          "short_label": null,
+          "meta": false,
+          "type": "date",
+          "required": false
+        },
+        {
+          "id": 569070282,
+          "order": 3,
+          "name": "latrines",
+          "label": "Number of Latrines at Triggering?",
+          "short_label": null,
+          "meta": false,
+          "type": "number",
+          "required": false
+        },
+        {
+          "id": 569090299,
+          "order": 4,
+          "name": "handwashing",
+          "label": "Presence of Handwashing Facility with Water and Soap",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": false,
+          "options": [
+            {
+              "label": "Yes",
+              "color": null,
+              "value": "yes"
+            },
+            {
+              "label": "No",
+              "color": null,
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": 571070202,
+          "order": 5,
+          "name": "visible_feces",
+          "label": "No Visible Feces were Found in Environment",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": false,
+          "options": [
+            {
+              "label": "Yes",
+              "color": null,
+              "value": "yes"
+            },
+            {
+              "label": "No",
+              "color": null,
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": 557710260,
+          "order": 6,
+          "name": "school_toilets_access",
+          "label": "School Children had Access to Toilets in the Schools",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": false,
+          "options": [
+            {
+              "label": "Yes",
+              "color": null,
+              "value": "yes"
+            },
+            {
+              "label": "No",
+              "color": null,
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": 573010345,
+          "order": 7,
+          "name": "public_toilets_availabilty",
+          "label": "Public Toilets were Available in Public Places",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": false,
+          "options": [
+            {
+              "label": "Yes",
+              "color": null,
+              "value": "yes"
+            },
+            {
+              "label": "No",
+              "color": null,
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": 557710261,
+          "order": 8,
+          "name": "passenger_toilets_availabilty",
+          "label": "Toilets were Available for Passengers",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": false,
+          "options": [
+            {
+              "label": "Yes",
+              "color": null,
+              "value": "yes"
+            },
+            {
+              "label": "No",
+              "color": null,
+              "value": "no"
+            }
+          ]
+        },
+        {
+          "id": 557690351,
+          "order": 9,
+          "name": "verification_date",
+          "label": "Date Verified",
+          "short_label": null,
+          "meta": false,
+          "type": "date",
+          "required": false,
+          "options": null
+        },
+        {
+          "id": 569090301,
+          "order": 10,
+          "name": "latrines_verification",
+          "label": "Number of Latrines at Verification Date",
+          "short_label": null,
+          "meta": false,
+          "type": "number",
+          "required": false,
+          "options": null
+        },
+        {
+          "id": 583770042,
+          "order": 11,
+          "name": "latrine_type",
+          "label": "Latrine Type of Most Latrines at Verification Date",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": true,
+          "options": [
+            {
+              "label": "Bucket",
+              "color": null,
+              "value": "bucket"
+            },
+            {
+              "label": "Container-based sanitation",
+              "color": null,
+              "value": "containerbased_sanitation"
+            },
+            {
+              "label": "Flush/pour flush to piped sewer system",
+              "color": null,
+              "value": "flushpour_flush_to_piped_sewer_system"
+            },
+            {
+              "label": "Flush/pour flush to septic tank",
+              "color": null,
+              "value": "flushpour_flush_to_septic_tank"
+            },
+            {
+              "label": "Flush/pour flush to pit latrine",
+              "color": null,
+              "value": "flushpour_flush_to_pit_latrine"
+            },
+            {
+              "label": "Flush/pour flush to open drain",
+              "color": null,
+              "value": "flushpour_flush_to_open_drain"
+            },
+            {
+              "label": "Hanging toilet/latrine",
+              "color": null,
+              "value": "hanging_toiletlatrine"
+            },
+            {
+              "label": "Pit latrine with slab",
+              "color": null,
+              "value": "pit_latrine_with_slab"
+            },
+            {
+              "label": "Pit latrine without slab/open pit",
+              "color": null,
+              "value": "pit_latrine_without_slabopen_pit"
+            },
+            {
+              "label": "Twin pit offset latrine",
+              "color": null,
+              "value": "twin_pit_offset_latrine"
+            },
+            {
+              "label": "Twin pit with latrine slab",
+              "color": null,
+              "value": "twin_pit_with_latrine_slab"
+            },
+            {
+              "label": "Twin pit without slab",
+              "color": null,
+              "value": "twin_pit_without_slab"
+            },
+            {
+              "label": "Ventilated improved pit latrine (VIP) with slab",
+              "color": null,
+              "value": "ventilated_improved_pit_latrine_vip_with_slab"
+            },
+            {
+              "label": "Other composting latrine",
+              "color": null,
+              "value": "other_composting_latrine"
+            }
+          ]
+        },
+        {
+          "id": 557700349,
+          "order": 12,
+          "name": "odf_status",
+          "label": "Open Defecation Status",
+          "short_label": null,
+          "meta": false,
+          "type": "option",
+          "required": false,
+          "options": [
+            {
+              "label": "Open Defecation",
+              "color": null,
+              "value": "open_defecation"
+            },
+            {
+              "label": "Triggered",
+              "color": null,
+              "value": "triggered"
+            },
+            {
+              "label": "Declared ODF",
+              "color": null,
+              "value": "declared_odf"
+            },
+            {
+              "label": "Verified ODF",
+              "color": null,
+              "value": "verified_odf"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

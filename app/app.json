@@ -1,0 +1,73 @@
+{
+  "expo": {
+    "name": "rtmis-mobile",
+    "slug": "rtmis-mobile",
+    "version": "4.0.10",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.akvo.rtmis",
+      "versionCode": 4010
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "fa1e4fb6-cc4f-4fad-8b6f-1c1189819532"
+      }
+    },
+    "owner": "akvo",
+    "backgroundFetch": {
+      "jobs": [
+        {
+          "jobName": "sync-form-version",
+          "minimumInterval": 3600,
+          "enabled": true
+        },
+        {
+          "jobName": "sync-form-submission",
+          "minimumInterval": 1,
+          "enabled": true
+        }
+      ]
+    },
+    "plugins": [
+      [
+        "sentry-expo",
+        {
+          "url": "https://sentry.io/",
+          "note": "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
+          "organization": "akvo-foundation",
+          "project": "rtmis-mobile",
+          "setCommits": true
+        }
+      ]
+    ],
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "sentry-expo/upload-sourcemaps",
+          "config": {
+            "organization": "akvo-foundation",
+            "project": "rtmis-mobile"
+          }
+        }
+      ]
+    }
+  }
+}

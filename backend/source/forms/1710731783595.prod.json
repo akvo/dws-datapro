@@ -1,0 +1,283 @@
+{
+  "id": 1710731783595,
+  "type": 1,
+  "form": "Urban sanitation form",
+  "description": "Urban sanitation form",
+  "submission_types": ["registration", "monitoring"],
+  "question_groups": [
+    {
+      "id": 1710731783636,
+      "order": 1,
+      "name": "safely_managed_sanisation_services",
+      "label": "URBAN SANITATION: Safely managed sanitation services",
+      "description": null,
+      "repeatable": false,
+      "translations": null,
+      "questions": [
+        {
+          "id": 1699354849383,
+          "label": "What is the location?",
+          "name": "location",
+          "order": 1,
+          "questionGroupId": 1710731783596,
+          "type": "administration",
+          "required": true,
+          "meta": false,
+          "tooltip": {
+            "text": "This question contains a list of possible locations, starting with government area or district, down to the village."
+          },
+          "disabled": {
+            "submission_type": ["monitoring"]
+          }
+        },
+        {
+          "id": 1710733291859,
+          "label": "Percentage of population with safely managed containment of toilet wastes",
+          "name": "percentage_population_safely_managed_wastes",
+          "order": 2,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (individual + SHARED) that is safely managed/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710735680127,
+          "label": "Percentage of population with safely managed containment of SHARED toilet wastes",
+          "name": "percentage_population_safely_managed_wastes_shared_toilet",
+          "order": 3,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (SHARED only) that is safely managed/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710735718205,
+          "label": "Percentage of population with safely managed emptying of toilet wastes",
+          "name": "percentage_safely_managed_emptying",
+          "order": 4,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (individual + SHARED) with safely managed emptying by licensed service providers/total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710735768846,
+          "label": "Percentage of population with safely managed emptying of SHARED toilet wastes",
+          "name": "percentage_safely_managed_emptying_shared_toilet",
+          "order": 5,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (SHARED only) with safely managed EMPTYING of faecal sludge and wastewater by licensed service providers/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710735787447,
+          "label": "Percentage of population with safely managed transport of toilet wastes",
+          "name": "percentage_safely_managed_transport",
+          "order": 6,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (individual + SHARED) with safely managed TRANSPORT of faecal sludge and wastewater by licensed service providers/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710735840233,
+          "label": "Percentage of population with safely managed transport of SHARED toilet wastes",
+          "name": "percentage_safely_managed_transport_shared_toilet",
+          "order": 7,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (SHARED only) with safely managed TRANSPORT of faecal sludge and wastewater by licensed service providers/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710735863761,
+          "label": "Percentage of population with safely managed treatment of toilet wastes",
+          "name": "percentage_safely_managed_treatment",
+          "order": 8,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (individual + SHARED) or sewer connections with safely managed TREATMENT of faecal sludge and wastewater by licensed service providers/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710736068806,
+          "label": "Percentage of population with safely managed treatment of SHARED toilet wastes",
+          "name": "percentage_safely_managed_treatment_shared_toilet",
+          "order": 9,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (SHARED only) with safely managed TREATMENT of faecal sludge and wastewater by licensed service providers/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710736087958,
+          "label": "Percentage of population with safely managed disposal of toilet wastes",
+          "name": "percentage_safely_managed_disposal",
+          "order": 10,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (individual + SHARED) with safely managed DISPOSAL of faecal sludge and wastewater by licensed service providers/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710736110759,
+          "label": "Percentage of population with safely managed disposal of SHARED toilet wastes",
+          "name": "percentage_safely_managed_disposal_shared_toilet",
+          "order": 11,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with on-site containment (SHARED only) with safely managed DISPOSAL of faecal sludge and wastewater by licensed service providers/ total population"
+          },
+          "options": []
+        },
+        {
+          "id": 1710736182836,
+          "label": "Percentage of population with safely managed sanitation services",
+          "name": "percentage_safely_managed_sanitation",
+          "order": 12,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with safely managed containment, emptying, transport, treatment and disposal of toilet wastes"
+          },
+          "options": []
+        },
+        {
+          "id": 1710736199493,
+          "label": "Percentage of population with safely managed sanitation services (SHARED toilets)",
+          "name": "percentage_safely_managed_sanitation_shared_toilet",
+          "order": 13,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with safely managed containment, emptying, transport, treatment and disposal of SHARED toilet wastes"
+          },
+          "options": []
+        },
+        {
+          "id": 1710736216205,
+          "label": "Percentage of population with UNSAFELY managed sanitation services",
+          "name": "percentage_population_unsafely_managed_sanitation",
+          "order": 14,
+          "questionGroupId": 1710733291858,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true,
+            "min": 0,
+            "max": 100
+          },
+          "tooltip": {
+            "text": "Population using toilets with UNSAFELY managed containment, emptying, transport, treatment and disposal of toilet wastes"
+          },
+          "options": []
+        }
+      ]
+    }
+  ]
+}

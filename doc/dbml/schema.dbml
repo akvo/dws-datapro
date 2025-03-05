@@ -1,0 +1,315 @@
+Project rtmis {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # RTMIS
+    RTMIS Database Schema
+  '''
+}
+Enum "questions_type_enum" {
+  "geo"
+  "administration"
+  "text"
+  "numeric"
+  "option"
+  "multiple_option"
+  "cascade"
+  "photo"
+  "date"
+}
+Enum "access_role_enum" {
+  "super admin"
+  "admin"
+  "approver"
+  "user"
+}
+Enum "user_status_enum" {
+  "pending"
+  "approved"
+  "rejected"
+}
+
+Enum "form_type_enum" {
+  "county"
+  "national"
+}
+
+Enum "pending_data_status_enum" {
+  "approved"
+  "rejected"
+  "pending"
+}
+
+Table "level" {
+  "id" bigint [pk]
+  "level" int [not null]
+  "name" text [not null]
+  indexes {
+    (name) [unique]
+  }
+}
+
+Table "administration" {
+  "id" bigint [pk]
+  "parent_id" bigint [default: NULL]
+  "code" varchar(255) [default: NULL]
+  "name" text [not null]
+  "level_id" bigint [default: NULL]
+  indexes {
+    (parent_id, name) [unique]
+  }
+}
+
+Table "user" {
+  "id" bigint [pk]
+  "email" varchar [unique, not null]
+  "status" user_status_enum [default: 'pending']
+}
+
+Table "access" {
+  "id" bigint [pk]
+  "user_id" bigint [not null]
+  "administration_id" bigint [not null]
+  "role" access_role_enum [not null]
+  indexes {
+    (user_id, administration_id) [unique]
+  }
+}
+
+Table "form" {
+  "id" bigint [pk]
+  "name" text [not null]
+  "version" int [default: 1]
+  "uuid" uuid [default: `uuid_generate_v4()`]
+  "type" form_type_enum [default: NULL]
+}
+
+Table "form_approval_rule" {
+  "id" bigint [pk]
+  "administration_id" bigint [not null]
+  "form_id" bigint [not null]
+  indexes {
+    (administration_id, form_id) [unique]
+  }
+}
+
+Table "form_approval_rule_level" {
+  "id" bigint [pk]
+  "form_approval_rule_id" bigint [not null]
+  "level_id" bigint [not null]
+  indexes {
+    (form_approval_rule_id, level_id) [unique]
+  }
+}
+
+Table "form_approval_assignment" {
+  "id" bigint [pk]
+  "form_id" bigint [not null]
+  "user_id" bigint [not null]
+  "administration_id" bigint [not null]
+}
+
+
+Table "question_group" {
+  "id" bigint [not null]
+  "form_id" bigint [not null]
+  "name" text [not null]
+}
+
+Table "question" {
+  "id" bigint [not null]
+  "order" bigint [default: NULL]
+  "form_id" bigint [not null]
+  "question_group_id" bigint [not null]
+  "text" text [not null]
+  "name" varchar [not null]
+  "type" questions_type_enum [not null]
+  "required" boolean [default: true]
+  "rule" json [default: true]
+  "dependency" [array] [default: NULL]
+}
+
+Table "option" {
+  "id" bigint [pk]
+  "order" bigint [default: NULL]
+  "question_id" bigint [not null]
+  "code" varchar(255) [default: NULL]
+  "name" text [not null]
+  "other" tinyint(1) [not null]
+  "created" timestamp [default: `now()`]
+  "updated" timestamp [default: NULL]
+}
+
+Table "data" {
+  "id" bigint [pk]
+  "name" varchar(255) [not null]
+  "form_id" bigint [not null]
+  "administration_id" bigint [not null]
+  "geo" "int[]" [default: NULL]
+  "created_by_id" bigint [not null]
+  "updated_by_id" bigint [not null]
+  "created" timestamp [default: `now()`]
+  "updated" timestamp [default: NULL]
+}
+
+Table "answer" {
+  "id" bigint [pk]
+  "data_id" bigint [not null]
+  "question_id" bigint [not null]
+  "name" text
+  "value" bigint [default: NULL]
+  "options" "varchar[]" [default: NULL]
+  "created_by_id" bigint [not null]
+  "created" timestamp [default: `now()`]
+  "updated" timestamp [default: NULL]
+}
+
+Table "answer_history" {
+  "id" bigint [pk]
+  "data_id" bigint [not null]
+  "question_id" bigint [not null]
+  "name" text
+  "value" bigint [default: NULL]
+  "options" "varchar[]" [default: NULL]
+  "created_by_id" bigint [not null]
+  "created" timestamp [default: `now()`]
+  "updated" timestamp [default: NULL]
+}
+
+Table "pending_data" {
+  "id" bigint [pk]
+  "name" varchar(255) [not null]
+  "data_id" bigint [default: NULL]
+  "form_id" bigint [not null]
+  "administration_id" bigint [not null]
+  "geo" "int[]" [default: NULL]
+  "created_by_id" bigint [not null]
+  "updated_by_id" bigint [not null]
+  "created" timestamp [default: `now()`]
+  "updated" timestamp [default: NULL]
+}
+
+Table "pending_data_approval" {
+  "id" bigint [pk]
+  "pending_data_id" bigint [not null]
+  "user_id" bigint [not null]
+  "status" pending_data_status_enum [default: `pending`]
+}
+
+
+Table "pending_answer" {
+  "id" bigint [pk]
+  "pending_data_id" bigint [not null]
+  "question_id" bigint [not null]
+  "name" text
+  "value" bigint [default: NULL]
+  "options" "varchar[]" [default: NULL]
+  "created_by_id" bigint [not null]
+  "created" timestamp [default: `now()`]
+  "updated" timestamp [default: NULL]
+}
+
+Ref {
+  administration.parent_id > administration.id
+}
+Ref {
+  administration.level_id > level.id
+}
+Ref {
+  access.user_id - user.id
+}
+Ref {
+  access.administration_id > administration.id
+}
+Ref {
+  question_group.form_id > form.id
+}
+Ref {
+  question.question_group_id > question_group.id
+}
+Ref {
+  question.form_id > form.id
+}
+Ref {
+  option.question_id > question.id
+}
+Ref {
+  form_approval_rule.form_id > form.id
+}
+Ref {
+  form_approval_rule.administration_id > administration.id
+}
+Ref {
+  form_approval_rule_level.form_approval_rule_id > form_approval_rule.id
+}
+Ref {
+  form_approval_rule_level.level_id > level.id
+}
+Ref {
+  form_approval_assignment.form_id - form.id
+}
+Ref {
+  form_approval_assignment.administration_id - administration.id
+}
+Ref {
+  form_approval_assignment.user_id > user.id
+}
+Ref {
+  data.form_id > form.id
+}
+Ref {
+  data.administration_id > administration.id
+}
+Ref {
+  data.created_by_id - user.id
+}
+Ref {
+  data.updated_by_id - user.id
+}
+Ref {
+  answer.data_id > data.id
+}
+Ref {
+  answer.question_id > question.id
+}
+Ref {
+  answer.created_by_id - user.id
+}
+Ref {
+  answer_history.data_id > data.id
+}
+Ref {
+  answer_history.question_id > question.id
+}
+Ref {
+  answer_history.created_by_id - user.id
+}
+Ref {
+  pending_data.form_id > form.id
+}
+Ref {
+  pending_data.data_id > data.id
+}
+Ref {
+  pending_data.administration_id > administration.id
+}
+Ref {
+  pending_data.created_by_id - user.id
+}
+Ref {
+  pending_data.updated_by_id - user.id
+}
+Ref {
+  pending_data_approval.pending_data_id > pending_data.id
+}
+Ref {
+  pending_data_approval.user_id > user.id
+}
+Ref {
+  pending_answer.pending_data_id - pending_data.id
+}
+Ref {
+  pending_answer.question_id - question.id
+}
+Ref {
+  pending_answer.created_by_id - user.id
+}
