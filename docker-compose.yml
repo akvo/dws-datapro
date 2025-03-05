@@ -8,7 +8,7 @@ services:
     volumes:
       - ./backend:/app:delegated
     environment:
-      - DB_SCHEMA=rtmis
+      - DB_SCHEMA=iwsims
       - DB_USER=akvo
       - DB_PASSWORD=password
       - DB_HOST=db
@@ -26,7 +26,7 @@ services:
     volumes:
       - ./backend:/app:delegated
     environment:
-      - DB_SCHEMA=rtmis
+      - DB_SCHEMA=iwsims
       - DB_USER=akvo
       - DB_PASSWORD=password
       - DB_HOST=db

@@ -89,7 +89,7 @@ from api.v1.v1_categories.functions import (
 )
 from api.v1.v1_categories.models import DataCategory
 
-from rtmis.settings import REST_FRAMEWORK
+from iwsims.settings import REST_FRAMEWORK
 from utils.custom_permissions import (
     IsSuperAdmin,
     IsAdmin,

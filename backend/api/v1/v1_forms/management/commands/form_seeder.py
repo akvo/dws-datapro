@@ -2,7 +2,7 @@ import json
 import os
 import re
 
-from rtmis.settings import PROD
+from iwsims.settings import PROD
 from django.core.management import BaseCommand
 from django.core.cache import cache
 

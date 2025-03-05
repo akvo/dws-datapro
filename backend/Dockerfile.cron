@@ -16,7 +16,7 @@ RUN set -e; \
 copy . /app/
 
 # Add the cron job
-RUN crontab /app/rtmis-cron
+RUN crontab /app/iwsims-cron
 
 # Create the log file to be able to run tail
 RUN touch /app/cron.log

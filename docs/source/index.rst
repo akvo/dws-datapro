@@ -77,15 +77,15 @@ Real Time Monitoring Information Systems
 
    deployment
 
-.. |Build Status| image:: https://akvo.semaphoreci.com/badges/rtmis/branches/main.svg?style=shields
-   :target: https://akvo.semaphoreci.com/projects/rtmis
-.. |Repo Size| image:: https://img.shields.io/github/repo-size/akvo/rtmis
-   :target: https://img.shields.io/github/repo-size/akvo/rtmis
-.. |Languages| image:: https://img.shields.io/github/languages/count/akvo/rtmis
-   :target: https://img.shields.io/github/languages/count/akvo/rtmis
-.. |Issues| image:: https://img.shields.io/github/issues/akvo/rtmis
-   :target: https://img.shields.io/github/issues/akvo/rtmis
-.. |Last Commit| image:: https://img.shields.io/github/last-commit/akvo/rtmis/main
-   :target: https://img.shields.io/github/last-commit/akvo/rtmis/main
-.. |Coverage Status| image:: https://coveralls.io/repos/github/akvo/rtmis/badge.svg
-   :target: https://coveralls.io/github/akvo/rtmis
+.. |Build Status| image:: https://akvo.semaphoreci.com/badges/iwsims/branches/main.svg?style=shields
+   :target: https://akvo.semaphoreci.com/projects/iwsims
+.. |Repo Size| image:: https://img.shields.io/github/repo-size/akvo/iwsims
+   :target: https://img.shields.io/github/repo-size/akvo/iwsims
+.. |Languages| image:: https://img.shields.io/github/languages/count/akvo/iwsims
+   :target: https://img.shields.io/github/languages/count/akvo/iwsims
+.. |Issues| image:: https://img.shields.io/github/issues/akvo/iwsims
+   :target: https://img.shields.io/github/issues/akvo/iwsims
+.. |Last Commit| image:: https://img.shields.io/github/last-commit/akvo/iwsims/main
+   :target: https://img.shields.io/github/last-commit/akvo/iwsims/main
+.. |Coverage Status| image:: https://coveralls.io/repos/github/akvo/iwsims/badge.svg
+   :target: https://coveralls.io/github/akvo/iwsims

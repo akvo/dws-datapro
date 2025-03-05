@@ -84,8 +84,8 @@
 **Added Lines: 1448, Removed Lines: 450, Total Lines: 998**
 
 - **02 Feb 18:02** Sanju Sunny User management / index - WIP
-- **02 Feb 18:04** Sanju Sunny Merge branch 'develop' of https://github.com/akvo/rtmis into develop
-- **02 Feb 06:44** Sanju Sunny Merge branch 'develop' of https://github.com/akvo/rtmis into develop
+- **02 Feb 18:04** Sanju Sunny Merge branch 'develop' of https://github.com/akvo/iwsims into develop
+- **02 Feb 06:44** Sanju Sunny Merge branch 'develop' of https://github.com/akvo/iwsims into develop
 - **02 Feb 10:03** Sanju Sunny User management - WIP
 - **04 Feb 10:08** Sanju Sunny [#23] Cookie auth, Control center
 - **04 Feb 12:38** Sanju Sunny [#23] Login bug fix
@@ -104,7 +104,7 @@
 - **07 Feb 04:58** Sanju Sunny [#23] Added loader, handle login failure
 - **07 Feb 06:20** Sanju Sunny [#28] Add new user static screen
 - **10 Feb 04:58** Sanju Sunny [#23] Remove user data from cookie, Fetch user profile
-- **10 Feb 11:53** Sanju Sunny Merge branch 'develop' of https://github.com/akvo/rtmis into feature/23-associate-login-invite-apis
+- **10 Feb 11:53** Sanju Sunny Merge branch 'develop' of https://github.com/akvo/iwsims into feature/23-associate-login-invite-apis
 - **10 Feb 14:52** Sanju Sunny Merge branch 'develop' into feature/23-associate-login-invite-apis
 - **10 Feb 16:45** Sanju Sunny [#23] store.js Initial State
 
@@ -144,7 +144,7 @@
 - **19 Jan 20:15** dedenbangkit [#3] Modify build, remove node_modules
 - **19 Jan 20:25** dedenbangkit [#3] Re-enable network test, image push
 - **19 Jan 21:00** dedenbangkit [#3] Fix build
-- **19 Jan 21:01** dedenbangkit Merge branch 'develop' of github.com:akvo/rtmis into develop
+- **19 Jan 21:01** dedenbangkit Merge branch 'develop' of github.com:akvo/iwsims into develop
 - **19 Jan 21:21** dedenbangkit [#3] Modify docker push
 - **19 Jan 21:56** dedenbangkit [#1] Update readme
 - **20 Jan 08:41** dedenbangkit [#3] Modify sever check status code

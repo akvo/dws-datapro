@@ -185,7 +185,7 @@ const Home = () => {
             <Col lg={12}>
               <div className="report-visual-wrapper">
                 <img
-                  src={"/assets/rtmis-girl-washing-her-hands.png"}
+                  src={"/assets/iwsims-girl-washing-her-hands.png"}
                   alt="Girl washing her hands"
                   style={{
                     // webkitTransform: "scaleX(-1)",

@@ -2,7 +2,7 @@ import os
 import sqlite3
 import pandas as pd
 from api.v1.v1_profile.tests.utils import AdministrationEntitiesTestFactory
-from rtmis.settings import MASTER_DATA
+from iwsims.settings import MASTER_DATA
 from django.test import TestCase
 from api.v1.v1_profile.models import Administration, Entity, EntityData
 from api.v1.v1_users.models import Organisation

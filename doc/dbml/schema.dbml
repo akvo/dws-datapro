@@ -1,4 +1,4 @@
-Project rtmis {
+Project iwsims {
   database_type: 'PostgreSQL'
   Note: '''
     # IWSIMS

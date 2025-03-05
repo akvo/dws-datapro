@@ -1,5 +1,5 @@
 {
-  "name": "rtmis-mobile",
+  "name": "iwsims-mobile",
   "version": "4.0.10",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {

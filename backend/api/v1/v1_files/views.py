@@ -1,4 +1,4 @@
-from rtmis.settings import WEBDOMAIN
+from iwsims.settings import WEBDOMAIN
 from .serializers import UploadImagesSerializer
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema, inline_serializer

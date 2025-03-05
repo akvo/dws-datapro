@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: rtmis
+  name: iwsims
 spec:
   replicas: 1
   strategy:
@@ -12,19 +12,19 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      run: rtmis
+      run: iwsims
   template:
     metadata:
       labels:
-        run: rtmis
-        rtmis-version: "${CI_COMMIT}"
+        run: iwsims
+        iwsims-version: "${CI_COMMIT}"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
     spec:
       containers:
         - name: frontend
-          image: eu.gcr.io/akvo-lumen/rtmis/frontend:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/iwsims/frontend:${CI_COMMIT}
           ports:
             - containerPort: 80
           resources:
@@ -69,77 +69,77 @@ spec:
             - name: GOOGLE_SQL_COMPUTE_ZONE
               valueFrom:
                 configMapKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: google-sql-compute-zone
             - name: GOOGLE_SQL_DB_INSTANCE
               valueFrom:
                 configMapKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: google-sql-db-instance
             - name: GOOGLE_PROJECT
               valueFrom:
                 configMapKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: google-project
           volumeMounts:
-            - name: rtmis-secrets
+            - name: iwsims-secrets
               mountPath: "/secrets/cloudsql/credentials.json"
-              subPath: rtmis-service-account.json
+              subPath: iwsims-service-account.json
               readOnly: true
         - name: backend
-          image: eu.gcr.io/akvo-lumen/rtmis/backend:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/iwsims/backend:${CI_COMMIT}
           ports:
             - containerPort: 8000
           env:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: webdomain
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -148,12 +148,12 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: apk-upload-secret
           readinessProbe:
             httpGet:
@@ -166,9 +166,9 @@ spec:
               port: 8000
             initialDelaySeconds: 30
           volumeMounts:
-            - name: rtmis-secrets
+            - name: iwsims-secrets
               mountPath: /secrets/credentials.json
-              subPath: rtmis-service-account.json
+              subPath: iwsims-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -180,57 +180,57 @@ spec:
               cpu: "2000m"
               memory: "2048Mi"
         - name: worker
-          image: eu.gcr.io/akvo-lumen/rtmis/worker:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/iwsims/worker:${CI_COMMIT}
           env:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: webdomain
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -239,17 +239,17 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: rtmis
+                  name: iwsims
                   key: apk-upload-secret
           volumeMounts:
-            - name: rtmis-secrets
+            - name: iwsims-secrets
               mountPath: /secrets/credentials.json
-              subPath: rtmis-service-account.json
+              subPath: iwsims-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -261,9 +261,9 @@ spec:
               cpu: "1000m"
               memory: "2048Mi"
       volumes:
-        - name: rtmis-secrets
+        - name: iwsims-secrets
           secret:
-            secretName: rtmis
+            secretName: iwsims
         - name: nfs-pvc
           persistentVolumeClaim:
-            claimName: rtmis
+            claimName: iwsims

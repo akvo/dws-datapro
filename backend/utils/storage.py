@@ -1,5 +1,5 @@
 import os
-from rtmis.settings import STORAGE_PATH
+from iwsims.settings import STORAGE_PATH
 from pathlib import Path
 import shutil
 

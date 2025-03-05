@@ -470,12 +470,12 @@ exports[`Login and Registration test if the login form exists: LoginPage 1`] = `
             <li>
               Email:
               <a
-                href="mailto:rushrtmis.system@health.go.ke"
+                href="mailto:rushiwsims.system@health.go.ke"
                 rel="noreferrer"
                 style="padding-left: 3px;"
                 target="_blank"
               >
-                rushrtmis.system@health.go.ke
+                rushiwsims.system@health.go.ke
               </a>
             </li>
           </ul>
@@ -1116,12 +1116,12 @@ exports[`Login and Registration test if the registration form exists: Registrati
             <li>
               Email:
               <a
-                href="mailto:rushrtmis.system@health.go.ke"
+                href="mailto:rushiwsims.system@health.go.ke"
                 rel="noreferrer"
                 style="padding-left: 3px;"
                 target="_blank"
               >
-                rushrtmis.system@health.go.ke
+                rushiwsims.system@health.go.ke
               </a>
             </li>
           </ul>

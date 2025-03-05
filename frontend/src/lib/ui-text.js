@@ -103,7 +103,7 @@ const uiText = {
     footerContactAddress:
       "Afya House, Cathedral Road, P.O. Box:30016–00100, Nairobi, Kenya",
     footerContactPhone: "+254-20-2717077",
-    footerContactEmail: "rushrtmis.system@health.go.ke",
+    footerContactEmail: "rushiwsims.system@health.go.ke",
     footerContactFeedback: {
       text: "Feedback Form",
       url: "https://docs.google.com/forms/d/e/1FAIpQLSf5rjD66CCcMWYgFwkNp8Xb1lRJoec1CwhhPnjOd-mU84ktPA/viewform",

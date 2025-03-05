@@ -4,7 +4,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from rest_framework import serializers
 from utils.custom_serializer_fields import CustomChoiceField
-from rtmis.settings import EMAIL_FROM, WEBDOMAIN
+from iwsims.settings import EMAIL_FROM, WEBDOMAIN
 
 
 class EmailTypes:

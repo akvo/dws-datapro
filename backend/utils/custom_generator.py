@@ -2,7 +2,7 @@ import os
 import sqlite3
 import pandas as pd
 import logging
-from rtmis.settings import MASTER_DATA, STORAGE_PATH
+from iwsims.settings import MASTER_DATA, STORAGE_PATH
 from api.v1.v1_profile.models import Administration
 
 logger = logging.getLogger(__name__)

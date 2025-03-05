@@ -14,7 +14,7 @@ from api.v1.v1_profile.models import (
 
 from api.v1.v1_users.models import SystemUser
 from utils.storage import upload
-from rtmis.settings import STORAGE_PATH
+from iwsims.settings import STORAGE_PATH
 
 
 def generate_template(

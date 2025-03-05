@@ -16,17 +16,17 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
-DROP DATABASE rtmis;
+DROP DATABASE iwsims;
 --
--- Name: rtmis; Type: DATABASE; Schema: -; Owner: akvo
+-- Name: iwsims; Type: DATABASE; Schema: -; Owner: akvo
 --
 
-CREATE DATABASE rtmis WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
+CREATE DATABASE iwsims WITH TEMPLATE = template0 ENCODING = 'UTF8' LC_COLLATE = 'en_US.UTF-8' LC_CTYPE = 'en_US.UTF-8';
 
 
-ALTER DATABASE rtmis OWNER TO akvo;
+ALTER DATABASE iwsims OWNER TO akvo;
 
-\connect rtmis
+\connect iwsims
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;

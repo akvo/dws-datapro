@@ -3,9 +3,9 @@
 
 set -euo pipefail
 
-deployment_name="rtmis"
-deployment_version_label="rtmis-version"
-github_project="rtmis"
+deployment_name="iwsims"
+deployment_version_label="iwsims-version"
+github_project="iwsims"
 notification="zulip"
 zulip_stream="IWSIMS"
 

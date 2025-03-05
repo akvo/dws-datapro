@@ -3,7 +3,7 @@ import pandas as pd
 from django.test import TestCase
 from django.test.utils import override_settings
 from django.core.management import call_command
-from rtmis.settings import STORAGE_PATH
+from iwsims.settings import STORAGE_PATH
 from api.v1.v1_profile.models import Administration, Levels
 from utils.custom_generator import (
     administration_csv_add,

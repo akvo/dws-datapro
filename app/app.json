@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "rtmis-mobile",
-    "slug": "rtmis-mobile",
+    "name": "iwsims-mobile",
+    "slug": "iwsims-mobile",
     "version": "4.0.10",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -20,7 +20,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.akvo.rtmis",
+      "package": "com.akvo.iwsims",
       "versionCode": 4010
     },
     "web": {
@@ -53,7 +53,7 @@
           "url": "https://sentry.io/",
           "note": "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
           "organization": "akvo-foundation",
-          "project": "rtmis-mobile",
+          "project": "iwsims-mobile",
           "setCommits": true
         }
       ]
@@ -64,7 +64,7 @@
           "file": "sentry-expo/upload-sourcemaps",
           "config": {
             "organization": "akvo-foundation",
-            "project": "rtmis-mobile"
+            "project": "iwsims-mobile"
           }
         }
       ]

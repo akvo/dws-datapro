@@ -1,6 +1,6 @@
 # IWSIMS
 
-[![Build Status](https://github.com/akvo/rtmis/actions/workflows/main.yml/badge.svg)](https://github.com/akvo/rtmis/actions/workflows/main.yml?query=branch%3Amain) [![Build Status](https://github.com/akvo/rtmis/actions/workflows/apk-release.yml/badge.svg)](https://github.com/akvo/rtmis/actions/workflows/apk-release.yml?query=branch%3Amain) [![Repo Size](https://img.shields.io/github/repo-size/akvo/rtmis)](https://img.shields.io/github/repo-size/akvo/rtmis) [![Languages](https://img.shields.io/github/languages/count/akvo/rtmis)](https://img.shields.io/github/languages/count/akvo/rtmis) [![Issues](https://img.shields.io/github/issues/akvo/rtmis)](https://img.shields.io/github/issues/akvo/rtmis) [![Last Commit](https://img.shields.io/github/last-commit/akvo/rtmis/main)](https://img.shields.io/github/last-commit/akvo/rtmis/main) [![Coverage Status](https://coveralls.io/repos/github/akvo/rtmis/badge.svg)](https://coveralls.io/github/akvo/rtmis) [![Coverage Status](https://img.shields.io/readthedocs/rtmis?label=read%20the%20docs)](https://rtmis.readthedocs.io/en/latest)
+[![Build Status](https://github.com/akvo/iwsims-demo/actions/workflows/main.yml/badge.svg)](https://github.com/akvo/iwsims-demo/actions/workflows/main.yml?query=branch%3Amain) [![Build Status](https://github.com/akvo/iwsims-demo/actions/workflows/apk-release.yml/badge.svg)](https://github.com/akvo/iwsims-demo/actions/workflows/apk-release.yml?query=branch%3Amain) [![Repo Size](https://img.shields.io/github/repo-size/akvo/iwsims-demo)](https://img.shields.io/github/repo-size/akvo/iwsims-demo) [![Languages](https://img.shields.io/github/languages/count/akvo/iwsims-demo)](https://img.shields.io/github/languages/count/akvo/iwsims-demo) [![Issues](https://img.shields.io/github/issues/akvo/iwsims-demo)](https://img.shields.io/github/issues/akvo/iwsims-demo) [![Last Commit](https://img.shields.io/github/last-commit/akvo/iwsims-demo/main)](https://img.shields.io/github/last-commit/akvo/iwsims-demo/main) [![Coverage Status](https://coveralls.io/repos/github/akvo/iwsims-demo/badge.svg)](https://coveralls.io/github/akvo/iwsims-demo) [![Coverage Status](https://img.shields.io/readthedocs/iwsims-demo?label=read%20the%20docs)](https://iwsims-demo.readthedocs.io/en/latest)
 
 Real Time Monitoring Information Systems
 
@@ -21,7 +21,7 @@ Expected that PORT 5432 and 3000 are not being used by other services.
 ```bash
 DB_HOST=db
 DB_PASSWORD=password
-DB_SCHEMA=rtmis
+DB_SCHEMA=iwsims
 DB_USER=akvo
 DEBUG="True"
 DJANGO_SECRET=local-secret
@@ -54,7 +54,7 @@ For initial run, you need to create a new docker volume.
 ```
 
 ```bash
-docker volume create rtmis-docker-sync
+docker volume create iwsims-docker-sync
 ```
 
 Note: On some linux systems, you may need to change the permissions of the directory where the volume is stored.
@@ -66,8 +66,8 @@ The development site should be running at: [localhost:3000](http://localhost:300
 
 Network Config:
 
-- [setupProxy.js](https://github.com/akvo/rtmis/blob/main/frontend/src/setupProxy.js)
-- [mainnetwork](https://github.com/akvo/rtmis/blob/docker-compose.override.yml#L4-L8) container setup
+- [setupProxy.js](https://github.com/akvo/iwsims-demo/blob/main/frontend/src/setupProxy.js)
+- [mainnetwork](https://github.com/akvo/iwsims-demo/blob/docker-compose.override.yml#L4-L8) container setup
 
 Add New User and Seed Master Data:
 
@@ -117,7 +117,7 @@ Available containers:
 
 ```bash
 ./dc.sh down -t1
-docker volume rm rtmis-docker-sync
+docker volume rm iwsims-docker-sync
 ```
 
 ## Mobile App Development
@@ -125,7 +125,7 @@ docker volume rm rtmis-docker-sync
 For initial run, you need to create a separate docker volume.
 
 ```bash
-docker volume create rtmis-mobile-docker-sync
+docker volume create iwsims-mobile-docker-sync
 ```
 
 ```bash
@@ -150,10 +150,10 @@ export CI_COMMIT='local'
 ./ci/build.sh
 ```
 
-Above command will generate two docker images with prefix `eu.gcr.io/akvo-lumen/rtmis` for backend and frontend
+Above command will generate two docker images with prefix `eu.gcr.io/akvo-lumen/iwsims` for backend and frontend
 
 ```bash
 docker-compose -f docker-compose.yml -f docker-compose.ci.yml up -d
 ```
 
-Network config: [nginx](https://github.com/akvo/rtmis/blob/main/frontend/nginx/conf.d/default.conf)
+Network config: [nginx](https://github.com/akvo/iwsims-demo/blob/main/frontend/nginx/conf.d/default.conf)

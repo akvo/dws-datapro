@@ -3,7 +3,7 @@
 #+PROPERTY: header-args:sql+    :dbhost localhost
 #+PROPERTY: header-args:sql+    :dbuser akvo
 #+PROPERTY: header-args:sql+    :dbpassword password
-#+PROPERTY: header-args:sql+    :database rtmis
+#+PROPERTY: header-args:sql+    :database iwsims
 #+PROPERTY: header-args :tangle data-model.sql
 #+STARTUP: showall
 

@@ -1,5 +1,5 @@
 import os
-from rtmis.settings import STORAGE_PATH
+from iwsims.settings import STORAGE_PATH
 from django.test import TestCase
 from django.core.management import call_command
 from utils import storage

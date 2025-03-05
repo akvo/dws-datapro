@@ -2,13 +2,13 @@
 version: "3.9"
 services:
   backend:
-    image: eu.gcr.io/akvo-lumen/rtmis/backend:latest
+    image: eu.gcr.io/akvo-lumen/iwsims/backend:latest
     command: ["sh", "run.sh"]
     depends_on:
       db:
         condition: service_healthy
     environment:
-      - DB_SCHEMA=rtmis
+      - DB_SCHEMA=iwsims
       - DB_USER=akvo
       - DB_PASSWORD=password
       - DB_HOST=db
@@ -56,7 +56,7 @@ services:
       timeout: 5s
       retries: 5
   frontend:
-    image: eu.gcr.io/akvo-lumen/rtmis/frontend:latest
+    image: eu.gcr.io/akvo-lumen/iwsims/frontend:latest
     command: ["nginx", "-g", "daemon off;"]
     depends_on:
       - backend

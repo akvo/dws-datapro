@@ -27,7 +27,7 @@ from utils.email_helper import send_email, EmailTypes
 from uuid import uuid4
 
 # import logging
-# logger = logging.getLogger("rtmis")
+# logger = logging.getLogger("iwsims")
 # logger.warning("This is log message")
 
 
