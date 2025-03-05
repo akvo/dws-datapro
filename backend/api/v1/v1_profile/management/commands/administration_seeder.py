@@ -87,7 +87,9 @@ def seed_administration_prod():
     Levels.objects.all().delete()
     seed_levels()
     levels = [
-        c["alias"] for c in geo_config if c["level"] <= MAX_LEVEL_IN_SOURCE_FILE
+        c["alias"]
+        for c in geo_config
+        if c["level"] <= MAX_LEVEL_IN_SOURCE_FILE
     ]
     properties = pd.read_csv(SOURCE_FILE).to_dict("records")
     df = pd.DataFrame(properties)
@@ -97,7 +99,9 @@ def seed_administration_prod():
     res = []
     for i, r in enumerate(rec):
         for iv, v in enumerate(levels):
-            lv = list(filter(lambda x: x["alias"] == v, geo_config))[0]["level"]
+            lv = list(filter(lambda x: x["alias"] == v, geo_config))[0][
+                "level"
+            ]
             parent_id = None
             if lv > 0:
                 plv = levels[iv - 1]

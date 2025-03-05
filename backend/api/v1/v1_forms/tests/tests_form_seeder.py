@@ -65,7 +65,9 @@ class FormSeederTestCase(TestCase):
         forms = Forms.objects.all()
         self.assertEqual(forms.count(), len(json_forms))
         for form in forms:
-            self.assertIn(f"Form Created | {form.name} V{form.version}", output)
+            self.assertIn(
+                f"Form Created | {form.name} V{form.version}", output
+            )
             self.assertIn(form.name, json_forms)
 
         # RUN UPDATE EXISTING FORM
@@ -191,4 +193,6 @@ class FormSeederTestCase(TestCase):
         ][0]
         self.assertIn("disabled", phone)
         self.assertEqual(phone["short_label"], "Phone Number")
-        self.assertEqual(phone["disabled"], {"submission_type": ["monitoring"]})
+        self.assertEqual(
+            phone["disabled"], {"submission_type": ["monitoring"]}
+        )
