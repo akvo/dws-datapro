@@ -68,17 +68,17 @@ spec:
           env:
             - name: GOOGLE_SQL_COMPUTE_ZONE
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: iwsims
                   key: google-sql-compute-zone
             - name: GOOGLE_SQL_DB_INSTANCE
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: iwsims
                   key: google-sql-db-instance
             - name: GOOGLE_PROJECT
               valueFrom:
-                configMapKeyRef:
+                secretKeyRef:
                   name: iwsims
                   key: google-project
           volumeMounts:
