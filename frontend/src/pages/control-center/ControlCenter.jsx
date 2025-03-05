@@ -88,7 +88,7 @@ const ControlCenter = () => {
         <DescriptionPanel description={text.ccDescriptionPanel} />
 
         <div className="profile-container">
-          <h2>RTMIS Control Center</h2>
+          <h2>IWSIMS Control Center</h2>
           <div className="profle-wrapper">
             <img src="/assets/profile.png" />
             <div>

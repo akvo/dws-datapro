@@ -37,7 +37,7 @@ Object {
       The Rural Sanitation and Hygiene (RuSH) Protocol was developed by the Ministry of Health (MOH), with support from USAID, the Government of Japan, and UNICEF, followed by an extensive consultation process with stakeholders at national and county levels. The Protocol tracks progress from open defecation to a clean and healthy environment. The RuSH Protocol was designed to build on previous sanitation policies on implementation and monitoring to accelerate and enhance rural sanitation and hygiene services across Kenya.
       <br />
       <br />
-      The RUSH protocol has paved the way for developing the Real-time Monitoring Information System (RTMIS) based on a graded system that aims for safely managed sanitation and hygiene services in rural and urban areas. The RTMIS provides real-time information on sanitation and hygiene, aggregates county and national data based on national and global M&E framework (RuSH Protocol, JMP, GLAAS), and facilitates data analysis, report generation, and visualization.
+      The RUSH protocol has paved the way for developing the Real-time Monitoring Information System (IWSIMS) based on a graded system that aims for safely managed sanitation and hygiene services in rural and urban areas. The IWSIMS provides real-time information on sanitation and hygiene, aggregates county and national data based on national and global M&E framework (RuSH Protocol, JMP, GLAAS), and facilitates data analysis, report generation, and visualization.
     </React.Fragment>,
     "accountDisclaimer": "The user is accountable for his/her account and in case there are any changes (Transfers, retirement, any kind of leave, resignation etc) this should be communicated to the County Administrator or National Super Admin who might be able to assign the roles to the new officer.",
     "actionColumn": "Action",
@@ -292,14 +292,14 @@ Object {
     },
     "footerContactPhone": "+254-20-2717077",
     "footerContactTitle": "Contacts",
-    "footerDonorSupport": "RTMIS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
+    "footerDonorSupport": "IWSIMS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
     "footerExternalLinkItems": Array [
       Object {
         "text": "JMP",
         "url": "https://washdata.org/how-we-work/about-jmp#:~:text=Background,hygiene%20(WASH)%20since%201990",
       },
       Object {
-        "text": "CLTS RTMIS",
+        "text": "CLTS IWSIMS",
         "url": " http://wash.health.go.ke/clts/index.jsp",
       },
       Object {
@@ -609,7 +609,7 @@ Object {
     "questionCol": "Question",
     "questionnaireText": "Questionnaire",
     "questionnairesLabel": "Questionnaires",
-    "realTime": "Real-Time Monitoring and Information System (RTMIS)",
+    "realTime": "Real-Time Monitoring and Information System (IWSIMS)",
     "reportText": "Report generation and visualizations.",
     "reports": "Reports",
     "resetHint": <React.Fragment>
@@ -639,7 +639,7 @@ Object {
     "selectType": "Select type...",
     "sendInstructions": "Send Instructions",
     "sendNewRequest": "Notify Approver",
-    "service1Text": "RTMIS offers real-time data for prompt decision-maker access.",
+    "service1Text": "IWSIMS offers real-time data for prompt decision-maker access.",
     "service2Text": "Identifying needs enables targeted interventions and efficient resource deployment.",
     "service3Text": "Real-time insights optimize sanitation metrics for efficient resource allocation.",
     "settings": "System Settings",
@@ -713,13 +713,13 @@ Object {
     "welcome": <React.Fragment>
       Rural and Urban Sanitation and Hygiene (RUSH)
       <br />
-      Real-Time Monitoring and Information System (RTMIS)
+      Real-Time Monitoring and Information System (IWSIMS)
     </React.Fragment>,
     "welcomeCta": "Explore National Data",
     "welcomeDesc": <React.Fragment>
       Rural and Urban Sanitation and Hygiene (RUSH)
       <br />
-      Real-Time Monitoring and Information System (RTMIS)
+      Real-Time Monitoring and Information System (IWSIMS)
     </React.Fragment>,
     "welcomeShort": "Welcome to RUSH",
     "year": "Year",

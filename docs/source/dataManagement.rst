@@ -22,17 +22,17 @@ Collecting Data in the Field
 -----------------------------
 
 **Sampling**
-The sources of data for the RTMIS are both primary and secondary. The data will be collected from all the 47 counties in Kenya. The basic unit for the sanitation and hygiene primary data shall be the households in both Rural and urban setups. Sanitation and hygiene primary data shall also be collected from Schools and health care facilities nationwide.   Secondary data will be collected at the county level to report on financing. At the sub-county level, urban sanitation data will be enriched with data/information from the WARIS system. During phase 1 of RUSH RTMIS implementation, data collection shall proceed as follows:
+The sources of data for the IWSIMS are both primary and secondary. The data will be collected from all the 47 counties in Kenya. The basic unit for the sanitation and hygiene primary data shall be the households in both Rural and urban setups. Sanitation and hygiene primary data shall also be collected from Schools and health care facilities nationwide.   Secondary data will be collected at the county level to report on financing. At the sub-county level, urban sanitation data will be enriched with data/information from the WARIS system. During phase 1 of RUSH IWSIMS implementation, data collection shall proceed as follows:
 
 * Data shall be collected from every village/community in the 47 counties of kenya
 * In each village/community, 20 HHs shall be picked randomly. This sampling method will apply for both rural and urban villages/communities
 * All schools  from all the 47 counties shall be surveyed
 * All levels of health care facilities from all the 47 counties shall be surveyed
 
-During phase 2 of RUSH RTMIS implementation, data collection will be done at every household. Therefore there shall be no sampling of households moving forward.
+During phase 2 of RUSH IWSIMS implementation, data collection will be done at every household. Therefore there shall be no sampling of households moving forward.
 
 **HH coding**
-* To ensure ease of reference during repeat data collection (particularly during phase 2 of RUSH RTMIS implementation), all households will be coded with a unique code
+* To ensure ease of reference during repeat data collection (particularly during phase 2 of RUSH IWSIMS implementation), all households will be coded with a unique code
 * This unique code will apply when the RUSH protocol is fully implemented 
 * The Unique Code shall be composed as follows:  Village name+SN + HH Head's Surname
 

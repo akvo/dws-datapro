@@ -7,14 +7,14 @@ const uiText = {
       <Fragment>
         Rural and Urban Sanitation and Hygiene (RUSH)
         <br />
-        Real-Time Monitoring and Information System (RTMIS)
+        Real-Time Monitoring and Information System (IWSIMS)
       </Fragment>
     ),
     welcomeDesc: (
       <Fragment>
         Rural and Urban Sanitation and Hygiene (RUSH)
         <br />
-        Real-Time Monitoring and Information System (RTMIS)
+        Real-Time Monitoring and Information System (IWSIMS)
       </Fragment>
     ),
     countdownTitle: "Time remaining to achieve national RUSH targets:",
@@ -26,7 +26,7 @@ const uiText = {
     second: "Second",
     welcomeCta: "Explore National Data",
     service1Text:
-      "RTMIS offers real-time data for prompt decision-maker access.",
+      "IWSIMS offers real-time data for prompt decision-maker access.",
     service2Text:
       "Identifying needs enables targeted interventions and efficient resource deployment.",
     service3Text:
@@ -45,9 +45,9 @@ const uiText = {
         <br />
         <br />
         The RUSH protocol has paved the way for developing the Real-time
-        Monitoring Information System (RTMIS) based on a graded system that aims
+        Monitoring Information System (IWSIMS) based on a graded system that aims
         for safely managed sanitation and hygiene services in rural and urban
-        areas. The RTMIS provides real-time information on sanitation and
+        areas. The IWSIMS provides real-time information on sanitation and
         hygiene, aggregates county and national data based on national and
         global M&E framework (RuSH Protocol, JMP, GLAAS), and facilitates data
         analysis, report generation, and visualization.
@@ -64,7 +64,7 @@ const uiText = {
       </Fragment>
     ),
     learnMoreButton: "Learn more",
-    realTime: "Real-Time Monitoring and Information System (RTMIS)",
+    realTime: "Real-Time Monitoring and Information System (IWSIMS)",
     reportText: "Report generation and visualizations.",
     frameworkText: "4 M&E Frameworks",
     contactText: "Contact Us",
@@ -98,7 +98,7 @@ const uiText = {
     footerAboutDescription:
       "All the data contained in the RUSH platform is aggregated from both primary and secondary data sources from the 47 counties in Kenya. The data is updated on a monthly basis.",
     footerDonorSupport:
-      "RTMIS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
+      "IWSIMS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
     footerContactTitle: "Contacts",
     footerContactAddress:
       "Afya House, Cathedral Road, P.O. Box:30016–00100, Nairobi, Kenya",
@@ -115,7 +115,7 @@ const uiText = {
         url: "https://washdata.org/how-we-work/about-jmp#:~:text=Background,hygiene%20(WASH)%20since%201990",
       },
       {
-        text: "CLTS RTMIS",
+        text: "CLTS IWSIMS",
         url: " http://wash.health.go.ke/clts/index.jsp",
       },
       {

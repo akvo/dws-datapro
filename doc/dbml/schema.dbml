@@ -1,8 +1,8 @@
 Project rtmis {
   database_type: 'PostgreSQL'
   Note: '''
-    # RTMIS
-    RTMIS Database Schema
+    # IWSIMS
+    IWSIMS Database Schema
   '''
 }
 Enum "questions_type_enum" {

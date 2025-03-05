@@ -7,7 +7,7 @@ deployment_name="rtmis"
 deployment_version_label="rtmis-version"
 github_project="rtmis"
 notification="zulip"
-zulip_stream="RTMIS"
+zulip_stream="IWSIMS"
 
 docker run \
        --rm \

@@ -31,7 +31,7 @@
           "short_label": null,
           "type": "option",
           "tooltip": {
-            "text": "Entry of community data in RTMIS (first time) or update of monitoring data (existing community)"
+            "text": "Entry of community data in IWSIMS (first time) or update of monitoring data (existing community)"
           },
           "required": true,
           "meta": false,

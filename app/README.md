@@ -1,3 +1,3 @@
-# RTMIS Mobile App 
+# IWSIMS Mobile App 
 
-This is the code repository for the RTMIS mobile application.
+This is the code repository for the IWSIMS mobile application.

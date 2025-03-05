@@ -371,7 +371,7 @@ exports[`Login and Registration test if the login form exists: LoginPage 1`] = `
             All the data contained in the RUSH platform is aggregated from both primary and secondary data sources from the 47 counties in Kenya. The data is updated on a monthly basis.
           </p>
           <p>
-            RTMIS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.
+            IWSIMS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.
           </p>
         </div>
         <div
@@ -396,7 +396,7 @@ exports[`Login and Registration test if the login form exists: LoginPage 1`] = `
                 rel="noreferrer"
                 target="_blank"
               >
-                CLTS RTMIS
+                CLTS IWSIMS
               </a>
             </li>
             <li>
@@ -1017,7 +1017,7 @@ exports[`Login and Registration test if the registration form exists: Registrati
             All the data contained in the RUSH platform is aggregated from both primary and secondary data sources from the 47 counties in Kenya. The data is updated on a monthly basis.
           </p>
           <p>
-            RTMIS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.
+            IWSIMS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.
           </p>
         </div>
         <div
@@ -1042,7 +1042,7 @@ exports[`Login and Registration test if the registration form exists: Registrati
                 rel="noreferrer"
                 target="_blank"
               >
-                CLTS RTMIS
+                CLTS IWSIMS
               </a>
             </li>
             <li>

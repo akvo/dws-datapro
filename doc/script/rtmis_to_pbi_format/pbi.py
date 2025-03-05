@@ -44,9 +44,9 @@ for cq in curr_questions:
 for pq in prev_questions:
     [pq_id, pq_name] = pq.split("|")
     pq_object[pq_id] = pq_name
-print("PBI DATASET VS RTMIS DATASET\n")
+print("PBI DATASET VS IWSIMS DATASET\n")
 compare(cq_object, pq_object)
-print("\n\nPBI DATASET VS RTMIS DATASET\n")
+print("\n\nPBI DATASET VS IWSIMS DATASET\n")
 compare(pq_object, cq_object)
 curr["rand_point_id"] = curr["id"]
 curr["Path"] = curr["administration"].apply(

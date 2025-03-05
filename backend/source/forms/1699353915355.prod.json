@@ -31,7 +31,7 @@
           "short_label": null,
           "type": "option",
           "tooltip": {
-            "text": "Registration of household in RTMIS (new household) or update of monitoring data (existing household)"
+            "text": "Registration of household in IWSIMS (new household) or update of monitoring data (existing household)"
           },
           "required": true,
           "meta": false,

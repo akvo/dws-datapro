@@ -9,7 +9,7 @@ base_url = 'https://form-service.akvotest.org/api/form/'
 forms = [
     {
         "id": 1701757876668,
-        "name": "RTMIS School WASH Form",
+        "name": "IWSIMS School WASH Form",
     },
 ]
 question_types = {'input': 'text', 'image': 'photo'}

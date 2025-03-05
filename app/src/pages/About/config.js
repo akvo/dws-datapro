@@ -6,14 +6,14 @@ export const config = [
       {
         id: 1,
         type: 'text',
-        label: 'About RTMIS',
+        label: 'About IWSIMS',
         name: 'serverURL',
         description: 'Lorem Ipsum',
         editable: false,
         translations: [
           {
             language: 'fr',
-            name: 'About RTMIS',
+            name: 'About IWSIMS',
             description: 'Lorem Ipsum',
           },
         ],

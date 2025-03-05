@@ -26,7 +26,7 @@
           "short_label": null,
           "type": "option",
           "tooltip": {
-            "text": "Entry of institution data in RTMIS (first time) or update of monitoring data (existing institution)"
+            "text": "Entry of institution data in IWSIMS (first time) or update of monitoring data (existing institution)"
           },
           "required": true,
           "meta": false,

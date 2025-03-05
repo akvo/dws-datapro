@@ -1,9 +1,9 @@
-.. RTMIS documentation master file, created by
+.. IWSIMS documentation master file, created by
    sphinx-quickstart on Wed May 25 01:39:41 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to RTMIS's documentation!
+Welcome to IWSIMS's documentation!
 =================================
 
 |Build Status| |Repo Size| |Languages| |Issues| |Last Commit| |Coverage

@@ -20,7 +20,7 @@ elif [[ "$answer" == 'y' ]]; then
     curl -X POST https://akvo.zulipchat.com/api/v1/messages \
         -u "${ZULIP_CLI_TOKEN}" \
         -d "type=stream" \
-        -d "to=RTMIS" \
+        -d "to=IWSIMS" \
         -d "topic=Github" \
         -d "content=${message}"
     echo "-----------------------"

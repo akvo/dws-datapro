@@ -7,12 +7,12 @@
 #+PROPERTY: header-args :tangle data-model.sql
 #+STARTUP: showall
 
-#+NAME: RTMIS Database
+#+NAME: IWSIMS Database
 #+begin_src sql
 \d
 #+end_src
 
-#+RESULTS: RTMIS Database
+#+RESULTS: IWSIMS Database
 | List of relations |                                           |                   |       |
 |-------------------+-------------------------------------------+-------------------+-------|
 | Schema            | Name                                      | Type              | Owner |
