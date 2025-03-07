@@ -425,7 +425,6 @@ const App = () => {
   return (
     <Layout>
       <Layout.Header />
-      <Layout.Banner />
       <Layout.Body>
         {loading && !isHome && !isPublic ? (
           <PageLoader message="Initializing. Please wait.." />
@@ -433,7 +432,6 @@ const App = () => {
           <RouteList />
         )}
       </Layout.Body>
-      <Layout.Footer />
     </Layout>
   );
 };

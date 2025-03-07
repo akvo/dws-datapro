@@ -1,11 +1,9 @@
 import React, { useEffect, useMemo } from "react";
 import "./style.scss";
-import { Row, Col, Space, Button, Collapse } from "antd";
-import { FiCheckCircle } from "react-icons/fi";
-import { ContactForm, HomeAdministrationChart } from "../../components";
-
+import { Collapse } from "antd";
+import { HomeAdministrationChart } from "../../components";
 import { HomeMap } from "./components";
-import { queue, store, uiText } from "../../lib";
+import { queue, store } from "../../lib";
 // const { TabPane } = Tabs;
 
 // const partners = ["us-aid.png", "japan.png", "unicef.png"];
@@ -76,9 +74,6 @@ const Home = () => {
   // const [mapValues, setMapValues] = useState([]);
   const language = store.useState((s) => s.language);
   const { active: activeLang } = language;
-  const text = useMemo(() => {
-    return uiText[activeLang];
-  }, [activeLang]);
 
   // const onTabClick = (active) => {
   //   setCurrentHighlight(highlights.find((x) => x.name === active));
@@ -95,166 +90,7 @@ const Home = () => {
     });
   }, []);
 
-  return (
-    <div id="home">
-      <div className="home-even highlights">
-        <div className="body">
-          <Row justify={{ lg: "space-evenly", md: "start" }} gutter={[16, 16]}>
-            {serviceContent(text).map((s, si) => (
-              <Col key={`service-${si}`} lg={6}>
-                <Space size="middle">
-                  <div
-                    style={{
-                      backgroundColor: "#E8EEF8",
-                      padding: "18px",
-                      borderRadius: "50px",
-                    }}
-                  >
-                    <img
-                      src={`/assets/services/${s.image}`}
-                      alt={s.text}
-                      style={{
-                        width: "32px",
-                        height: "32px",
-                      }}
-                    />
-                  </div>
-                  <div style={{ fontSize: "14px" }}>{s.text}</div>
-                </Space>
-              </Col>
-            ))}
-          </Row>
-        </div>
-      </div>
-      <div className="home-odd about">
-        <Row>
-          <Col md={10}>
-            <h1>{text.aboutRush}</h1>
-          </Col>
-          <Col md={14}>
-            <p>{text.aboutText}</p>
-            {/*
-            <Button type="link">{text.learnMoreButton}</Button>
-            <h1>Partners</h1>
-            <Row align="middle" justify="center" style={{ marginTop: "24px" }}>
-              <Space size={50} align="center">
-                {partners.map((p) => (
-                  <Image
-                    key={p}
-                    alt={p}
-                    src={`/assets/partners/${p}`}
-                    width={160}
-                    preview={false}
-                  />
-                ))}
-              </Space>
-            </Row> */}
-          </Col>
-        </Row>
-      </div>
-      <div className="home-even highlights">
-        <div className="body">
-          <Row gutter={24} justify="space-between">
-            <Col lg={12}>
-              <div className="report-wrapper">
-                <div className="description">
-                  <h1>{text.realTime}</h1>
-                  <p>{text.aboutHighlight}</p>
-                </div>
-                <ul>
-                  <li className="inline">
-                    <Space align="center">
-                      <FiCheckCircle />
-                      <span>{text.frameworkText}</span>
-                    </Space>
-                  </li>
-                  <li className="inline">
-                    <Space align="center">
-                      <FiCheckCircle />
-                      <span>{text.reportText}</span>
-                    </Space>
-                  </li>
-                </ul>
-                {/*
-                <Button type="primary" shape="round">
-                  {text.welcomeCta}
-                </Button>
-                */}
-              </div>
-            </Col>
-            <Col lg={12}>
-              <div className="report-visual-wrapper">
-                <img
-                  src={"/assets/iwsims-girl-washing-her-hands.png"}
-                  alt="Girl washing her hands"
-                  style={{
-                    // webkitTransform: "scaleX(-1)",
-                    // transform: "scaleX(-1)",
-                    // marginRight: "-50px",
-                    maxWidth: "700px",
-                    position: "absolute",
-                    zIndex: 2,
-                    left: "150px",
-                    top: 0,
-                  }}
-                />
-                <div
-                  style={{
-                    width: "450px",
-                    height: "300px",
-                    background: "#F5FAFF",
-                    borderRadius: "16px",
-                    position: "absolute",
-                    right: "50px",
-                    top: "-10px",
-                    zIndex: 1,
-                  }}
-                ></div>
-              </div>
-            </Col>
-          </Row>
-        </div>
-        <div className="body" id="home-visualisation">
-          {/* <Tabs
-            defaultActiveKey={highlights?.[0]?.name}
-            onTabClick={onTabClick}
-            centered
-          >
-            {highlights?.map((highlight) => (
-              <TabPane tab={highlight.name} key={highlight.name}>
-                <p className="highlight-title">{highlight.description}</p>
-              </TabPane>
-            ))}
-          </Tabs>
-          <Visuals
-            current={currentHighlight}
-            mapValues={mapValues}
-            setMapValues={setMapValues}
-          /> */}
-        </div>
-      </div>
-      <div className="home-odd contact">
-        <h2>{text.contactText}</h2>
-        <Row align="middle" justify="center">
-          <Space direction="vertical" align="center">
-            <h3>{text.contactDesText}</h3>
-            <Button
-              shape="round"
-              type="primary"
-              onClick={() => {
-                store.update((s) => {
-                  s.showContactFormModal = true;
-                });
-              }}
-            >
-              {text.feedbackBtn}
-            </Button>
-          </Space>
-        </Row>
-      </div>
-      <ContactForm />
-    </div>
-  );
+  return <div id="home"></div>;
 };
 
 export default React.memo(Home);
