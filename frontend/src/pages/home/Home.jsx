@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import "./style.scss";
 import { Collapse } from "antd";
 import { HomeAdministrationChart } from "../../components";
 import { HomeMap } from "./components";
-import { queue, store } from "../../lib";
+import { queue } from "../../lib";
 // const { TabPane } = Tabs;
 
 // const partners = ["us-aid.png", "japan.png", "unicef.png"];
@@ -53,27 +53,10 @@ export const Visuals = ({ current, mapValues, setMapValues }) => {
   );
 };
 
-const serviceContent = (text) => [
-  {
-    image: "service-1.svg",
-    text: text.service1Text,
-  },
-  {
-    image: "service-2.svg",
-    text: text.service2Text,
-  },
-  {
-    image: "service-3.svg",
-    text: text.service3Text,
-  },
-];
-
 const Home = () => {
   // const { highlights } = window;
   // const [currentHighlight, setCurrentHighlight] = useState(highlights?.[0]);
   // const [mapValues, setMapValues] = useState([]);
-  const language = store.useState((s) => s.language);
-  const { active: activeLang } = language;
 
   // const onTabClick = (active) => {
   //   setCurrentHighlight(highlights.find((x) => x.name === active));

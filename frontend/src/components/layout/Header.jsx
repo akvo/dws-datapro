@@ -15,7 +15,6 @@ const Header = ({ className = "header", ...props }) => {
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
-  const dashboards = window?.powerBIDashboard;
 
   const signOut = useCallback(async () => {
     eraseCookieFromAllPaths("AUTH_TOKEN");
@@ -73,23 +72,6 @@ const Header = ({ className = "header", ...props }) => {
     }
     return userMenu;
   }, [text, user, signOut]);
-
-  const DashboardMenu = useMemo(() => {
-    return dashboards?.map((d) => {
-      return {
-        key: d.name,
-        label: (
-          <Link
-            key={`${d.name}`}
-            to={`/${d.page}/${d.path}`}
-            className="dropdown-menu-item"
-          >
-            {d.name}
-          </Link>
-        ),
-      };
-    });
-  }, [dashboards]);
 
   return (
     <Row
