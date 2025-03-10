@@ -4,10 +4,10 @@
 set -eu
 
 python manage.py migrate
-# python manage.py generate_views
-# python manage.py generate_sqlite >/dev/null &
-# python manage.py generate_config >/dev/null &
-# python manage.py download_all_administrations >/dev/null &
+python manage.py generate_views
+python manage.py generate_sqlite >/dev/null &
+python manage.py generate_config >/dev/null &
+python manage.py download_all_administrations >/dev/null &
 
 function log {
     echo "$(date +"%T") - START INFO - $*"
