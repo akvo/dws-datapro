@@ -1,0 +1,318 @@
+{
+    "id": 1044040973,
+    "form": "New form",
+    "description": "WAF's Waste Water Pump Station",
+    "defaultLanguage": "en",
+    "languages": [
+        "en"
+    ],
+    "version": 30,
+    "type": 1,
+    "submission_types": [
+        "registration",
+        "monitoring"
+    ],
+    "question_groups": [
+        {
+            "id": 1044040974,
+            "order": 1,
+            "name": "INIT / UPDATE",
+            "label": "INIT / UPDATE",
+            "questions": [
+                {
+                    "id": 1044040975,
+                    "order": 1,
+                    "name": "reg_or_update",
+                    "label": "Is this a new registration or an update?",
+                    "type": "option",
+                    "required": true,
+                    "meta": false,
+                    "options": [
+                        {
+                            "order": 1,
+                            "label": "Registration",
+                            "value": "new"
+                        },
+                        {
+                            "order": 2,
+                            "label": "Update",
+                            "value": "update"
+                        }
+                    ],
+                    "default_value": {
+                        "submission_type": {
+                            "monitoring": "update",
+                            "registration": "new"
+                        }
+                    }
+                },
+                {
+                    "id": 1044040976,
+                    "order": 2,
+                    "name": "water_point_uuid",
+                    "label": "Water Point UUID",
+                    "short_label": "Water Point UUID",
+                    "meta": false,
+                    "type": "text",
+                    "required": true,
+                    "meta_uuid": true
+                },
+                {
+                    "id": 1044040977,
+                    "order": 1,
+                    "name": "location",
+                    "label": "Which Village are you in?",
+                    "type": "administration",
+                    "required": true,
+                    "meta": true,
+                    "disabled": {
+                        "submission_type": [
+                            "monitoring"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "id": 1044040974,
+            "order": 1,
+            "name": "Pump Station Registration",
+            "label": "Pump Station Registration",
+            "questions": [
+                {
+                    "id": 1045860971,
+                    "order": 1,
+                    "name": "Which_division_are_you_in",
+                    "label": "Which division are you in?",
+                    "type": "option",
+                    "required": true,
+                    "meta": false,
+                    "options": [
+                        {
+                            "order": 1,
+                            "value": "Central Division",
+                            "label": "Central Division"
+                        },
+                        {
+                            "order": 2,
+                            "value": "Northern Division",
+                            "label": "Northern Division"
+                        },
+                        {
+                            "order": 3,
+                            "value": "Western Division",
+                            "label": "Western Division"
+                        }
+                    ]
+                },
+                {
+                    "id": 1009230969,
+                    "order": 2,
+                    "name": "Which_Waste_Water_Treatment_Plant_is_this_facility_connected_to",
+                    "label": "Which Waste Water Treatment Plant is this facility connected to?",
+                    "type": "option",
+                    "required": true,
+                    "meta": false,
+                    "options": [
+                        {
+                            "order": 1,
+                            "value": "ACS WWTP",
+                            "label": "ACS WWTP"
+                        },
+                        {
+                            "order": 2,
+                            "value": "Deuba WWTP",
+                            "label": "Deuba WWTP"
+                        },
+                        {
+                            "order": 3,
+                            "value": "Kinoya WWTP",
+                            "label": "Kinoya WWTP"
+                        },
+                        {
+                            "order": 4,
+                            "value": "Naboro WWTP",
+                            "label": "Naboro WWTP"
+                        },
+                        {
+                            "order": 5,
+                            "value": "Nadali WWTP",
+                            "label": "Nadali WWTP"
+                        },
+                        {
+                            "order": 6,
+                            "value": "Namara WWTP",
+                            "label": "Namara WWTP"
+                        },
+                        {
+                            "order": 7,
+                            "value": "Natabua WWTP",
+                            "label": "Natabua WWTP"
+                        },
+                        {
+                            "order": 8,
+                            "value": "Navakai WWTP",
+                            "label": "Navakai WWTP"
+                        },
+                        {
+                            "order": 9,
+                            "value": "Olosara WWTP",
+                            "label": "Olosara WWTP"
+                        },
+                        {
+                            "order": 10,
+                            "value": "Votua WWTP",
+                            "label": "Votua WWTP"
+                        },
+                        {
+                            "order": 11,
+                            "value": "Wailada WWTP",
+                            "label": "Wailada WWTP"
+                        }
+                    ]
+                },
+                {
+                    "id": 1040480988,
+                    "order": 3,
+                    "name": "Name_of_Pump_Station",
+                    "label": "Name of Pump Station",
+                    "type": "text",
+                    "required": true,
+                    "meta": false
+                },
+                {
+                    "id": 1037111005,
+                    "order": 4,
+                    "name": "Take_Photo_of_the",
+                    "label": "Take Photo of the",
+                    "type": "text",
+                    "required": true,
+                    "meta": false
+                }
+            ]
+        },
+        {
+            "id": 1044040975,
+            "order": 2,
+            "name": "Pump Station Status",
+            "label": "Pump Station Status",
+            "questions": [
+                {
+                    "id": 1037111002,
+                    "order": 1,
+                    "name": "Is_the_pump_station_active",
+                    "label": "Is the pump station active?",
+                    "type": "option",
+                    "required": true,
+                    "meta": false,
+                    "options": [
+                        {
+                            "order": 1,
+                            "value": "Yes",
+                            "label": "Yes"
+                        },
+                        {
+                            "order": 2,
+                            "value": "No",
+                            "label": "No"
+                        }
+                    ]
+                },
+                {
+                    "id": 999690983,
+                    "order": 2,
+                    "name": "How_many_pumps_are_in_this_pump_station",
+                    "label": "How many pumps are in this pump station?",
+                    "type": "number",
+                    "required": true,
+                    "meta": false
+                },
+                {
+                    "id": 1044070988,
+                    "order": 3,
+                    "name": "Is_the_pump_operational",
+                    "label": "Is the pump operational?",
+                    "type": "option",
+                    "required": true,
+                    "meta": false,
+                    "options": [
+                        {
+                            "order": 1,
+                            "value": "Yes",
+                            "label": "Yes"
+                        },
+                        {
+                            "order": 2,
+                            "value": "No",
+                            "label": "No"
+                        }
+                    ]
+                },
+                {
+                    "id": 1027160989,
+                    "order": 4,
+                    "name": "Why_is_the_pump_not_operational",
+                    "label": "Why is the pump not operational?",
+                    "type": "text",
+                    "required": true,
+                    "meta": false,
+                    "dependency": [
+                        {
+                            "id": 1044070988,
+                            "options": [
+                                "No"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1044070989,
+                    "order": 5,
+                    "name": "Is_there_a_standby_pump_for_this_facility",
+                    "label": "Is there a standby pump for this facility?",
+                    "type": "option",
+                    "required": true,
+                    "meta": false,
+                    "options": [
+                        {
+                            "order": 1,
+                            "value": "Yes",
+                            "label": "Yes"
+                        },
+                        {
+                            "order": 2,
+                            "value": "No",
+                            "label": "No"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "id": 1044040976,
+            "order": 3,
+            "name": "Issues at the facility",
+            "label": "Issues at the facility",
+            "questions": [
+                {
+                    "id": 999680998,
+                    "order": 1,
+                    "name": "Issues_noted",
+                    "label": "Issues noted",
+                    "type": "text",
+                    "required": true,
+                    "meta": false
+                },
+                {
+                    "id": 1044020985,
+                    "order": 2,
+                    "name": "Take_photo_of_issue",
+                    "label": "Take photo of issue",
+                    "type": "photo",
+                    "required": true,
+                    "meta": false
+                }
+            ]
+        }
+    ]
+}
