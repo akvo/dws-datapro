@@ -57,6 +57,7 @@ class FormSeederTestCase(TestCase):
         json_forms = [
             "EPS Water Quality Testing",
             "Short HH",
+            "Water Treatment Plant",
         ]
 
         # RUN SEED NEW FORM
