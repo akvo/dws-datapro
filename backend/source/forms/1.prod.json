@@ -81,7 +81,7 @@
 					"extra": {
 						"type": "entity",
 						"name": "Water Treatment Plant",
-						"parentId": 3
+						"parentId": 1
 					},
 					"disabled": {
 						"submission_type": ["monitoring"]
