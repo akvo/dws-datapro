@@ -11,7 +11,9 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "ios": {
       "supportsTablet": true
     },
@@ -32,42 +34,31 @@
       }
     },
     "owner": "akvo",
-    "backgroundFetch": {
-      "jobs": [
-        {
-          "jobName": "sync-form-version",
-          "minimumInterval": 3600,
-          "enabled": true
-        },
-        {
-          "jobName": "sync-form-submission",
-          "minimumInterval": 1,
-          "enabled": true
-        }
-      ]
-    },
     "plugins": [
       [
-        "sentry-expo",
+        "@sentry/react-native/expo",
         {
           "url": "https://sentry.io/",
           "note": "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
           "organization": "akvo-foundation",
           "project": "iwsims-mobile",
-          "setCommits": true
+          "setCommits": true,
+          "experimental_android": {
+            "enableAndroidGradlePlugin": true
+          }
         }
-      ]
-    ],
-    "hooks": {
-      "postPublish": [
+      ],
+      [
+        "expo-sqlite",
         {
-          "file": "sentry-expo/upload-sourcemaps",
-          "config": {
-            "organization": "akvo-foundation",
-            "project": "iwsims-mobile"
+          "enableFTS": true,
+          "useSQLCipher": true,
+          "android": {
+            "enableFTS": false,
+            "useSQLCipher": false
           }
         }
       ]
-    }
+    ]
   }
 }
