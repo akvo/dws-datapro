@@ -1,57 +1,44 @@
-import { conn, query } from '..';
-
-const db = conn.init;
+import sql from '../sql';
 
 const usersQuery = () => ({
-  getActiveUser: async () => {
+  getActiveUser: async (db) => {
     try {
       const active = 1;
-      const { rows } = await conn.tx(db, query.read('users', { active }), [active]);
-      if (!rows.length) {
-        return false;
-      }
-      return rows._array[0];
+      const row = await sql.getFirstRow(db, 'users', { active });
+      return row;
     } catch (error) {
       return false;
     }
   },
-  selectUserById: async ({ id }) => {
-    const { rows } = await conn.tx(db, query.read('users', { id }), [id]);
-    if (!rows.length) {
-      return {};
-    }
-    return rows._array[0];
+  selectUserById: async (db, { id }) => {
+    const row = await sql.getFirstRow(db, 'users', { id });
+    return row;
   },
-  addNew: async (payload) => {
+  addNew: async (db, payload) => {
     const params = {
       ...payload,
       certifications: payload?.certifications
         ? JSON.stringify(payload.certifications).replace(/'/g, "''")
         : null,
     };
-    const { insertId } = await conn.tx(db, query.insert('users', params), []);
-    return insertId;
+    const row = await sql.insertRow(db, 'users', params);
+    return row;
   },
-  toggleActive: async ({ id, active }) => {
+  toggleActive: async (db, { id, active }) => {
     try {
-      const { rowsAffected } = await conn.tx(
-        db,
-        query.update('users', { id }, { active: !active }),
-        [id],
-      );
-      return rowsAffected;
+      const row = await sql.updateRow(db, 'users', id, { active: !active });
+      return row;
     } catch (error) {
       return false;
     }
   },
-  checkPasscode: async (passcode) => {
-    const { rows } = await conn.tx(db, query.read('users', { password: passcode }), [passcode]);
-    return rows;
+  checkPasscode: async (db, passcode) => {
+    const row = await sql.getFirstRow(db, 'users', { password: passcode });
+    return row;
   },
-  updateLastSynced: async (id) => {
-    const updateQuery = query.update('users', { id }, { lastSyncedAt: new Date().toISOString() });
-    const { rows } = await conn.tx(db, updateQuery, [id]);
-    return rows;
+  updateLastSynced: async (db, id) => {
+    const row = await sql.updateRow(db, 'users', id, { lastSyncedAt: new Date().toISOString() });
+    return row;
   },
 });
 

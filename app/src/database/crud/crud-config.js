@@ -1,34 +1,22 @@
-import { conn, query } from '..';
-import defaultBuildParams from '../../build';
-
-const db = conn.init;
+import sql from '../sql';
 
 const configQuery = () => {
   const id = 1;
   return {
-    getConfig: async () => {
+    getConfig: async (db) => {
       try {
-        const { rows } = await conn.tx(db, query.read('config', { id }), [id]);
-        if (!rows.length) {
-          return false;
-        }
-        return rows._array[rows.length - 1];
+        const config = await sql.getFirstRow(db, 'config');
+        return config;
       } catch {
         return false;
       }
     },
-    addConfig: async (data = {}) => {
-      const insertQuery = query.insert('config', {
-        id,
-        appVersion: defaultBuildParams.appVersion,
-        ...data,
-      });
-      const res = await conn.tx(db, insertQuery, []);
+    addConfig: async (db, data = {}) => {
+      const res = await sql.insertRow(db, 'config', data);
       return res;
     },
-    updateConfig: async (data) => {
-      const updateQuery = query.update('config', { id }, { ...data });
-      const res = await conn.tx(db, updateQuery, [id]);
+    updateConfig: async (db, data) => {
+      const res = await sql.updateRow(db, 'config', data, { id });
       return res;
     },
   };

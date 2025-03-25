@@ -1,13 +1,10 @@
-import { conn, query } from '..';
+import sql from '../sql';
 
-const db = conn.init;
-
-const selectDataPointById = async ({ id }) => {
-  const { rows } = await conn.tx(db, query.read('datapoints', { id }), [id]);
-  if (!rows.length) {
-    return {};
+const selectDataPointById = async (db, { id }) => {
+  const current = await sql.getFilteredRows(db, 'datapoints', { id });
+  if (!current) {
+    return false;
   }
-  const current = rows._array[0];
   return {
     ...current,
     json: JSON.parse(current.json.replace(/''/g, "'")),
@@ -16,22 +13,14 @@ const selectDataPointById = async ({ id }) => {
 
 const dataPointsQuery = () => ({
   selectDataPointById,
-  selectDataPointsByFormAndSubmitted: async ({ form, submitted, user }) => {
+  selectDataPointsByFormAndSubmitted: async (db, { form, submitted, user }) => {
     const columns = user ? { form, submitted, user } : { form, submitted };
-    const params = user ? [form, submitted, user] : [form, submitted];
-    const { rows } = await conn.tx(
-      db,
-      query.read('datapoints', { ...columns }, true, 'syncedAt', 'DESC'),
-      [...params],
-    );
-    if (!rows.length) {
-      return [];
-    }
-    return rows._array;
+    const rows = sql.getFilteredRows(db, 'datapoints', { ...columns }, 'syncedAt', 'DESC', true);
+    return rows;
   },
-  selectSubmissionToSync: async () => {
+  selectSubmissionToSync: async (db) => {
     const submitted = 1;
-    const { rows } = await conn.tx(
+    const rows = await sql.executeQuery(
       db,
       `
         SELECT
@@ -40,18 +29,19 @@ const dataPointsQuery = () => ({
           forms.json AS json_form
         FROM datapoints
         JOIN forms ON datapoints.form = forms.id
-        WHERE datapoints.submitted = ? AND datapoints.syncedAt IS NULL`,
-      [submitted],
+        WHERE datapoints.submitted = ${submitted} AND datapoints.syncedAt IS NULL
+        ORDER BY datapoints.createdAt ASC
+        LIMIT 1`,
     );
-    if (!rows.length) {
-      return [];
-    }
-    return rows._array;
+    return rows;
   },
-  saveDataPoint: async ({ form, user, name, geo, submitted, duration, json, submissionType }) => {
+  saveDataPoint: async (
+    db,
+    { form, user, name, geo, submitted, duration, json, submissionType },
+  ) => {
     const submittedAt = submitted ? { submittedAt: new Date().toISOString() } : {};
     const geoVal = geo ? { geo } : {};
-    const insertQuery = query.insert('datapoints', {
+    const res = await sql.insertRow(db, 'datapoints', {
       form,
       user,
       name,
@@ -63,23 +53,15 @@ const dataPointsQuery = () => ({
       json: json ? JSON.stringify(json).replace(/'/g, "''") : null,
       submission_type: submissionType,
     });
-    const res = await conn.tx(db, insertQuery, []);
     return res;
   },
-  updateDataPoint: async ({
-    id,
-    name,
-    geo,
-    submitted,
-    duration,
-    submittedAt,
-    syncedAt,
-    json,
-    submissionType,
-  }) => {
-    const updateQuery = query.update(
+  updateDataPoint: async (
+    db,
+    { id, name, geo, submitted, duration, submittedAt, syncedAt, json, submissionType },
+  ) => {
+    const res = await sql.updateRow(
+      db,
       'datapoints',
-      { id },
       {
         name,
         geo,
@@ -90,8 +72,8 @@ const dataPointsQuery = () => ({
         json: json ? JSON.stringify(json).replace(/'/g, "''") : null,
         submission_type: submissionType,
       },
+      { id },
     );
-    const res = await conn.tx(db, updateQuery, [id]);
     return res;
   },
 });

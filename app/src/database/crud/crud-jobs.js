@@ -1,7 +1,5 @@
-import { conn, query } from '..';
+import sql from '../sql';
 import crudUsers from './crud-users';
-
-const db = conn.init;
 
 export const jobStatus = {
   PENDING: 1,
@@ -16,53 +14,45 @@ export const SYNC_DATAPOINT_JOB_NAME = 'sync-form-datapoints';
 
 const tableName = 'jobs';
 const jobsQuery = () => ({
-  getActiveJob: async (type) => {
+  getActiveJob: async (db, type) => {
     try {
-      const session = await crudUsers.getActiveUser();
+      const session = await crudUsers.getActiveUser(db);
       if (session?.id) {
         /**
          * Make sure the app only gets active jobs from current user
          */
         const where = { type, user: session.id };
-        const params = [type, session.id];
         const nocase = false;
         const orderBy = 'createdAt';
-        const readQuery = query.read(tableName, where, nocase, orderBy);
-        const { rows } = await conn.tx(db, readQuery, params);
-        if (!rows.length) {
-          return null;
-        }
-        return rows._array[0];
+        const rows = await sql.getFilteredRows(db, tableName, where, orderBy, 'DESC', nocase);
+        return rows;
       }
       return null;
     } catch {
       return null;
     }
   },
-  addJob: async (data = {}) => {
+  addJob: async (db, data = {}) => {
     try {
       const createdAt = new Date().toISOString()?.replace('T', ' ')?.split('.')?.[0] || null;
-      const insertQuery = query.insert(tableName, {
+      return await sql.insertRow(db, tableName, {
         ...data,
         createdAt,
       });
-      return await conn.tx(db, insertQuery, []);
     } catch (error) {
       return Promise.reject(error);
     }
   },
-  updateJob: async (id, data) => {
+  updateJob: async (db, id, data) => {
     try {
-      const updateQuery = query.update(tableName, { id }, data);
-      return await conn.tx(db, updateQuery, [id]);
+      return await sql.updateRow(db, tableName, id, data);
     } catch {
       return null;
     }
   },
-  deleteJob: async (id) => {
+  deleteJob: async (db, id) => {
     try {
-      const deleteQuery = `DELETE FROM ${tableName} WHERE id = ?`;
-      return await conn.tx(db, deleteQuery, [id]);
+      return await sql.deleteRow(db, tableName, id);
     } catch {
       return null;
     }

@@ -1,21 +1,16 @@
-import { conn, query } from '..';
-
-const db = conn.init;
+import sql from '../sql';
 
 const sessionsQuery = () => ({
-  selectLastSession: async () => {
+  selectLastSession: async (db) => {
     try {
-      const { rows } = await conn.tx(db, query.read('sessions', []));
-      if (!rows.length) {
-        return false;
-      }
-      return rows._array[rows.length - 1];
+      const rows = await sql.getEachRow(db, 'sessions');
+      return rows?.[rows.length - 1];
     } catch (error) {
       return false;
     }
   },
-  addSession: async (data = { token: '', passcode: '' }) => {
-    const res = await conn.tx(db, query.insert('sessions', data));
+  addSession: async (db, data = { token: '', passcode: '' }) => {
+    const res = await sql.insertRow(db, 'sessions', data);
     return res;
   },
 });
