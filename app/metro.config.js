@@ -1,7 +1,17 @@
 const { getDefaultConfig } = require('expo/metro-config');
+const { getSentryExpoConfig } = require('@sentry/react-native/metro');
 
 const defaultConfig = getDefaultConfig(__dirname);
+const sentryConfig = getSentryExpoConfig(__dirname);
 
-defaultConfig.resolver.assetExts.push('db');
+const mergedConfig = {
+  ...defaultConfig,
+  ...sentryConfig,
+  resolver: {
+    ...defaultConfig.resolver,
+    ...sentryConfig.resolver,
+    assetExts: [...defaultConfig.resolver.assetExts, 'db'],
+  },
+};
 
-module.exports = defaultConfig;
+module.exports = mergedConfig;
