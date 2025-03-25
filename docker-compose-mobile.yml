@@ -6,7 +6,7 @@ services:
       - 8081:8081
       - 19000:19000
   mobileapp:
-    image: node:18.16.0-alpine
+    image: akvo/akvo-node-18-alpine:20250306.055839.23cadbd
     command: ["./start.sh"]
     volumes:
       - iwsims-docker-mobile-sync:/app/node_modules:nocopy
