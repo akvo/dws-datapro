@@ -1,15 +1,18 @@
-import { conn, query } from '..';
+import sql from '../sql';
 
-const db = conn.init;
 const TABLE_NAME = 'certifications';
 
 const certificationQuery = () => ({
-  syncForm: async ({ formId, administrationId, formJSON }) => {
-    const findQuery = query.read(TABLE_NAME, { uuid: formJSON.uuid });
-    const { rows } = await conn.tx(db, findQuery, [formJSON.uuid]);
-
-    let params = [];
-    let queryText = query.insert(TABLE_NAME, {
+  syncForm: async (db, { formId, administrationId, formJSON }) => {
+    const rows = await sql.getFilteredRows(db, TABLE_NAME, { uuid: formJSON.uuid });
+    if (rows.length) {
+      const res = await sql.updateRow(db, TABLE_NAME, rows[0].id, {
+        json: formJSON?.answers ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
+        syncedAt: new Date().toISOString(),
+      });
+      return res;
+    }
+    const res = await sql.insertRow(db, TABLE_NAME, {
       formId,
       uuid: formJSON.uuid,
       name: formJSON?.datapoint_name || null,
@@ -17,23 +20,9 @@ const certificationQuery = () => ({
       json: formJSON?.answers ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
       syncedAt: new Date().toISOString(),
     });
-
-    if (rows.length) {
-      queryText = query.update(
-        TABLE_NAME,
-        { id: rows._array[0].id },
-        {
-          json: formJSON?.answers
-            ? JSON.stringify(formJSON.answers).replace(/'/g, "''")
-            : rows._array[0].json,
-        },
-      );
-      params = [rows._array[0].id];
-    }
-    const res = await conn.tx(db, queryText, params);
     return res;
   },
-  getTotal: async (formId, search, administrationId) => {
+  getTotal: async (db, formId, search, administrationId) => {
     let querySQL = search.length
       ? `SELECT COUNT(*) AS count FROM ${TABLE_NAME} where formId = ? AND name LIKE ? COLLATE NOCASE `
       : `SELECT COUNT(*) AS count FROM ${TABLE_NAME} where formId = ? `;
@@ -42,16 +31,13 @@ const certificationQuery = () => ({
       querySQL += ' AND administrationId = ? ';
       params.push(administrationId);
     }
-    const { rows } = await conn.tx(db, querySQL, params);
-    return rows._array?.[0]?.count;
+    const rows = await sql.executeQuery(db, querySQL, params);
+    return rows?.length;
   },
-  getPagination: async ({
-    formId,
-    search = '',
-    limit = 10,
-    offset = 0,
-    administrationId = null,
-  }) => {
+  getPagination: async (
+    db,
+    { formId, search = '', limit = 10, offset = 0, administrationId = null },
+  ) => {
     let sqlQuery = `SELECT * FROM ${TABLE_NAME} WHERE formId = $1`;
     const queryParams = [formId];
 
@@ -67,17 +53,14 @@ const certificationQuery = () => ({
 
     sqlQuery += ' ORDER BY syncedAt DESC LIMIT $4 OFFSET $5';
     queryParams.push(limit, offset * limit);
-    const { rows } = await conn.tx(db, sqlQuery, queryParams);
-
-    if (!rows.length) {
-      return [];
-    }
-    return rows._array;
+    const rows = await sql.executeQuery(db, sqlQuery, queryParams);
+    return rows;
   },
-  updateIsCertified: async (formId, uuid) => {
+  updateIsCertified: async (db, formId, uuid) => {
     try {
-      const updateQuery = query.update(TABLE_NAME, { formId, uuid }, { isCertified: 1 });
-      return await conn.tx(db, updateQuery, [formId, uuid]);
+      const updateQuery = `UPDATE ${TABLE_NAME} SET isCertified = 1 WHERE formId = ? AND uuid = ?`;
+      const params = [formId, uuid];
+      return await sql.executeQuery(db, updateQuery, params);
     } catch {
       return null;
     }
