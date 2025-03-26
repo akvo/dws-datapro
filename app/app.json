@@ -1,5 +1,6 @@
 {
   "expo": {
+    "newArchEnabled": true,
     "name": "iwsims-mobile",
     "slug": "iwsims-mobile",
     "version": "4.0.10",
