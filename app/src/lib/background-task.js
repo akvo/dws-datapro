@@ -19,7 +19,9 @@ const syncFormVersion = async ({
   showNotificationOnly = true,
   sendPushNotification = () => {},
 }) => {
-  const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+  const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+    useNewConnection: true,
+  });
   const { isConnected } = await Network.getNetworkStateAsync();
   if (!isConnected) {
     return;
@@ -57,6 +59,7 @@ const syncFormVersion = async ({
         }
         sendPushNotification();
       });
+      await db.closeAsync();
     });
   } catch (err) {
     Sentry.captureMessage('[background-task] syncFormVersion failed');
@@ -66,7 +69,9 @@ const syncFormVersion = async ({
 
 const registerBackgroundTask = async (TASK_NAME, settingsValue = null) => {
   try {
-    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
     const config = await crudConfig.getConfig(db);
     const syncInterval = settingsValue || parseInt(config?.syncInterval, 10) || 3600;
     const res = await BackgroundFetch.registerTaskAsync(TASK_NAME, {
@@ -74,6 +79,7 @@ const registerBackgroundTask = async (TASK_NAME, settingsValue = null) => {
       stopOnTerminate: false, // android only,
       startOnBoot: true, // android only
     });
+    await db.closeAsync();
     return res;
   } catch (err) {
     return Promise.reject(err);
@@ -141,7 +147,9 @@ const handleOnUploadPhotos = async (data) => {
 };
 
 const syncFormSubmission = async (activeJob = {}) => {
-  const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+  const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+    useNewConnection: true,
+  });
   const { isConnected } = await Network.getNetworkStateAsync();
   if (!isConnected) {
     return;
@@ -220,6 +228,7 @@ const syncFormSubmission = async (activeJob = {}) => {
       // delete the job when it's succeed
       await crudJobs.deleteJob(db, activeJob.id);
     }
+    await db.closeAsync();
   } catch (error) {
     Sentry.captureMessage(`[background-task] syncFormSubmission failed`);
     Sentry.captureException(error);
