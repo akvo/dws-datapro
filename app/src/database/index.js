@@ -1,3 +1,2 @@
-export { default as conn } from './conn';
-export { default as query } from './query';
+// eslint-disable-next-line import/prefer-default-export
 export { default as tables } from './tables';
