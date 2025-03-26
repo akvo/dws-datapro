@@ -1,9 +1,9 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View } from 'react-native';
 import { ListItem, Switch } from '@rneui/themed';
 import * as Crypto from 'expo-crypto';
 import * as Sentry from '@sentry/react-native';
-import { useSQLiteContext } from 'expo-sqlite';
+import * as SQLite from 'expo-sqlite';
 import { BaseLayout } from '../../components';
 import { config } from './config';
 import { BuildParamsState, UIState, AuthState, UserState } from '../../store';
@@ -11,11 +11,11 @@ import DialogForm from './DialogForm';
 import { backgroundTask, i18n } from '../../lib';
 import { accuracyLevels } from '../../lib/loc';
 import { crudConfig } from '../../database/crud';
+import { DATABASE_NAME } from '../../lib/constants';
 
 const SettingsForm = ({ route }) => {
   const [edit, setEdit] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
-  const db = useSQLiteContext();
 
   const { serverURL, dataSyncInterval, gpsThreshold, gpsAccuracyLevel, geoLocationTimeout } =
     BuildParamsState.useState((s) => s);
@@ -49,7 +49,7 @@ const SettingsForm = ({ route }) => {
 
   const nonEnglish = lang !== 'en';
   const curConfig = config.find((c) => c.id === route?.params?.id);
-  const pageTitle = nonEnglish ? i18n.transform(lang, curConfig)?.name : route?.params.name;
+  const pageTitle = nonEnglish ? i18n.transform(lang, curConfig)?.name : route?.params?.name;
 
   const editState = useMemo(() => {
     if (edit && edit?.key) {
@@ -71,6 +71,9 @@ const SettingsForm = ({ route }) => {
   };
 
   const handleUpdateOnDB = async (field, value) => {
+    const dbUpdate = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
     const configFields = [
       'apVersion',
       'authenticationCode',
@@ -83,15 +86,16 @@ const SettingsForm = ({ route }) => {
       'geoLocationTimeout',
     ];
     if (configFields.includes(field)) {
-      await crudConfig.updateConfig(db, { [field]: value });
+      await crudConfig.updateConfig(dbUpdate, { [field]: value });
     }
     if (field === 'name') {
-      await crudConfig.updateConfig(db, { name: value });
+      await crudConfig.updateConfig(dbUpdate, { name: value });
     }
     if (field === 'password') {
       const encrypted = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA1, value);
-      await crudConfig.updateConfig(db, { password: encrypted });
+      await crudConfig.updateConfig(dbUpdate, { password: encrypted });
     }
+    await dbUpdate.closeAsync();
   };
 
   const handleOnRestarTask = async (v) => {
@@ -155,15 +159,6 @@ const SettingsForm = ({ route }) => {
     return settingsState?.[fieldName];
   };
 
-  const loadSettings = useCallback(async () => {
-    const res = await crudConfig.getConfig(db);
-    const configRow = res || {};
-    setSettingsState((s) => ({
-      ...s,
-      ...configRow,
-    }));
-  }, [db]);
-
   const list = useMemo(() => {
     if (route.params?.id) {
       const findConfig = config.find((c) => c?.id === route.params.id);
@@ -171,10 +166,6 @@ const SettingsForm = ({ route }) => {
     }
     return [];
   }, [route.params?.id]);
-
-  useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
 
   return (
     <BaseLayout title={pageTitle} rightComponent={false}>
