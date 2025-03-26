@@ -1,7 +1,7 @@
 import sql from '../sql';
 
 const selectDataPointById = async (db, { id }) => {
-  const current = await sql.getFilteredRows(db, 'datapoints', { id });
+  const current = await sql.getFirstRow(db, 'datapoints', { id });
   if (!current) {
     return false;
   }
@@ -62,17 +62,17 @@ const dataPointsQuery = () => ({
     const res = await sql.updateRow(
       db,
       'datapoints',
+      { id },
       {
         name,
         geo,
         submitted,
         duration,
-        submittedAt: submitted && !submittedAt ? new Date().toISOString() : submittedAt,
         syncedAt,
+        submittedAt: submitted && !submittedAt ? new Date().toISOString() : submittedAt,
         json: json ? JSON.stringify(json).replace(/'/g, "''") : null,
         submission_type: submissionType,
       },
-      { id },
     );
     return res;
   },

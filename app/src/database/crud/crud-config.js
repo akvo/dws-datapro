@@ -7,16 +7,20 @@ const configQuery = () => {
       try {
         const config = await sql.getFirstRow(db, 'config', { id });
         return config;
-      } catch {
+      } catch (err) {
         return false;
       }
     },
     addConfig: async (db, data = {}) => {
-      const res = await sql.insertRow(db, 'config', { ...data, id });
-      return res;
+      try {
+        const res = await sql.insertRow(db, 'config', { id, ...data });
+        return res;
+      } catch (err) {
+        return false;
+      }
     },
     updateConfig: async (db, data) => {
-      const res = await sql.updateRow(db, 'config', data, { id });
+      const res = await sql.updateRow(db, 'config', { id }, data);
       return res;
     },
   };

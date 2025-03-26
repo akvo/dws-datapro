@@ -6,10 +6,15 @@ const certificationQuery = () => ({
   syncForm: async (db, { formId, administrationId, formJSON }) => {
     const rows = await sql.getFilteredRows(db, TABLE_NAME, { uuid: formJSON.uuid });
     if (rows.length) {
-      const res = await sql.updateRow(db, TABLE_NAME, rows[0].id, {
-        json: formJSON?.answers ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
-        syncedAt: new Date().toISOString(),
-      });
+      const res = await sql.updateRow(
+        db,
+        TABLE_NAME,
+        { id: rows[0].id },
+        {
+          json: formJSON?.answers ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
+          syncedAt: new Date().toISOString(),
+        },
+      );
       return res;
     }
     const res = await sql.insertRow(db, TABLE_NAME, {
@@ -31,8 +36,9 @@ const certificationQuery = () => ({
       querySQL += ' AND administrationId = ? ';
       params.push(administrationId);
     }
-    const rows = await sql.executeQuery(db, querySQL, params);
-    return rows?.length;
+    const res = await sql.executeQuery(db, querySQL, params);
+    const { count } = res?.[0] || { count: 0 };
+    return count;
   },
   getPagination: async (
     db,

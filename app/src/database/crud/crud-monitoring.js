@@ -4,11 +4,15 @@ const monitoringQuery = () => ({
   syncForm: async (db, { formId, administrationId, lastUpdated, formJSON }) => {
     const rows = await sql.getFilteredRows(db, 'monitoring', { uuid: formJSON.uuid });
     if (rows.length) {
-      const monitoringID = rows?.[0]?.id;
-      const res = await sql.updateRow(db, 'monitoring', monitoringID, {
-        administrationId,
-        json: formJSON ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
-      });
+      const res = await sql.updateRow(
+        db,
+        'monitoring',
+        { id: rows?.[0]?.id },
+        {
+          administrationId,
+          json: formJSON ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
+        },
+      );
       return res;
     }
     const res = await sql.insertRow(db, 'monitoring', {
@@ -26,8 +30,9 @@ const monitoringQuery = () => ({
       ? `SELECT COUNT(*) AS count FROM monitoring where formId = ? AND name LIKE ? COLLATE NOCASE`
       : `SELECT COUNT(*) AS count FROM monitoring where formId = ? `;
     const params = search.length ? [formId, `%${search}%`] : [formId];
-    const rows = await sql.executeQuery(db, querySQL, params);
-    return rows?.length;
+    const res = await sql.executeQuery(db, querySQL, params);
+    const { count } = res?.[0] || { count: 0 };
+    return count;
   },
   getFormsPaginated: async (db, { formId, search = '', limit = 10, offset = 0 }) => {
     let sqlQuery = 'SELECT * FROM monitoring WHERE formId = $1';

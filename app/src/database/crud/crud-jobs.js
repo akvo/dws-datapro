@@ -25,7 +25,7 @@ const jobsQuery = () => ({
         const nocase = false;
         const orderBy = 'createdAt';
         const rows = await sql.getFilteredRows(db, tableName, where, orderBy, 'DESC', nocase);
-        return rows;
+        return rows?.[0] || null;
       }
       return null;
     } catch {
@@ -45,7 +45,7 @@ const jobsQuery = () => ({
   },
   updateJob: async (db, id, data) => {
     try {
-      return await sql.updateRow(db, tableName, id, data);
+      return await sql.updateRow(db, tableName, { id }, data);
     } catch {
       return null;
     }

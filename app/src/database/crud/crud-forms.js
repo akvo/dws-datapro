@@ -54,8 +54,8 @@ const formsQuery = () => ({
     const res = await sql.updateRow(
       db,
       'forms',
-      { version, latest, json: formJSON ? JSON.stringify(formJSON).replace(/'/g, "''") : null },
       { userId, formId },
+      { version, latest, json: formJSON ? JSON.stringify(formJSON).replace(/'/g, "''") : null },
     );
     return res;
   },

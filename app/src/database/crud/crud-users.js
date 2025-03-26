@@ -30,7 +30,7 @@ const usersQuery = () => ({
   },
   toggleActive: async (db, { id, active }) => {
     try {
-      const row = await sql.updateRow(db, 'users', id, { active: !active });
+      const row = await sql.updateRow(db, 'users', { id }, { active: !active });
       return row;
     } catch (error) {
       return false;
@@ -41,7 +41,12 @@ const usersQuery = () => ({
     return row;
   },
   updateLastSynced: async (db, id) => {
-    const row = await sql.updateRow(db, 'users', id, { lastSyncedAt: new Date().toISOString() });
+    const row = await sql.updateRow(
+      db,
+      'users',
+      { id },
+      { lastSyncedAt: new Date().toISOString() },
+    );
     return row;
   },
 });
