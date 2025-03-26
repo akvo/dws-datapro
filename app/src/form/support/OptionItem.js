@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
-import PropTypes from 'prop-types';
 
 const OptionItem = ({ label, name, color, selected }) => (
   <View style={[{ padding: 3 }]}>
@@ -28,16 +27,3 @@ const OptionItem = ({ label, name, color, selected }) => (
 );
 
 export default OptionItem;
-
-OptionItem.propTypes = {
-  label: PropTypes.string,
-  name: PropTypes.string,
-  color: PropTypes.string,
-  selected: PropTypes.bool.isRequired,
-};
-
-OptionItem.defaultProps = {
-  label: '',
-  name: '',
-  color: '',
-};

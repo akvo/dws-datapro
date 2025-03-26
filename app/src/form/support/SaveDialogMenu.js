@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Dialog } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { UIState } from '../../store';
 import { i18n } from '../../lib';
 
@@ -56,15 +55,3 @@ const styles = StyleSheet.create({
 });
 
 export default SaveDialogMenu;
-
-SaveDialogMenu.propTypes = {
-  visible: PropTypes.bool.isRequired,
-  setVisible: PropTypes.func.isRequired,
-  handleOnExit: PropTypes.func,
-  handleOnSaveAndExit: PropTypes.func,
-};
-
-SaveDialogMenu.defaultProps = {
-  handleOnExit: null,
-  handleOnSaveAndExit: null,
-};
