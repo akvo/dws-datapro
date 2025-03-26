@@ -1,9 +1,14 @@
 import React from 'react';
 import { View } from 'react-native';
-import PropTypes from 'prop-types';
 import styles from './styles';
 
-const Stack = ({ children, columns = 1, row = false, reverse = false, background = '#f9fafb' }) => {
+const Stack = ({
+  children = null,
+  columns = 1,
+  row = false,
+  reverse = false,
+  background = '#f9fafb',
+}) => {
   let flexDir = row ? 'row' : 'column';
   flexDir += reverse ? '-reverse' : '';
   const itemWidth = `${100 / columns}%`;
@@ -29,19 +34,3 @@ const Stack = ({ children, columns = 1, row = false, reverse = false, background
 };
 
 export default Stack;
-
-Stack.propTypes = {
-  children: PropTypes.node,
-  columns: PropTypes.number,
-  reverse: PropTypes.bool,
-  row: PropTypes.bool,
-  background: PropTypes.string,
-};
-
-Stack.defaultProps = {
-  children: null,
-  columns: 1,
-  row: false,
-  reverse: false,
-  background: '#f9fafb',
-};
