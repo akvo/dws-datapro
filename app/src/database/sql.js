@@ -86,7 +86,11 @@ const insertRow = async (db, table, values) => {
     .map(() => '?')
     .join(', ');
   const params = Object.values(values);
-  await db.runAsync(`INSERT INTO ${table} (${columns}) VALUES (${placeholders})`, ...params);
+  const res = await db.runAsync(
+    `INSERT INTO ${table} (${columns}) VALUES (${placeholders})`,
+    ...params,
+  );
+  return res?.lastInsertRowId;
 };
 
 /**
@@ -158,6 +162,23 @@ const dropTable = async (db, table) => {
   await db.execAsync(`DROP TABLE IF EXISTS ${table}`);
 };
 
+/**
+ * Truncate a table from the database and check cascade.
+ * @param {Object} db - The database connection object.
+ * @param {string} table - The name of the table to truncate.
+ * @returns {Promise<void>} A promise that resolves when the table has been truncated.
+ */
+const truncateTable = async (db, table) => {
+  // Disable foreign key constraints
+  await db.execAsync('PRAGMA foreign_keys = OFF');
+
+  // Truncate the table
+  await db.execAsync(`DELETE FROM ${table}`);
+
+  // Enable foreign key constraints
+  await db.execAsync('PRAGMA foreign_keys = ON');
+};
+
 const sql = {
   createTable,
   updateRow,
@@ -168,6 +189,7 @@ const sql = {
   getFilteredRows,
   executeQuery,
   dropTable,
+  truncateTable,
 };
 
 export default sql;
