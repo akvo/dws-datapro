@@ -27,6 +27,7 @@ const Home = ({ navigation, route }) => {
   const [data, setData] = useState([]);
   const [appLang, setAppLang] = useState('en');
   const [loading, setloading] = useState(true);
+  const [preload, setPreload] = useState(true);
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncDisabled, setSyncDisabled] = useState(false);
 
@@ -157,6 +158,10 @@ const Home = ({ navigation, route }) => {
   };
 
   const getUserForms = useCallback(async () => {
+    if (preload) {
+      setPreload(false);
+      return;
+    }
     /**
      * The Form List will be refreshed when:
      * - parameter change
@@ -199,6 +204,7 @@ const Home = ({ navigation, route }) => {
     }
   }, [
     db,
+    preload,
     params,
     currentUserId,
     activeLang,
