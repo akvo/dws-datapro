@@ -6,10 +6,10 @@ import moment from 'moment';
 import * as Network from 'expo-network';
 import * as Sentry from '@sentry/react-native';
 import { useSQLiteContext } from 'expo-sqlite';
-import { UserState, UIState, FormState } from '../store';
+import { UserState, UIState, FormState, BuildParamsState } from '../store';
 import { BaseLayout } from '../components';
 import { crudDataPoints } from '../database/crud';
-import { i18n, backgroundTask } from '../lib';
+import { i18n, backgroundTask, api } from '../lib';
 import { getCurrentTimestamp } from '../form/lib';
 import crudJobs, { jobStatus } from '../database/crud/crud-jobs';
 
@@ -44,6 +44,7 @@ const FormDataPage = ({ navigation, route }) => {
   const [data, setData] = useState([]);
   const [showConfirmationSyncDialog, setShowConfirmationSyncDialog] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const serverURL = BuildParamsState.useState((s) => s.serverURL);
   const db = useSQLiteContext();
 
   const goBack = () => {
@@ -151,6 +152,7 @@ const FormDataPage = ({ navigation, route }) => {
 
   const handleOnSync = async () => {
     try {
+      api.setServerURL(serverURL);
       setShowConfirmationSyncDialog(false);
       setData([]);
       setSyncing(true);
