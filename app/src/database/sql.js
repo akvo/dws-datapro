@@ -24,16 +24,19 @@ const createTable = async (db, table, fields) => {
  *
  * @param {Object} db - The database connection object.
  * @param {string} table - The name of the table to update the row in.
- * @param {number} id - The ID of the row to update.
+ * @param {Object} [conditions={ id: 1 }] - An object representing the conditions for identifying the row to update.
  * @param {Object} values - An object representing the column names and their corresponding values to be updated.
  * @returns {Promise<void>} A promise that resolves when the row has been updated.
  */
-const updateRow = async (db, table, id, values) => {
+const updateRow = async (db, table, conditions = { id: 1 }, values = {}) => {
   const setClause = Object.keys(values)
     .map((key) => `${key} = ?`)
     .join(', ');
-  const params = [...Object.values(values), id];
-  await db.runAsync(`UPDATE ${table} SET ${setClause} WHERE id = ?`, ...params);
+  const whereClause = Object.keys(conditions)
+    .map((key) => `${key} = ?`)
+    .join(' AND ');
+  const params = [...Object.values(values), ...Object.values(conditions)];
+  await db.runAsync(`UPDATE ${table} SET ${setClause} WHERE ${whereClause}`, ...params);
 };
 
 /**
