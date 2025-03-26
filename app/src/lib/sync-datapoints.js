@@ -28,7 +28,9 @@ export const downloadDatapointsJson = async (
   { formId, administrationId, url, lastUpdated, submissionType },
 ) => {
   try {
-    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
     const response = await api.get(url);
     if (response.status === 200) {
       const jsonData = response.data;
@@ -40,6 +42,7 @@ export const downloadDatapointsJson = async (
           submissionType,
           formJSON: jsonData,
         });
+        await db.closeAsync();
       } else {
         await crudMonitoring.syncForm(db, {
           formId,
@@ -47,6 +50,7 @@ export const downloadDatapointsJson = async (
           lastUpdated,
           formJSON: jsonData,
         });
+        await db.closeAsync();
       }
     }
   } catch (error) {
