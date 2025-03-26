@@ -15,6 +15,8 @@ const createTable = async (db, table, fields) => {
       ${columns}
     );
   `);
+  const res = await db.getFirstAsync(`PRAGMA table_info(${table})`);
+  return res;
 };
 
 /**
@@ -68,18 +70,6 @@ const getFirstRow = async (db, table, conditions = {}) => {
   `;
   const firstRow = await db.getFirstAsync(query, ...params);
   return firstRow;
-};
-
-/**
- * Retrieves all rows from the specified table in the database.
- *
- * @param {Object} db - The database connection object.
- * @param {string} table - The name of the table to retrieve all rows from.
- * @returns {Promise<Array>} A promise that resolves to an array of all rows in the table.
- */
-const getAllRows = async (db, table) => {
-  const allRows = await db.getAllAsync(`SELECT * FROM ${table}`);
-  return allRows;
 };
 
 /**
@@ -158,16 +148,26 @@ const executeQuery = async (db, query, params = []) => {
   return result;
 };
 
+/**
+ * Drop a table from the database.
+ * @param {Object} db - The database connection object.
+ * @param {string} table - The name of the table to drop.
+ * @returns {Promise<void>} A promise that resolves when the table has been dropped.
+ */
+const dropTable = async (db, table) => {
+  await db.execAsync(`DROP TABLE IF EXISTS ${table}`);
+};
+
 const sql = {
   createTable,
   updateRow,
   deleteRow,
   getFirstRow,
-  getAllRows,
   insertRow,
   getEachRow,
   getFilteredRows,
   executeQuery,
+  dropTable,
 };
 
 export default sql;
