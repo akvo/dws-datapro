@@ -1,5 +1,6 @@
 import { useCallback, useEffect } from 'react';
 import * as Network from 'expo-network';
+import { useSQLiteContext } from 'expo-sqlite';
 import { BuildParamsState, DatapointSyncState, UIState, UserState } from '../store';
 import { backgroundTask } from '../lib';
 import crudJobs, {
@@ -18,11 +19,12 @@ const SyncService = () => {
   const syncInterval = BuildParamsState.useState((s) => s.dataSyncInterval);
   const syncInSecond = parseInt(syncInterval, 10) * 1000;
   const certifications = UserState.useState((s) => s.certifications);
+  const db = useSQLiteContext();
 
   const onSync = useCallback(async () => {
-    const pendingToSync = await crudDataPoints.selectSubmissionToSync();
-    const activeJob = await crudJobs.getActiveJob(SYNC_FORM_SUBMISSION_TASK_NAME);
-    const settings = await crudConfig.getConfig();
+    const pendingToSync = await crudDataPoints.selectSubmissionToSync(db);
+    const activeJob = await crudJobs.getActiveJob(db, SYNC_FORM_SUBMISSION_TASK_NAME);
+    const settings = await crudConfig.getConfig(db);
 
     const { type: networkType } = await Network.getNetworkStateAsync();
     if (settings?.syncWifiOnly && networkType !== Network.NetworkStateType.WIFI) {
@@ -35,7 +37,7 @@ const SyncService = () => {
          * Job is still in progress,
          * but we still have pending items; then increase the attempt value.
          */
-        await crudJobs.updateJob(activeJob.id, {
+        await crudJobs.updateJob(db, activeJob.id, {
           attempt: activeJob.attempt + 1,
         });
       }
@@ -54,7 +56,7 @@ const SyncService = () => {
               icon: 'repeat',
             };
           });
-          await crudJobs.updateJob(activeJob.id, {
+          await crudJobs.updateJob(db, activeJob.id, {
             status: jobStatus.PENDING,
             attempt: 0, // RESET attempt to 0
           });
@@ -66,7 +68,7 @@ const SyncService = () => {
               icon: 'checkmark-done',
             };
           });
-          await crudJobs.deleteJob(activeJob.id);
+          await crudJobs.deleteJob(db, activeJob.id);
         }
       }
     }
@@ -82,12 +84,12 @@ const SyncService = () => {
           icon: 'sync',
         };
       });
-      await crudJobs.updateJob(activeJob.id, {
+      await crudJobs.updateJob(db, activeJob.id, {
         status: jobStatus.ON_PROGRESS,
       });
       await backgroundTask.syncFormSubmission(activeJob);
     }
-  }, []);
+  }, [db]);
 
   useEffect(() => {
     if (!syncInSecond || !isOnline) {
@@ -105,7 +107,7 @@ const SyncService = () => {
   }, [syncInSecond, isOnline, onSync]);
 
   const onSyncDataPoint = useCallback(async () => {
-    const activeJob = await crudJobs.getActiveJob(SYNC_DATAPOINT_JOB_NAME);
+    const activeJob = await crudJobs.getActiveJob(db, SYNC_DATAPOINT_JOB_NAME);
 
     DatapointSyncState.update((s) => {
       s.added = false;
@@ -113,7 +115,7 @@ const SyncService = () => {
     });
 
     if (activeJob && activeJob.status === jobStatus.PENDING && activeJob.attempt < MAX_ATTEMPT) {
-      await crudJobs.updateJob(activeJob.id, {
+      await crudJobs.updateJob(db, activeJob.id, {
         status: jobStatus.ON_PROGRESS,
       });
 
@@ -157,7 +159,7 @@ const SyncService = () => {
         await Promise.all(
           apiURLs.map(({ isCertification, ...u }) => downloadDatapointsJson(isCertification, u)),
         );
-        await crudJobs.deleteJob(activeJob.id);
+        await crudJobs.deleteJob(db, activeJob.id);
 
         DatapointSyncState.update((s) => {
           s.inProgress = false;
@@ -166,7 +168,7 @@ const SyncService = () => {
         DatapointSyncState.update((s) => {
           s.added = true;
         });
-        await crudJobs.updateJob(activeJob.id, {
+        await crudJobs.updateJob(db, activeJob.id, {
           status: jobStatus.PENDING,
           attempt: activeJob.attempt + 1,
           info: String(error),
@@ -175,12 +177,12 @@ const SyncService = () => {
     }
 
     if (activeJob && activeJob.status === jobStatus.PENDING && activeJob.attempt === MAX_ATTEMPT) {
-      await crudJobs.deleteJob(activeJob.id);
+      await crudJobs.deleteJob(db, activeJob.id);
       DatapointSyncState.update((s) => {
         s.inProgress = false;
       });
     }
-  }, [certifications?.length]);
+  }, [db, certifications?.length]);
 
   useEffect(() => {
     const unsubsDataSync = DatapointSyncState.subscribe(
