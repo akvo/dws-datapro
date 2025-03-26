@@ -1,21 +1,20 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { View } from 'react-native';
 import { ListItem, Button, Input, Text } from '@rneui/themed';
 import { Formik, ErrorMessage } from 'formik';
 import * as Yup from 'yup';
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useSQLiteContext } from 'expo-sqlite';
 
 import { BaseLayout } from '../components';
-import { conn, query } from '../database';
 import { UserState, UIState, AuthState } from '../store';
 import { api, cascades, i18n } from '../lib';
 import { crudForms, crudUsers, crudConfig } from '../database/crud';
 
-const db = conn.init;
-
 const AddUser = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [userCount, setUserCount] = useState(0);
+  const db = useSQLiteContext();
 
   const formRef = useRef();
   const activeLang = UIState.useState((s) => s.lang);
@@ -26,17 +25,17 @@ const AddUser = ({ navigation }) => {
     navigation.navigate('Users');
   };
 
-  const getUsersCount = async () => {
-    const { rows } = await conn.tx(db, query.count('users'));
-    setUserCount(rows._array?.[0]?.count);
-  };
+  const getUsersCount = useCallback(async () => {
+    const rows = await crudUsers.getAllUsers(db);
+    setUserCount(rows.length);
+  }, [db]);
 
   const handleActiveUser = async (data = {}) => {
-    const activeUser = await crudUsers.getActiveUser();
+    const activeUser = await crudUsers.getActiveUser(db);
     if (activeUser?.id) {
-      await crudUsers.toggleActive(activeUser);
+      await crudUsers.toggleActive(db, activeUser);
     }
-    const newUserId = await crudUsers.addNew({
+    const newUserId = await crudUsers.addNew(db, {
       name: data?.name || 'Data collector',
       active: 1,
       token: data?.syncToken,
@@ -55,7 +54,7 @@ const AddUser = ({ navigation }) => {
     formsUrl.forEach(async (form) => {
       // Fetch form detail
       const formRes = await api.get(form.url);
-      await crudForms.addForm({
+      await crudForms.addForm(db, {
         ...form,
         userId: userID,
         formJSON: formRes?.data,
@@ -74,7 +73,7 @@ const AddUser = ({ navigation }) => {
   const submitData = async ({ name }) => {
     setLoading(true);
     try {
-      const { length: exist } = await crudUsers.checkPasscode(name);
+      const { length: exist } = await crudUsers.checkPasscode(db, name);
       if (exist) {
         formRef.current.setErrors({ name: trans.errorUserExist });
         setLoading(false);
@@ -92,7 +91,7 @@ const AddUser = ({ navigation }) => {
           s.token = bearerToken;
         });
 
-        await crudConfig.updateConfig({ authenticationCode: name });
+        await crudConfig.updateConfig(db, { authenticationCode: name });
 
         const userID = await handleActiveUser({ ...apiData, passcode: name });
 
@@ -117,7 +116,7 @@ const AddUser = ({ navigation }) => {
 
   useEffect(() => {
     getUsersCount();
-  }, []);
+  }, [getUsersCount]);
 
   return (
     <BaseLayout
