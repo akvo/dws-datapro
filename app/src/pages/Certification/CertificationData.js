@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View, Dimensions } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
 import { Button, ListItem } from '@rneui/themed';
-import PropTypes from 'prop-types';
+import { useSQLiteContext } from 'expo-sqlite';
 import { BaseLayout } from '../../components';
 import { FormState, UIState, UserState } from '../../store';
 import { helpers, i18n, cascades } from '../../lib';
@@ -102,6 +102,7 @@ const CertificationData = ({ navigation, route }) => {
   const [admDepth, setAdmDepth] = useState(0);
   const [selectedAdm, setSelectedAdm] = useState([]);
   const [filterByAdm, setFilterByAdm] = useState(null);
+  const db = useSQLiteContext();
 
   const screenWidth = admDepth
     ? Dimensions.get('screen').width / admDepth
@@ -188,9 +189,9 @@ const CertificationData = ({ navigation, route }) => {
   };
 
   const fetchTotal = useCallback(async () => {
-    const totalPage = await crudCertification.getTotal(formId, search, filterByAdm);
+    const totalPage = await crudCertification.getTotal(db, formId, search, filterByAdm);
     setTotal(totalPage);
-  }, [formId, search, filterByAdm]);
+  }, [db, formId, search, filterByAdm]);
 
   useEffect(() => {
     fetchTotal();
@@ -199,7 +200,7 @@ const CertificationData = ({ navigation, route }) => {
   const fetchData = useCallback(async () => {
     if (isLoading) {
       setIsLoading(false);
-      const moreForms = await crudCertification.getPagination({
+      const moreForms = await crudCertification.getPagination(db, {
         formId,
         search: search.trim(),
         limit: 10,
@@ -212,7 +213,7 @@ const CertificationData = ({ navigation, route }) => {
         setForms(forms.concat(moreForms));
       }
     }
-  }, [isLoading, forms, formId, page, search, filterByAdm]);
+  }, [db, isLoading, forms, formId, page, search, filterByAdm]);
 
   useEffect(() => {
     // load administration and fetch data
@@ -370,31 +371,3 @@ const styles = StyleSheet.create({
 });
 
 export default CertificationData;
-
-CertificationData.propTypes = {
-  route: PropTypes.object,
-};
-
-CertificationData.defaultProps = {
-  route: null,
-};
-
-RenderDropdown.propTypes = {
-  indexKey: PropTypes.string,
-  options: PropTypes.array,
-  screenWidth: PropTypes.number,
-  disabled: PropTypes.bool,
-  value: PropTypes.number,
-  onChange: PropTypes.func,
-  placeholder: PropTypes.string,
-};
-
-RenderDropdown.defaultProps = {
-  indexKey: null,
-  options: [],
-  screenWidth: null,
-  disabled: false,
-  value: null,
-  onChange: null,
-  placeholder: null,
-};
