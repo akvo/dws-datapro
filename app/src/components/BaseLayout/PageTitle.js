@@ -3,7 +3,6 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { View, StyleSheet } from 'react-native';
 import { Header, Text, Button } from '@rneui/themed';
 import { useNavigation } from '@react-navigation/native';
-import PropTypes from 'prop-types';
 import { FormState } from '../../store';
 import { generateDataPointName } from '../../form/lib';
 
@@ -23,11 +22,11 @@ const BackButton = ({ navigation }) => {
 
 const PageTitle = ({
   text,
-  subTitle,
-  leftComponent,
-  leftContainerStyle,
-  rightComponent,
-  rightContainerStyle,
+  subTitle = null,
+  leftComponent = null,
+  leftContainerStyle = null,
+  rightComponent = null,
+  rightContainerStyle = null,
 }) => {
   const navigation = useNavigation();
   const selectedForm = FormState.useState((s) => s.form);
@@ -100,22 +99,3 @@ const styles = StyleSheet.create({
 });
 
 export default PageTitle;
-
-PageTitle.propTypes = {
-  text: PropTypes.string.isRequired,
-  subTitle: PropTypes.string,
-  leftComponent: PropTypes.node,
-  // eslint-disable-next-line react/forbid-prop-types
-  leftContainerStyle: PropTypes.object,
-  rightComponent: PropTypes.node,
-  // eslint-disable-next-line react/forbid-prop-types
-  rightContainerStyle: PropTypes.object,
-};
-
-PageTitle.defaultProps = {
-  subTitle: null,
-  leftComponent: null,
-  leftContainerStyle: null,
-  rightComponent: null,
-  rightContainerStyle: null,
-};

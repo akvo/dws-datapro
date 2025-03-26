@@ -1,10 +1,9 @@
 import React from 'react';
 import { View, ScrollView, TouchableOpacity } from 'react-native';
-import PropTypes from 'prop-types';
 import Card from '../Card';
 import Stack from '../Stack';
 
-const Content = ({ children, data, columns, action }) => {
+const Content = ({ children = null, data = [], columns = 1, action = null }) => {
   if (data?.length) {
     return (
       <ScrollView>
@@ -41,23 +40,3 @@ const Content = ({ children, data, columns, action }) => {
 };
 
 export default Content;
-
-Content.propTypes = {
-  children: PropTypes.node,
-  data: PropTypes.arrayOf(
-    PropTypes.shape({
-      id: PropTypes.number,
-      name: PropTypes.string,
-      subTitles: PropTypes.arrayOf(PropTypes.string),
-    }),
-  ),
-  columns: PropTypes.number,
-  action: PropTypes.func,
-};
-
-Content.defaultProps = {
-  children: null,
-  data: [],
-  columns: 1,
-  action: null,
-};
