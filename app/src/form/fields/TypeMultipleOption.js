@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { MultiSelect } from 'react-native-element-dropdown';
-import PropTypes from 'prop-types';
 import { FieldLabel, OptionItem } from '../support';
 import styles from '../styles';
 import { FormState } from '../../store';
@@ -13,11 +12,11 @@ const TypeMultipleOption = ({
   keyform,
   id,
   label,
-  option,
-  tooltip,
   required,
-  requiredSign,
-  disabled,
+  requiredSign = '*',
+  disabled = false,
+  option = [],
+  tooltip = null,
 }) => {
   const showSearch = React.useMemo(() => option.length > 3, [option]);
   const activeLang = FormState.useState((s) => s.lang);
@@ -65,24 +64,3 @@ const TypeMultipleOption = ({
 };
 
 export default TypeMultipleOption;
-
-TypeMultipleOption.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.array,
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  required: PropTypes.bool.isRequired,
-  requiredSign: PropTypes.string,
-  disabled: PropTypes.bool,
-  option: PropTypes.array,
-};
-
-TypeMultipleOption.defaultProps = {
-  value: null,
-  requiredSign: '*',
-  disabled: false,
-  option: [],
-  tooltip: null,
-};

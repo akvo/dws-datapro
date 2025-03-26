@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { View } from 'react-native';
 import { Input } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import * as Sentry from '@sentry/react-native';
 
 import { FieldLabel } from '../support';
@@ -157,11 +156,11 @@ const TypeAutofield = ({
   keyform,
   id,
   label,
-  tooltip,
   fn,
-  displayOnly,
-  questions,
-  value: autofieldValue,
+  tooltip = null,
+  displayOnly = false,
+  questions = [],
+  value: autofieldValue = null,
 }) => {
   const [value, setValue] = useState(null);
   const [fieldColor, setFieldColor] = useState(null);
@@ -239,24 +238,3 @@ const TypeAutofield = ({
 };
 
 export default TypeAutofield;
-
-TypeAutofield.propTypes = {
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  fn: PropTypes.shape({
-    fnString: PropTypes.string,
-    fnColor: PropTypes.object,
-  }).isRequired,
-  displayOnly: PropTypes.bool,
-  questions: PropTypes.array,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-};
-
-TypeAutofield.defaultProps = {
-  displayOnly: false,
-  questions: [],
-  tooltip: null,
-  value: null,
-};

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import PropTypes from 'prop-types';
 
 import { FieldLabel } from '../support';
 import styles from '../styles';
@@ -14,11 +13,11 @@ const TypeCascade = ({
   keyform,
   id,
   label,
-  tooltip,
   required,
-  requiredSign,
   source,
-  disabled,
+  requiredSign = '*',
+  disabled = false,
+  tooltip = null,
 }) => {
   const [dataSource, setDataSource] = useState([]);
   const [dropdownItems, setDropdownItems] = useState([]);
@@ -279,23 +278,3 @@ const TypeCascade = ({
 };
 
 export default TypeCascade;
-
-TypeCascade.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.array,
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  required: PropTypes.bool.isRequired,
-  requiredSign: PropTypes.string,
-  source: PropTypes.object.isRequired,
-  disabled: PropTypes.bool,
-};
-
-TypeCascade.defaultProps = {
-  value: null,
-  requiredSign: '*',
-  disabled: false,
-  tooltip: null,
-};
