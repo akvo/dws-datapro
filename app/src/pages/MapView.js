@@ -4,7 +4,6 @@ import { WebView } from 'react-native-webview';
 import { Asset } from 'expo-asset';
 import * as FileSystem from 'expo-file-system';
 import { Button } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { FormState, UIState } from '../store';
 import { i18n } from '../lib';
 
@@ -127,11 +126,3 @@ const styles = StyleSheet.create({
 });
 
 export default MapView;
-
-MapView.propTypes = {
-  route: PropTypes.object,
-};
-
-MapView.defaultProps = {
-  route: null,
-};
