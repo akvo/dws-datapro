@@ -2,7 +2,6 @@
 import React, { useCallback } from 'react';
 
 import { View, Text } from 'react-native';
-import PropTypes from 'prop-types';
 import {
   TypeDate,
   TypeImage,
@@ -18,7 +17,7 @@ import {
 import styles from '../styles';
 import { FormState } from '../../store';
 
-const QuestionField = ({ keyform, field: questionField, onChange, value }) => {
+const QuestionField = ({ keyform, field: questionField, onChange, value = null }) => {
   const questionType = questionField?.type;
   const defaultValQuestion = questionField?.default_value || {};
   const displayValue =
@@ -142,19 +141,3 @@ const QuestionField = ({ keyform, field: questionField, onChange, value }) => {
 };
 
 export default QuestionField;
-
-QuestionField.propTypes = {
-  keyform: PropTypes.number.isRequired,
-  field: PropTypes.object.isRequired,
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.oneOfType([
-    PropTypes.number,
-    PropTypes.string,
-    PropTypes.object,
-    PropTypes.array,
-  ]),
-};
-
-QuestionField.defaultProps = {
-  value: null,
-};

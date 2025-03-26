@@ -1,7 +1,6 @@
 import React, { memo, useCallback, useEffect, useMemo, useState, useRef } from 'react';
 import { FlatList, View } from 'react-native';
 import * as Crypto from 'expo-crypto';
-import PropTypes from 'prop-types';
 import QuestionField from './QuestionField';
 import styles from '../styles';
 import { FormState } from '../../store';
@@ -178,15 +177,3 @@ const Question = memo(({ group, activeQuestions = [], index, dependantQuestions 
 });
 
 export default Question;
-
-Question.propTypes = {
-  group: PropTypes.object.isRequired,
-  index: PropTypes.number.isRequired,
-  activeQuestions: PropTypes.array,
-  dependantQuestions: PropTypes.array,
-};
-
-Question.defaultProps = {
-  activeQuestions: [],
-  dependantQuestions: [],
-};
