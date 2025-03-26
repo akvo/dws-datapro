@@ -6,6 +6,7 @@ import { View, StyleSheet, Platform, ToastAndroid } from 'react-native';
 import { Input, Button, Text, Dialog } from '@rneui/themed';
 import PropTypes from 'prop-types';
 import * as Sentry from '@sentry/react-native';
+import { useSQLiteContext } from 'expo-sqlite';
 
 import { CenterLayout, Image } from '../components';
 import { api, cascades, i18n } from '../lib';
@@ -30,19 +31,20 @@ const AuthForm = ({ navigation }) => {
   // eslint-disable-next-line global-require
   const logo = Asset.fromModule(require('../assets/icon.png')).uri;
   const { online: isNetworkAvailable, lang: activeLang } = UIState.useState((s) => s);
-  const { appVersion } = BuildParamsState.useState((s) => s);
+  const { appVersion, serverURL } = BuildParamsState.useState((s) => s);
   const [passcode, setPasscode] = React.useState(null);
   const [hidden, setHidden] = React.useState(true);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const trans = i18n.text(activeLang);
+  const db = useSQLiteContext();
 
   const toggleHidden = () => setHidden(!hidden);
 
   const disableLoginButton = React.useMemo(() => !passcode || passcode === '', [passcode]);
 
   const handleActiveUser = async (data = {}) => {
-    const activeUser = await crudUsers.getActiveUser();
+    const activeUser = await crudUsers.getActiveUser(db);
     if (activeUser) {
       UserState.update((s) => {
         s.id = activeUser.id;
@@ -55,7 +57,7 @@ const AuthForm = ({ navigation }) => {
     }
 
     if (!activeUser?.id) {
-      const newUserId = await crudUsers.addNew({
+      const newUserId = await crudUsers.addNew(db, {
         name: data?.name || 'Data collector',
         active: 1,
         token: data?.syncToken,
@@ -86,7 +88,7 @@ const AuthForm = ({ navigation }) => {
         });
         // insert all forms to database
         const form = formsUrl?.[index];
-        await crudForms.addForm({
+        await crudForms.addForm(db, {
           ...form,
           userId: userID,
           formJSON: apiData,
@@ -105,6 +107,7 @@ const AuthForm = ({ navigation }) => {
     }
     setError(null);
     setLoading(true);
+    api.setServerURL(serverURL);
     api
       .post('/auth', { code: passcode })
       .then(async (res) => {
@@ -113,7 +116,7 @@ const AuthForm = ({ navigation }) => {
         const bearerToken = data.syncToken;
         api.setToken(bearerToken);
 
-        await crudConfig.updateConfig({ authenticationCode: passcode });
+        await crudConfig.updateConfig(db, { authenticationCode: passcode });
         await cascades.createSqliteDir();
         // update auth state
         AuthState.update((s) => {
