@@ -2,11 +2,10 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Card as RneCard, Text } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { helpers } from '../lib';
 import { SUBMISSION_TYPES } from '../lib/constants';
 
-const Card = ({ title, subTitles, submissionType }) => {
+const Card = ({ title = null, subTitles = [], submissionType = null }) => {
   const subNames = helpers.flipObject(SUBMISSION_TYPES);
   const subTypeName = Object.values(SUBMISSION_TYPES).includes(submissionType)
     ? subNames[submissionType]
@@ -57,15 +56,3 @@ const Card = ({ title, subTitles, submissionType }) => {
 };
 
 export default Card;
-
-Card.propTypes = {
-  title: PropTypes.string,
-  subTitles: PropTypes.arrayOf(PropTypes.string),
-  submissionType: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-};
-
-Card.defaultProps = {
-  title: null,
-  subTitles: [],
-  submissionType: null,
-};
