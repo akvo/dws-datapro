@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Asset } from 'expo-asset';
 import { Text, Button, Input } from '@rneui/themed';
+import { useSQLiteContext } from 'expo-sqlite';
 import { CenterLayout, Image } from '../components';
 import { BuildParamsState, UIState } from '../store';
 import { api, i18n } from '../lib';
@@ -15,15 +16,19 @@ const GetStarted = ({ navigation }) => {
   const authenticationType = BuildParamsState.useState((s) => s.authenticationType);
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
+  const db = useSQLiteContext();
 
   const getConfig = useCallback(async () => {
-    const config = await crudConfig.getConfig();
+    const config = await crudConfig.getConfig(db);
     if (config) {
       setCurrentConfig(config);
     }
-  }, []);
+  }, [db]);
 
-  const isServerURLDefined = useMemo(() => currentConfig?.serverURL || serverURLState, [currentConfig?.serverURL, serverURLState]);
+  const isServerURLDefined = useMemo(
+    () => currentConfig?.serverURL || serverURLState,
+    [currentConfig?.serverURL, serverURLState],
+  );
 
   useEffect(() => {
     getConfig();
@@ -36,7 +41,7 @@ const GetStarted = ({ navigation }) => {
       });
       api.setServerURL(IPAddr);
       // save server URL
-      await crudConfig.updateConfig({ serverURL: IPAddr });
+      await crudConfig.updateConfig(db, { serverURL: IPAddr });
     }
     setTimeout(() => {
       if (authenticationType.includes('code_assignment')) {
