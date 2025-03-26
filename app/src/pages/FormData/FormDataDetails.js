@@ -2,13 +2,12 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, ScrollView, StyleSheet } from 'react-native';
 import { ListItem, Image } from '@rneui/themed';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import { FormState, UIState } from '../../store';
 import { cascades, i18n } from '../../lib';
 import { BaseLayout } from '../../components';
 import FormDataNavigation from './FormDataNavigation';
 
-const SubtitleContent = ({ index, answers, type, id, source, option }) => {
+const SubtitleContent = ({ index, answers, type, id, source = null, option = [] }) => {
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
   const [cascadeValue, setCascadeValue] = useState(null);
@@ -62,20 +61,6 @@ const SubtitleContent = ({ index, answers, type, id, source, option }) => {
         </Text>
       );
   }
-};
-
-SubtitleContent.propTypes = {
-  index: PropTypes.number.isRequired,
-  answers: PropTypes.object.isRequired,
-  type: PropTypes.string.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  source: PropTypes.object,
-  option: PropTypes.array,
-};
-
-SubtitleContent.defaultProps = {
-  source: null,
-  option: [],
 };
 
 const FormDataDetails = ({ navigation, route }) => {
@@ -172,11 +157,3 @@ const styles = StyleSheet.create({
 });
 
 export default FormDataDetails;
-
-FormDataDetails.propTypes = {
-  route: PropTypes.object,
-};
-
-FormDataDetails.defaultProps = {
-  route: null,
-};
