@@ -3,21 +3,19 @@ import { View } from 'react-native';
 import { ListItem, Switch } from '@rneui/themed';
 import * as Crypto from 'expo-crypto';
 import * as Sentry from '@sentry/react-native';
-
-import PropTypes from 'prop-types';
+import { useSQLiteContext } from 'expo-sqlite';
 import { BaseLayout } from '../../components';
 import { config } from './config';
 import { BuildParamsState, UIState, AuthState, UserState } from '../../store';
-import { conn, query } from '../../database';
 import DialogForm from './DialogForm';
 import { backgroundTask, i18n } from '../../lib';
 import { accuracyLevels } from '../../lib/loc';
-
-const db = conn.init;
+import { crudConfig } from '../../database/crud';
 
 const SettingsForm = ({ route }) => {
   const [edit, setEdit] = useState(null);
   const [showDialog, setShowDialog] = useState(false);
+  const db = useSQLiteContext();
 
   const { serverURL, dataSyncInterval, gpsThreshold, gpsAccuracyLevel, geoLocationTimeout } =
     BuildParamsState.useState((s) => s);
@@ -84,19 +82,15 @@ const SettingsForm = ({ route }) => {
       'gpsAccuracyLevel',
       'geoLocationTimeout',
     ];
-    const id = 1;
     if (configFields.includes(field)) {
-      const updateQuery = query.update('config', { id }, { [field]: value });
-      await conn.tx(db, updateQuery, [id]);
+      await crudConfig.updateConfig(db, { [field]: value });
     }
     if (field === 'name') {
-      const updateQuery = query.update('users', { id }, { name: value });
-      await conn.tx(db, updateQuery, [id]);
+      await crudConfig.updateConfig(db, { name: value });
     }
     if (field === 'password') {
       const encrypted = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA1, value);
-      const updateQuery = query.update('users', { id }, { password: encrypted });
-      await conn.tx(db, updateQuery, [id]);
+      await crudConfig.updateConfig(db, { password: encrypted });
     }
   };
 
@@ -162,15 +156,13 @@ const SettingsForm = ({ route }) => {
   };
 
   const loadSettings = useCallback(async () => {
-    const selectQuery = query.read('config', { id: 1 });
-    const { rows } = await conn.tx(db, selectQuery, [1]);
-
-    const configRows = rows._array[0];
+    const res = await crudConfig.getConfig(db);
+    const configRow = res || {};
     setSettingsState((s) => ({
       ...s,
-      ...configRows,
+      ...configRow,
     }));
-  }, []);
+  }, [db]);
 
   const list = useMemo(() => {
     if (route.params?.id) {
@@ -229,11 +221,3 @@ const SettingsForm = ({ route }) => {
 };
 
 export default SettingsForm;
-
-SettingsForm.propTypes = {
-  route: PropTypes.object,
-};
-
-SettingsForm.defaultProps = {
-  route: null,
-};
