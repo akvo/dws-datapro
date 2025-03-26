@@ -176,7 +176,6 @@ const App = () => {
   }, [handleCheckSession]);
 
   const handleInitConfig = useCallback(async () => {
-    console.log('handleInitConfig', isReady);
     if (!isReady) {
       return;
     }
@@ -184,7 +183,6 @@ const App = () => {
     const configExist = await crudConfig.getConfig(db);
     const serverURL = configExist?.serverURL || serverURLState;
     const syncInterval = configExist?.syncInterval || syncValue;
-    console.log('serverURL', serverURL);
     if (!configExist) {
       await crudConfig.addConfig(db, {
         serverURL,
