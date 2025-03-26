@@ -20,7 +20,9 @@ const LogoutButton = () => {
   };
 
   const handleYesPress = async () => {
-    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
     const tables = ['sessions', 'users', 'forms', 'config', 'datapoints', 'jobs', 'monitoring'];
     tables.forEach(async (table) => {
       await sql.truncateTable(db, table);
@@ -49,6 +51,7 @@ const LogoutButton = () => {
      * Remove sqlite files
      */
     await cascades.dropFiles();
+    await db.closeAsync();
     /**
      * Reset axios token
      */
