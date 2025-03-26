@@ -1,6 +1,9 @@
+import * as SQLite from 'expo-sqlite';
+
 import { crudCertification, crudMonitoring } from '../database/crud';
 import { DatapointSyncState } from '../store';
 import api from './api';
+import { DATABASE_NAME } from './constants';
 
 export const fetchDatapoints = async (isCertification = false, pageNumber = 1) => {
   try {
@@ -25,11 +28,12 @@ export const downloadDatapointsJson = async (
   { formId, administrationId, url, lastUpdated, submissionType },
 ) => {
   try {
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
     const response = await api.get(url);
     if (response.status === 200) {
       const jsonData = response.data;
       if (isCertification) {
-        await crudCertification.syncForm({
+        await crudCertification.syncForm(db, {
           formId,
           administrationId,
           lastUpdated,
@@ -37,7 +41,7 @@ export const downloadDatapointsJson = async (
           formJSON: jsonData,
         });
       } else {
-        await crudMonitoring.syncForm({
+        await crudMonitoring.syncForm(db, {
           formId,
           administrationId,
           lastUpdated,
