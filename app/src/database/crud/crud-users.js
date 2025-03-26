@@ -1,6 +1,10 @@
 import sql from '../sql';
 
 const usersQuery = () => ({
+  getAllUsers: async (db) => {
+    const rows = await sql.getEachRow(db, 'users');
+    return rows;
+  },
   getActiveUser: async (db) => {
     try {
       const active = 1;
