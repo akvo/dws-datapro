@@ -1,7 +1,6 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { Dialog } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { useRoute } from '@react-navigation/native';
 import { BaseLayout } from '../components';
 import { FormNavigation, QuestionGroupList } from './support';
@@ -66,11 +65,7 @@ const LoadingOverlay = ({ trans }) => (
   </View>
 );
 
-LoadingOverlay.propTypes = {
-  trans: PropTypes.shape({ loadingPrefilledAnswer: PropTypes.string }).isRequired,
-};
-
-const FormContainer = ({ forms, onSubmit, setShowDialogMenu }) => {
+const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [showQuestionGroupList, setShowQuestionGroupList] = useState(false);
   const [isDefaultFilled, setIsDefaultFilled] = useState(false);
@@ -231,13 +226,3 @@ const FormContainer = ({ forms, onSubmit, setShowDialogMenu }) => {
 };
 
 export default FormContainer;
-
-FormContainer.propTypes = {
-  forms: PropTypes.object,
-  onSubmit: PropTypes.func.isRequired,
-  setShowDialogMenu: PropTypes.func.isRequired,
-};
-
-FormContainer.defaultProps = {
-  forms: {},
-};
