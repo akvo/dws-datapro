@@ -23,7 +23,7 @@ const LogoutButton = () => {
     const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
     const tables = ['sessions', 'users', 'forms', 'config', 'datapoints', 'jobs', 'monitoring'];
     tables.forEach(async (table) => {
-      await sql.dropTable(db, table);
+      await sql.truncateTable(db, table);
     });
     AuthState.update((s) => {
       s.token = null;
