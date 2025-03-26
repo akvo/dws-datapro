@@ -212,11 +212,11 @@ const TypeCascade = ({
   }, [dropdownItems, initialDropdowns, source, prevAdmAnswer]);
 
   const loadDataSource = useCallback(async () => {
-    const { rows } = await cascades.loadDataSource(source);
-    setDataSource(rows._array);
+    const rows = await cascades.loadDataSource(source);
+    setDataSource(rows);
     if (cascadeType) {
       FormState.update((s) => {
-        s.entityOptions[id] = rows._array?.filter((a) => a?.entity === cascadeType);
+        s.entityOptions[id] = rows?.filter((a) => a?.entity === cascadeType);
       });
     }
   }, [cascadeType, source, id]);
