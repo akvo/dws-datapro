@@ -2,12 +2,14 @@ import * as BackgroundFetch from 'expo-background-fetch';
 import * as TaskManager from 'expo-task-manager';
 import * as Network from 'expo-network';
 import * as Sentry from '@sentry/react-native';
+import * as SQLite from 'expo-sqlite';
 import api from './api';
 import { crudForms, crudDataPoints, crudUsers, crudConfig } from '../database/crud';
 import notification from './notification';
 import crudJobs, { jobStatus, MAX_ATTEMPT } from '../database/crud/crud-jobs';
 import { UIState } from '../store';
 import {
+  DATABASE_NAME,
   SYNC_FORM_SUBMISSION_TASK_NAME,
   SYNC_FORM_VERSION_TASK_NAME,
   SYNC_STATUS,
@@ -17,20 +19,21 @@ const syncFormVersion = async ({
   showNotificationOnly = true,
   sendPushNotification = () => {},
 }) => {
+  const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
   const { isConnected } = await Network.getNetworkStateAsync();
   if (!isConnected) {
     return;
   }
   try {
     // find last session
-    const session = await crudUsers.getActiveUser();
+    const session = await crudUsers.getActiveUser(db);
     if (!session) {
       return;
     }
     api.post('/auth', { code: session.password }).then(async (res) => {
       const { data } = res;
       const promises = data.formsUrl.map(async (form) => {
-        const formExist = await crudForms.selectFormByIdAndVersion({ ...form });
+        const formExist = await crudForms.selectFormByIdAndVersion(db, { ...form });
         if (formExist) {
           return false;
         }
@@ -39,8 +42,8 @@ const syncFormVersion = async ({
         }
         const formRes = await api.get(form.url);
         // update previous form latest value to 0
-        await crudForms.updateForm({ ...form });
-        const savedForm = await crudForms.addForm({
+        await crudForms.updateForm(db, { ...form });
+        const savedForm = await crudForms.addForm(db, {
           ...form,
           userId: session?.id,
           formJSON: formRes?.data,
@@ -63,7 +66,8 @@ const syncFormVersion = async ({
 
 const registerBackgroundTask = async (TASK_NAME, settingsValue = null) => {
   try {
-    const config = await crudConfig.getConfig();
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    const config = await crudConfig.getConfig(db);
     const syncInterval = settingsValue || parseInt(config?.syncInterval, 10) || 3600;
     const res = await BackgroundFetch.registerTaskAsync(TASK_NAME, {
       minimumInterval: syncInterval,
@@ -137,6 +141,7 @@ const handleOnUploadPhotos = async (data) => {
 };
 
 const syncFormSubmission = async (activeJob = {}) => {
+  const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
   const { isConnected } = await Network.getNetworkStateAsync();
   if (!isConnected) {
     return;
@@ -144,11 +149,11 @@ const syncFormSubmission = async (activeJob = {}) => {
   try {
     let sendNotification = false;
     // get token
-    const session = await crudUsers.getActiveUser();
+    const session = await crudUsers.getActiveUser(db);
     // set token
     api.setToken(session.token);
     // get all datapoints to sync
-    const data = await crudDataPoints.selectSubmissionToSync();
+    const data = await crudDataPoints.selectSubmissionToSync(db);
     /**
      * Upload all photo of questions first
      */
@@ -183,7 +188,7 @@ const syncFormSubmission = async (activeJob = {}) => {
       const res = await api.post('/sync', syncData);
       if (res.status === 200) {
         // update data point
-        await crudDataPoints.updateDataPoint({
+        await crudDataPoints.updateDataPoint(db, {
           ...d,
           submissionType: d?.submission_type,
           syncedAt: new Date().toISOString(),
@@ -213,7 +218,7 @@ const syncFormSubmission = async (activeJob = {}) => {
     sendNotification = false;
     if (activeJob?.id) {
       // delete the job when it's succeed
-      await crudJobs.deleteJob(activeJob.id);
+      await crudJobs.deleteJob(db, activeJob.id);
     }
   } catch (error) {
     Sentry.captureMessage(`[background-task] syncFormSubmission failed`);
@@ -224,7 +229,7 @@ const syncFormSubmission = async (activeJob = {}) => {
         activeJob.attempt < MAX_ATTEMPT
           ? { status: jobStatus.FAILED, attempt: activeJob.attempt + 1 }
           : { status: jobStatus.ON_PROGRESS, info: String(error) };
-      crudJobs.updateJob(activeJob.id, updatePayload);
+      crudJobs.updateJob(db, activeJob.id, updatePayload);
     }
     Promise.reject(new Error({ errorCode, message: error?.message }));
   }
@@ -261,7 +266,9 @@ export const defineSyncFormSubmissionTask = () => {
       await syncFormSubmission();
       return BackgroundFetch.BackgroundFetchResult.NewData;
     } catch (err) {
-      Sentry.captureMessage(`[${SYNC_FORM_SUBMISSION_TASK_NAME}] defineSyncFormSubmissionTask failed`);
+      Sentry.captureMessage(
+        `[${SYNC_FORM_SUBMISSION_TASK_NAME}] defineSyncFormSubmissionTask failed`,
+      );
       Sentry.captureException(err);
       return BackgroundFetch.Result.Failed;
     }
