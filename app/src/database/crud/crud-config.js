@@ -5,14 +5,14 @@ const configQuery = () => {
   return {
     getConfig: async (db) => {
       try {
-        const config = await sql.getFirstRow(db, 'config');
+        const config = await sql.getFirstRow(db, 'config', { id });
         return config;
       } catch {
         return false;
       }
     },
     addConfig: async (db, data = {}) => {
-      const res = await sql.insertRow(db, 'config', data);
+      const res = await sql.insertRow(db, 'config', { ...data, id });
       return res;
     },
     updateConfig: async (db, data) => {
