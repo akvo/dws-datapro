@@ -15,9 +15,7 @@ const SubtitleContent = ({ index, answers, type, id, source = null, option = [] 
   const fetchCascade = useCallback(async () => {
     if (source) {
       const cascadeID = parseInt(answers?.[id], 10);
-      const { rows } = await cascades.loadDataSource(source, cascadeID);
-      const { length: rowLength, _array: rowItems } = rows || {};
-      const csValue = rowLength ? rowItems[0] : null;
+      const csValue = await cascades.loadDataSource(source, cascadeID);
       setCascadeValue(csValue);
     }
   }, [answers, id, source]);
