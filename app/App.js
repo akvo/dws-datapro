@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { Suspense, use, useCallback, useEffect, useState } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
@@ -40,7 +40,9 @@ defineSyncFormVersionTask();
 
 TaskManager.defineTask(SYNC_FORM_SUBMISSION_TASK_NAME, async () => {
   try {
-    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
     const pendingToSync = await crudDataPoints.selectSubmissionToSync(db);
     const activeJob = await crudJobs.getActiveJob(db, SYNC_FORM_SUBMISSION_TASK_NAME);
 
@@ -82,6 +84,7 @@ TaskManager.defineTask(SYNC_FORM_SUBMISSION_TASK_NAME, async () => {
       });
       await backgroundTask.syncFormSubmission(activeJob);
     }
+    await db.closeAsync();
     return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (err) {
     Sentry.captureMessage(`[${SYNC_FORM_SUBMISSION_TASK_NAME}] Define task manager failed`);
@@ -109,82 +112,21 @@ Sentry.init({
 });
 
 const App = () => {
-  const [isReady, setIsReady] = useState(false);
   const serverURLState = BuildParamsState.useState((s) => s.serverURL);
   const syncValue = BuildParamsState.useState((s) => s.dataSyncInterval);
   const gpsThreshold = BuildParamsState.useState((s) => s.gpsThreshold);
   const gpsAccuracyLevel = BuildParamsState.useState((s) => s.gpsAccuracyLevel);
   const geoLocationTimeout = BuildParamsState.useState((s) => s.geoLocationTimeout);
+  const appVersion = BuildParamsState.useState((s) => s.appVersion);
   const locationIsGranted = UserState.useState((s) => s.locationIsGranted);
 
-  const migrateDbIfNeeded = async (db) => {
-    let { user_version: currentDbVersion } = await db.getFirstAsync('PRAGMA user_version');
-    if (currentDbVersion >= DATABASE_VERSION) {
-      setIsReady(true);
-      return;
-    }
-    if (currentDbVersion === 0) {
-      await db.execAsync(`PRAGMA journal_mode = 'wal';`);
-      currentDbVersion = 1;
-    }
-
-    if (currentDbVersion === 1) {
-      tables.forEach(async (t) => {
-        await sql.createTable(db, t.name, t.fields);
-      });
-      currentDbVersion = 2;
-    }
-    await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
-    setIsReady(true);
-  };
-
-  const handleCheckSession = useCallback(async () => {
-    if (!isReady) {
-      return;
-    }
-    // check users exist
-    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
-    const user = await crudUsers.getActiveUser(db);
-    if (!user) {
-      UIState.update((s) => {
-        s.currentPage = 'Login';
-      });
-      return;
-    }
-    if (user.token) {
-      api.setToken(user.token);
-      UserState.update((s) => {
-        s.id = user.id;
-        s.name = user.name;
-        s.password = user.password;
-        s.certifications = user?.certifications
-          ? JSON.parse(user.certifications.replace(/''/g, "'"))
-          : [];
-      });
-      AuthState.update((s) => {
-        s.token = user.token;
-        s.authenticationCode = user.password;
-      });
-      UIState.update((s) => {
-        s.currentPage = 'Home';
-      });
-    }
-  }, [isReady]);
-
-  useEffect(() => {
-    handleCheckSession();
-  }, [handleCheckSession]);
-
-  const handleInitConfig = useCallback(async () => {
-    if (!isReady) {
-      return;
-    }
-    const db = await SQLite.openDatabaseAsync(DATABASE_NAME);
+  const handleInitConfig = async (db) => {
     const configExist = await crudConfig.getConfig(db);
     const serverURL = configExist?.serverURL || serverURLState;
     const syncInterval = configExist?.syncInterval || syncValue;
     if (!configExist) {
       await crudConfig.addConfig(db, {
+        appVersion,
         serverURL,
         syncInterval,
         gpsThreshold,
@@ -213,11 +155,57 @@ const App = () => {
         s.syncWifiOnly = configExist?.syncWifiOnly;
       });
     }
-  }, [isReady, geoLocationTimeout, gpsAccuracyLevel, gpsThreshold, serverURLState, syncValue]);
+  };
 
-  useEffect(() => {
-    handleInitConfig();
-  }, [handleInitConfig]);
+  const handleCheckSession = async (db) => {
+    // check users exist
+    const user = await crudUsers.getActiveUser(db);
+    if (!user) {
+      UIState.update((s) => {
+        s.currentPage = 'GetStarted';
+      });
+      return;
+    }
+    if (user.token) {
+      api.setToken(user.token);
+      UserState.update((s) => {
+        s.id = user.id;
+        s.name = user.name;
+        s.password = user.password;
+        s.certifications = user?.certifications
+          ? JSON.parse(user.certifications.replace(/''/g, "'"))
+          : [];
+      });
+      AuthState.update((s) => {
+        s.token = user.token;
+        s.authenticationCode = user.password;
+      });
+      UIState.update((s) => {
+        s.currentPage = 'Home';
+      });
+    }
+  };
+
+  const migrateDbIfNeeded = async (db) => {
+    let { user_version: currentDbVersion } = await db.getFirstAsync('PRAGMA user_version');
+    if (currentDbVersion >= DATABASE_VERSION) {
+      handleInitConfig(db);
+      handleCheckSession(db);
+      return;
+    }
+    if (currentDbVersion === 0) {
+      await db.execAsync(`PRAGMA journal_mode = 'wal';`);
+      currentDbVersion = 1;
+    }
+
+    if (currentDbVersion === 1) {
+      tables.forEach(async (t) => {
+        await sql.createTable(db, t.name, t.fields);
+      });
+      currentDbVersion = 2;
+    }
+    await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+  };
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
@@ -269,11 +257,13 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDbIfNeeded}>
-        <Navigation />
-        <NetworkStatusBar />
-        <SyncService />
-      </SQLiteProvider>
+      <Suspense fallback={null}>
+        <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDbIfNeeded}>
+          <Navigation />
+          <NetworkStatusBar />
+          <SyncService />
+        </SQLiteProvider>
+      </Suspense>
     </SafeAreaProvider>
   );
 };
