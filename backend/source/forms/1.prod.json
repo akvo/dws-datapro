@@ -75,7 +75,7 @@
 					"meta": true,
 					"type": "cascade",
 					"api": {
-						"endpoint": "/api/v1/entity-data/1/list/"
+						"endpoint": "/api/v1/entity-data/3/list/"
 					},
 					"required": true,
 					"extra": {
