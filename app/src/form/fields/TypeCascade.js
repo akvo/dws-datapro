@@ -134,10 +134,13 @@ const TypeCascade = ({
 
     if (cascadeParent === 'administrator.sqlite') {
       if (filterDs?.length) {
+        const defaultValue = filterDs.find(
+          (d) => d?.name === value?.[0] || d?.id === value?.[0],
+        )?.id;
         return [
           {
             options: filterDs,
-            value: value?.[0] || null,
+            value: defaultValue || value?.[0] || null,
           },
         ];
       }
@@ -227,9 +230,9 @@ const TypeCascade = ({
 
   const handleDefaultValue = useCallback(() => {
     if (typeof value?.[0] === 'string' && dropdownItems.length) {
-      const lastValue = dropdownItems.slice(-1)?.[0]?.value;
-      if (lastValue) {
-        onChange(id, [lastValue]);
+      const lastItem = dropdownItems.slice(-1)?.[0] || { value: null, options: [] };
+      if (lastItem?.value) {
+        onChange(id, [lastItem.value]);
       }
     }
   }, [value, id, dropdownItems, onChange]);
