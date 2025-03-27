@@ -2,11 +2,10 @@ import React, { useState } from 'react';
 import { Dialog, Input, Slider, Text } from '@rneui/themed';
 import { Dropdown } from 'react-native-element-dropdown';
 import Icon from 'react-native-vector-icons/Ionicons';
-import PropTypes from 'prop-types';
 import { UIState } from '../../store';
 import { i18n } from '../../lib';
 
-const DialogForm = ({ onOk, onCancel, showDialog, edit, initValue }) => {
+const DialogForm = ({ onOk, onCancel, showDialog, edit, initValue = 0 }) => {
   const [value, setValue] = useState(initValue);
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
@@ -68,16 +67,3 @@ const DialogForm = ({ onOk, onCancel, showDialog, edit, initValue }) => {
 };
 
 export default DialogForm;
-
-DialogForm.propTypes = {
-  onOk: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  showDialog: PropTypes.bool.isRequired,
-  edit: PropTypes.object,
-  initValue: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
-};
-
-DialogForm.defaultProps = {
-  initValue: 0,
-  edit: null,
-};

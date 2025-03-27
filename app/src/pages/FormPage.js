@@ -11,7 +11,6 @@ import {
 import { Button, Dialog, Text } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as SQLite from 'expo-sqlite';
-import PropTypes from 'prop-types';
 import * as Sentry from '@sentry/react-native';
 
 import FormContainer from '../form/FormContainer';
@@ -43,6 +42,7 @@ const FormPage = ({ navigation, route }) => {
   const isNewSubmission = route?.params?.newSubmission;
   const [currentDataPoint, setCurrentDataPoint] = useState({});
   const [loading, setLoading] = useState(false);
+  const db = SQLite.useSQLiteContext();
 
   const formJSON = useMemo(() => {
     if (!selectedForm?.json) {
@@ -58,7 +58,7 @@ const FormPage = ({ navigation, route }) => {
     const { cascades: cascadesFiles } = formJSON || {};
     cascadesFiles?.forEach((csFile) => {
       const [dbFile] = csFile?.split('/')?.slice(-1) || [];
-      const connDB = SQLite.openDatabase(dbFile);
+      const connDB = SQLite.openDatabaseSync(dbFile);
       connDB.closeAsync();
     });
 
@@ -92,15 +92,18 @@ const FormPage = ({ navigation, route }) => {
         json: currentValues || {},
         submissionType: route.params.submission_type,
       };
-      const dbCall = isNewSubmission
-        ? crudDataPoints.saveDataPoint
-        : crudDataPoints.updateDataPoint;
+
       const duration = getDurationInMinutes(surveyStart) + surveyDuration;
-      await dbCall({
+      const payload = {
         ...currentDataPoint,
         ...saveData,
         duration: duration === 0 ? 1 : duration,
-      });
+      };
+      if (isNewSubmission) {
+        await crudDataPoints.saveDataPoint(db, payload);
+      } else {
+        await crudDataPoints.updateDataPoint(db, payload);
+      }
       if (Platform.OS === 'android') {
         ToastAndroid.show(trans.successSaveDatapoint, ToastAndroid.LONG);
       }
@@ -158,19 +161,21 @@ const FormPage = ({ navigation, route }) => {
         submissionType: route.params.submission_type,
         uuid: route.params?.uuid,
       };
-      const dbCall = isNewSubmission
-        ? crudDataPoints.saveDataPoint
-        : crudDataPoints.updateDataPoint;
       const duration = getDurationInMinutes(surveyStart) + surveyDuration;
-      await dbCall({
+      const payload = {
         ...currentDataPoint,
         ...submitData,
         duration: duration === 0 ? 1 : duration,
-      });
+      };
+      if (isNewSubmission) {
+        await crudDataPoints.saveDataPoint(db, payload);
+      } else {
+        await crudDataPoints.updateDataPoint(db, payload);
+      }
       /**
        * Create a new job for syncing form submissions.
        */
-      await crudJobs.addJob({
+      await crudJobs.addJob(db, {
         user: userId,
         type: SYNC_FORM_SUBMISSION_TASK_NAME,
         status: jobStatus.PENDING,
@@ -205,7 +210,7 @@ const FormPage = ({ navigation, route }) => {
 
   const fetchSavedSubmission = useCallback(async () => {
     setLoading(true);
-    const dpValue = await crudDataPoints.selectDataPointById({ id: savedDataPointId });
+    const dpValue = await crudDataPoints.selectDataPointById(db, { id: savedDataPointId });
     setCurrentDataPoint(dpValue);
     if (dpValue?.json && Object.keys(dpValue.json)?.length) {
       FormState.update((s) => {
@@ -213,7 +218,7 @@ const FormPage = ({ navigation, route }) => {
       });
     }
     setLoading(false);
-  }, [savedDataPointId]);
+  }, [db, savedDataPointId]);
 
   useEffect(() => {
     if (!isNewSubmission) {
@@ -296,11 +301,3 @@ const styles = StyleSheet.create({
 });
 
 export default FormPage;
-
-FormPage.propTypes = {
-  route: PropTypes.object,
-};
-
-FormPage.defaultProps = {
-  route: null,
-};

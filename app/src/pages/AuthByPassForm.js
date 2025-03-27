@@ -2,8 +2,9 @@
 import React from 'react';
 import { Asset } from 'expo-asset';
 import { View, StyleSheet, Platform, ToastAndroid } from 'react-native';
-import { Input, Button, Text, Dialog } from '@rneui/themed';
+import { Input, Button, Text } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
+import { useSQLiteContext } from 'expo-sqlite';
 
 import { CenterLayout, Image } from '../components';
 import { api, cascades, i18n } from '../lib';
@@ -18,6 +19,7 @@ const AuthByPassForm = ({ navigation }) => {
   const [error, setError] = React.useState(null);
   const [formId, setFormId] = React.useState(null);
   const trans = i18n.text(activeLang);
+  const db = useSQLiteContext();
 
   const goTo = (page) => navigation.navigate(page);
 
@@ -37,13 +39,13 @@ const AuthByPassForm = ({ navigation }) => {
           const { data } = res;
           // save session
           const bearerToken = 'NO TOKEN';
-          const lastSession = await crudSessions.selectLastSession();
+          const lastSession = await crudSessions.selectLastSession(db);
           if (!lastSession && lastSession?.token !== bearerToken) {
-            await crudSessions.addSession({ token: bearerToken, passcode: 'NO PASSCODE' });
+            await crudSessions.addSession(db, { token: bearerToken, passcode: 'NO PASSCODE' });
           }
           await cascades.createSqliteDir();
           // save forms
-          await crudForms.addForm({
+          await crudForms.addForm(db, {
             id: data.id,
             version: data.version,
             formJSON: data,
@@ -56,7 +58,7 @@ const AuthByPassForm = ({ navigation }) => {
             });
           }
           // check users exist
-          const activeUser = await crudUsers.getActiveUser();
+          const activeUser = await crudUsers.getActiveUser(db);
           // update auth state
           AuthState.update((s) => {
             s.authenticationCode = 'NO PASSCODE';
@@ -98,7 +100,6 @@ const AuthByPassForm = ({ navigation }) => {
       <Image src={logo || null} />
       {loading ? (
         <View>
-          <Dialog.Loading />
           <Text style={styles.dialogLoadingText}>{trans.fetchingData}</Text>
         </View>
       ) : (

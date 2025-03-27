@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import moment from 'moment';
 import { Input } from '@rneui/themed';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import PropTypes from 'prop-types';
 import { FieldLabel } from '../support';
 import styles from '../styles';
 
@@ -13,10 +12,10 @@ const TypeDate = ({
   keyform,
   id,
   label,
-  tooltip,
   required,
-  requiredSign,
-  disabled,
+  requiredSign = '*',
+  disabled = false,
+  tooltip = null,
 }) => {
   const [showDatepicker, setShowDatePicker] = useState(false);
 
@@ -55,22 +54,3 @@ const TypeDate = ({
 };
 
 export default TypeDate;
-
-TypeDate.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.instanceOf(Date)]),
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  required: PropTypes.bool.isRequired,
-  requiredSign: PropTypes.string,
-  disabled: PropTypes.bool,
-};
-
-TypeDate.defaultProps = {
-  value: null,
-  requiredSign: "*",
-  disabled: false,
-  tooltip: null,
-};

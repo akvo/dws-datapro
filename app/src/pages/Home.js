@@ -5,10 +5,9 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { Platform, ToastAndroid } from 'react-native';
 import * as Notifications from 'expo-notifications';
 import * as Location from 'expo-location';
-import PropTypes from 'prop-types';
 import * as Network from 'expo-network';
 import * as Sentry from '@sentry/react-native';
-
+import { useSQLiteContext } from 'expo-sqlite';
 import { BaseLayout } from '../components';
 import {
   FormState,
@@ -28,6 +27,7 @@ const Home = ({ navigation, route }) => {
   const [data, setData] = useState([]);
   const [appLang, setAppLang] = useState('en');
   const [loading, setloading] = useState(true);
+  const [preload, setPreload] = useState(true);
   const [syncLoading, setSyncLoading] = useState(false);
   const [syncDisabled, setSyncDisabled] = useState(false);
 
@@ -42,6 +42,7 @@ const Home = ({ navigation, route }) => {
 
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
+  const db = useSQLiteContext();
 
   const { id: currentUserId, name: currentUserName } = UserState.useState((s) => s);
   const subTitleText = currentUserName ? `${trans.userLabel} ${currentUserName}` : null;
@@ -75,13 +76,13 @@ const Home = ({ navigation, route }) => {
         const findNew = newForms.find((n) => n.id === formId);
         if (findNew) {
           // insert new form to database
-          await crudForms.addForm({
+          await crudForms.addForm(db, {
             ...findNew,
             userId,
             formJSON: apiData,
           });
         }
-        await crudForms.updateForm({
+        await crudForms.updateForm(db, {
           userId,
           formId,
           version,
@@ -113,7 +114,7 @@ const Home = ({ navigation, route }) => {
       s.certifications = apiData.certifications;
     });
 
-    const myForms = await crudForms.getMyForms();
+    const myForms = await crudForms.getMyForms(db);
 
     if (myForms.length > apiData.formsUrl.length) {
       /**
@@ -122,7 +123,7 @@ const Home = ({ navigation, route }) => {
       await myForms
         .filter((mf) => !apiData.formsUrl.map((n) => n?.id).includes(mf.formId))
         .forEach(async (mf) => {
-          await crudForms.deleteForm(mf.id);
+          await crudForms.deleteForm(db, mf.id);
         });
     }
 
@@ -137,8 +138,8 @@ const Home = ({ navigation, route }) => {
     setSyncLoading(true);
     try {
       await syncUserForms();
-      await crudUsers.updateLastSynced(userId);
-      await crudJobs.addJob({
+      await crudUsers.updateLastSynced(db, userId);
+      await crudJobs.addJob(db, {
         user: userId,
         type: SYNC_DATAPOINT_JOB_NAME,
         status: jobStatus.PENDING,
@@ -157,6 +158,10 @@ const Home = ({ navigation, route }) => {
   };
 
   const getUserForms = useCallback(async () => {
+    if (preload) {
+      setPreload(false);
+      return;
+    }
     /**
      * The Form List will be refreshed when:
      * - parameter change
@@ -175,7 +180,7 @@ const Home = ({ navigation, route }) => {
         });
       }
       try {
-        const results = await crudForms.selectLatestFormVersion({ user: currentUserId });
+        const results = await crudForms.selectLatestFormVersion(db, { user: currentUserId });
         const forms = results
           .map((r) => ({
             ...r,
@@ -198,6 +203,8 @@ const Home = ({ navigation, route }) => {
       }
     }
   }, [
+    db,
+    preload,
     params,
     currentUserId,
     activeLang,
@@ -345,11 +352,3 @@ const Home = ({ navigation, route }) => {
 };
 
 export default Home;
-
-Home.propTypes = {
-  route: PropTypes.object,
-};
-
-Home.defaultProps = {
-  route: null,
-};

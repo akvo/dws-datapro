@@ -1,10 +1,8 @@
-import { conn, query } from '..';
+import sql from '../sql';
 import crudUsers from './crud-users';
 
-const db = conn.init;
-
 const formsQuery = () => ({
-  selectLatestFormVersion: async ({ user }) => {
+  selectLatestFormVersion: async (db, { user }) => {
     const latest = 1;
     const selectJoin = `SELECT
           f.id,
@@ -29,28 +27,19 @@ const formsQuery = () => ({
         LEFT JOIN datapoints dp ON f.id = dp.form AND dp.user = ?
         WHERE f.latest = ?
         GROUP BY f.id, f.formId, f.version, f.name, f.json;`;
-    const { rows } = await conn.tx(db, selectJoin, [user, latest]);
-    if (!rows.length) {
-      return [];
-    }
-    return rows._array;
+    const rows = await sql.executeQuery(db, selectJoin, [user, latest]);
+    return rows;
   },
-  selectFormById: async ({ id }) => {
-    const { rows } = await conn.tx(db, query.read('forms', { id }), [id]);
-    if (!rows.length) {
-      return {};
-    }
-    return rows._array[0];
+  selectFormById: async (db, { id }) => {
+    const rows = await sql.getFilteredRows(db, 'forms', { id });
+    return rows;
   },
-  selectFormByIdAndVersion: async ({ id: formId, version }) => {
-    const { rows } = await conn.tx(db, query.read('forms', { formId, version }), [formId, version]);
-    if (!rows.length) {
-      return false;
-    }
-    return rows._array[0];
+  selectFormByIdAndVersion: async (db, { id: formId, version }) => {
+    const rows = await sql.getFilteredRows(db, 'forms', { formId, version });
+    return rows;
   },
-  addForm: async ({ userId, id: formId, version, formJSON }) => {
-    const insertQuery = query.insert('forms', {
+  addForm: async (db, { userId, id: formId, version, formJSON }) => {
+    const res = await sql.insertRow(db, 'forms', {
       userId: userId || 0,
       formId,
       version,
@@ -59,31 +48,24 @@ const formsQuery = () => ({
       json: formJSON ? JSON.stringify(formJSON).replace(/'/g, "''") : null,
       createdAt: new Date().toISOString(),
     });
-    const res = await conn.tx(db, insertQuery, []);
     return res;
   },
-  updateForm: async ({ userId, formId, version, formJSON, latest = 1 }) => {
-    const updateQuery = query.update(
+  updateForm: async (db, { userId, formId, version, formJSON, latest = 1 }) => {
+    const res = await sql.updateRow(
+      db,
       'forms',
       { userId, formId },
       { version, latest, json: formJSON ? JSON.stringify(formJSON).replace(/'/g, "''") : null },
     );
-    const res = conn.tx(db, updateQuery, [userId, formId]);
     return res;
   },
-  getMyForms: async () => {
-    const session = await crudUsers.getActiveUser();
-    const sqlQuery = 'SELECT id, name, formId FROM forms WHERE userId = ?';
-    const { rows } = await conn.tx(db, sqlQuery, [session.id]);
-
-    if (!rows.length) {
-      return {};
-    }
-    return rows._array;
+  getMyForms: async (db) => {
+    const session = await crudUsers.getActiveUser(db);
+    const rows = await sql.getFilteredRows(db, 'forms', { userId: session.id });
+    return rows;
   },
-  deleteForm: async (id) => {
-    const sqlQuery = query.deleteRow('forms');
-    const { rowsAffected } = await conn.tx(db, sqlQuery, [id]);
+  deleteForm: async (db, id) => {
+    const rowsAffected = await sql.deleteRow(db, 'forms', { id });
     return rowsAffected;
   },
 });

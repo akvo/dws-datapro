@@ -1,7 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import styles from '../styles';
 
 const FieldGroupHeader = ({ description, index, label }) => (
@@ -22,15 +21,3 @@ const FieldGroupHeader = ({ description, index, label }) => (
   );
 
 export default FieldGroupHeader;
-
-FieldGroupHeader.propTypes = {
-  description: PropTypes.string,
-  index: PropTypes.number,
-  label: PropTypes.string,
-};
-
-FieldGroupHeader.defaultProps = {
-  description: null,
-  index: 0,
-  label: '',
-};

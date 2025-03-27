@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet } from 'react-native';
 import { Button, ListItem } from '@rneui/themed';
-import PropTypes from 'prop-types';
+import { useSQLiteContext } from 'expo-sqlite';
 import { BaseLayout } from '../../components';
 import { FormState, UIState } from '../../store';
 import { helpers, i18n } from '../../lib';
@@ -19,6 +19,7 @@ const UpdateForm = ({ navigation, route }) => {
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
   const selectedForm = FormState.useState((s) => s.form);
+  const db = useSQLiteContext();
 
   const formId = params?.formId;
   const loadMore = useMemo(() => forms.length < total, [forms, total]);
@@ -55,9 +56,9 @@ const UpdateForm = ({ navigation, route }) => {
   };
 
   const fetchTotal = useCallback(async () => {
-    const totalPage = await crudMonitoring.getTotal(formId, search);
+    const totalPage = await crudMonitoring.getTotal(db, formId, search);
     setTotal(totalPage);
-  }, [formId, search]);
+  }, [db, formId, search]);
 
   useEffect(() => {
     fetchTotal();
@@ -66,7 +67,7 @@ const UpdateForm = ({ navigation, route }) => {
   const fetchData = useCallback(async () => {
     if (isLoading) {
       setIsLoading(false);
-      const moreForms = await crudMonitoring.getFormsPaginated({
+      const moreForms = await crudMonitoring.getFormsPaginated(db, {
         formId,
         search: search.trim(),
         limit: 10,
@@ -78,7 +79,7 @@ const UpdateForm = ({ navigation, route }) => {
         setForms(forms.concat(moreForms));
       }
     }
-  }, [isLoading, forms, formId, page, search]);
+  }, [db, isLoading, forms, formId, page, search]);
 
   useEffect(() => {
     fetchData();
@@ -143,11 +144,3 @@ const styles = StyleSheet.create({
 });
 
 export default UpdateForm;
-
-UpdateForm.propTypes = {
-  route: PropTypes.object,
-};
-
-UpdateForm.defaultProps = {
-  route: null,
-};

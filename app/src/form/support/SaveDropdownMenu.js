@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { Button } from '@rneui/themed';
 import { Menu, MenuItem, MenuDivider } from 'react-native-material-menu';
 import { StyleSheet } from 'react-native';
-import PropTypes from 'prop-types';
 import { langConfig } from '../../pages/Settings/config';
 import DialogForm from '../../pages/Settings/DialogForm';
 import { FormState, UIState } from '../../store';
@@ -97,17 +96,3 @@ const styles = StyleSheet.create({
 });
 
 export default SaveDropdownMenu;
-
-SaveDropdownMenu.propTypes = {
-  anchor: PropTypes.node,
-  visible: PropTypes.bool.isRequired,
-  setVisible: PropTypes.func.isRequired,
-  handleOnExit: PropTypes.func,
-  handleOnSaveAndExit: PropTypes.func,
-};
-
-SaveDropdownMenu.defaultProps = {
-  anchor: null,
-  handleOnExit: null,
-  handleOnSaveAndExit: null,
-};

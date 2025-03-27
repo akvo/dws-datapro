@@ -2,7 +2,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Text } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import styles from './styles';
 
 const Titles = ({ items }) => (
@@ -15,7 +14,3 @@ const Titles = ({ items }) => (
   </View>
 );
 export default Titles;
-
-Titles.propTypes = {
-  items: PropTypes.arrayOf(PropTypes.string).isRequired,
-};

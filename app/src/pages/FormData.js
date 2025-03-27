@@ -3,14 +3,13 @@ import { Button, Dialog, Text } from '@rneui/themed';
 import { View, ActivityIndicator, StyleSheet, ToastAndroid } from 'react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import moment from 'moment';
-import PropTypes from 'prop-types';
 import * as Network from 'expo-network';
 import * as Sentry from '@sentry/react-native';
-
-import { UserState, UIState, FormState } from '../store';
+import { useSQLiteContext } from 'expo-sqlite';
+import { UserState, UIState, FormState, BuildParamsState } from '../store';
 import { BaseLayout } from '../components';
 import { crudDataPoints } from '../database/crud';
-import { i18n, backgroundTask } from '../lib';
+import { i18n, backgroundTask, api } from '../lib';
 import { getCurrentTimestamp } from '../form/lib';
 import crudJobs, { jobStatus } from '../database/crud/crud-jobs';
 
@@ -35,11 +34,6 @@ const SyncButton = ({ onPress, disabled = false }) => (
   </Button>
 );
 
-SyncButton.propTypes = {
-  onPress: PropTypes.func.isRequired,
-  disabled: PropTypes.bool.isRequired,
-};
-
 const FormDataPage = ({ navigation, route }) => {
   const formId = route?.params?.id;
   const showSubmitted = route?.params?.showSubmitted || false;
@@ -50,6 +44,8 @@ const FormDataPage = ({ navigation, route }) => {
   const [data, setData] = useState([]);
   const [showConfirmationSyncDialog, setShowConfirmationSyncDialog] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const serverURL = BuildParamsState.useState((s) => s.serverURL);
+  const db = useSQLiteContext();
 
   const goBack = () => {
     navigation.navigate('ManageForm', { ...route?.params });
@@ -57,7 +53,7 @@ const FormDataPage = ({ navigation, route }) => {
 
   const fetchData = useCallback(async () => {
     const submitted = showSubmitted ? 1 : 0;
-    let results = await crudDataPoints.selectDataPointsByFormAndSubmitted({
+    let results = await crudDataPoints.selectDataPointsByFormAndSubmitted(db, {
       form: formId,
       submitted,
       user: activeUserId,
@@ -79,6 +75,7 @@ const FormDataPage = ({ navigation, route }) => {
     });
     setData(results);
   }, [
+    db,
     showSubmitted,
     activeUserId,
     formId,
@@ -155,16 +152,17 @@ const FormDataPage = ({ navigation, route }) => {
 
   const handleOnSync = async () => {
     try {
+      api.setServerURL(serverURL);
       setShowConfirmationSyncDialog(false);
       setData([]);
       setSyncing(true);
-      const activeJob = await crudJobs.getActiveJob();
+      const activeJob = await crudJobs.getActiveJob(db);
       if (activeJob) {
         /**
          * Delete the active job while it is still in pending status to prevent duplicate submissions.
          */
         if (activeJob.status === jobStatus.PENDING) {
-          await crudJobs.deleteJob(activeJob.id);
+          await crudJobs.deleteJob(db, activeJob.id);
           await runSyncSubmision();
         } else {
           ToastAndroid.show(trans.autoSyncInProgress, ToastAndroid.LONG);
@@ -245,11 +243,3 @@ const styles = StyleSheet.create({
 });
 
 export default FormDataPage;
-
-FormDataPage.propTypes = {
-  route: PropTypes.object,
-};
-
-FormDataPage.defaultProps = {
-  route: null,
-};

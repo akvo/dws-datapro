@@ -2,7 +2,6 @@
 import React, { isValidElement } from 'react';
 import { View } from 'react-native';
 import { Input, Text } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { FieldLabel } from '../support';
 import styles from '../styles';
 
@@ -74,13 +73,13 @@ const TypeInput = ({
   keyform,
   id,
   label,
-  addonAfter,
-  addonBefore,
-  tooltip,
   required,
-  requiredSign,
+  requiredSign = '*',
   meta_uuid: metaUUID,
-  disabled,
+  disabled = false,
+  addonAfter = null,
+  addonBefore = null,
+  tooltip = null,
 }) => {
   const requiredValue = required ? requiredSign : null;
   const inputContainerStyle =
@@ -108,28 +107,3 @@ const TypeInput = ({
 };
 
 export default TypeInput;
-
-TypeInput.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  required: PropTypes.bool.isRequired,
-  requiredSign: PropTypes.string,
-  disabled: PropTypes.bool,
-  addonAfter: PropTypes.node,
-  addonBefore: PropTypes.node,
-  meta_uuid: PropTypes.bool,
-};
-
-TypeInput.defaultProps = {
-  value: '',
-  disabled: false,
-  meta_uuid: false,
-  requiredSign: '*',
-  addonAfter: null,
-  addonBefore: null,
-  tooltip: null,
-};

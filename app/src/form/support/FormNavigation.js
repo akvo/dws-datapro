@@ -1,7 +1,6 @@
 import React from 'react';
 import { ToastAndroid } from 'react-native';
 import { Tab } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import styles from '../styles';
 import { UIState, FormState } from '../../store';
 import { i18n } from '../../lib';
@@ -166,14 +165,3 @@ const FormNavigation = ({
 };
 
 export default FormNavigation;
-
-FormNavigation.propTypes = {
-  currentGroup: PropTypes.object.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-  activeGroup: PropTypes.number.isRequired,
-  setActiveGroup: PropTypes.func.isRequired,
-  totalGroup: PropTypes.number.isRequired,
-  showQuestionGroupList: PropTypes.bool.isRequired,
-  setShowQuestionGroupList: PropTypes.func.isRequired,
-  setShowDialogMenu: PropTypes.func.isRequired,
-};

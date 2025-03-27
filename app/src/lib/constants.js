@@ -16,3 +16,7 @@ export const SUBMISSION_TYPES = {
   verification: 3,
   certification: 4,
 };
+
+export const DATABASE_NAME = 'app.db';
+
+export const DATABASE_VERSION = 2;

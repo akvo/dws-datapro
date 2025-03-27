@@ -1,23 +1,30 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { Suspense, useCallback, useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 import * as BackgroundFetch from 'expo-background-fetch';
 import * as Sentry from '@sentry/react-native';
-import { ToastAndroid } from 'react-native';
 import * as Location from 'expo-location';
+import * as SQLite from 'expo-sqlite';
 import { SENTRY_DSN, SENTRY_ENV } from '@env';
+import { SQLiteProvider } from 'expo-sqlite';
 
-import Navigation, { routingInstrumentation } from './src/navigation';
-import { conn, query, tables } from './src/database';
+import Navigation, { reactNavigationIntegration } from './src/navigation';
 import { UIState, AuthState, UserState, BuildParamsState } from './src/store';
 import { crudUsers, crudConfig, crudDataPoints } from './src/database/crud';
 import { api } from './src/lib';
 import { NetworkStatusBar, SyncService } from './src/components';
 import backgroundTask, { defineSyncFormVersionTask } from './src/lib/background-task';
 import crudJobs, { jobStatus, MAX_ATTEMPT } from './src/database/crud/crud-jobs';
-import { SYNC_FORM_SUBMISSION_TASK_NAME, SYNC_FORM_VERSION_TASK_NAME } from './src/lib/constants';
+import {
+  SYNC_FORM_SUBMISSION_TASK_NAME,
+  SYNC_FORM_VERSION_TASK_NAME,
+  DATABASE_NAME,
+  DATABASE_VERSION,
+} from './src/lib/constants';
+import { tables } from './src/database';
+import sql from './src/database/sql';
 
 export const setNotificationHandler = () =>
   Notifications.setNotificationHandler({
@@ -33,8 +40,11 @@ defineSyncFormVersionTask();
 
 TaskManager.defineTask(SYNC_FORM_SUBMISSION_TASK_NAME, async () => {
   try {
-    const pendingToSync = await crudDataPoints.selectSubmissionToSync();
-    const activeJob = await crudJobs.getActiveJob(SYNC_FORM_SUBMISSION_TASK_NAME);
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
+    const pendingToSync = await crudDataPoints.selectSubmissionToSync(db);
+    const activeJob = await crudJobs.getActiveJob(db, SYNC_FORM_SUBMISSION_TASK_NAME);
 
     if (activeJob?.status === jobStatus.ON_PROGRESS) {
       if (activeJob.attempt < MAX_ATTEMPT && pendingToSync.length) {
@@ -42,7 +52,7 @@ TaskManager.defineTask(SYNC_FORM_SUBMISSION_TASK_NAME, async () => {
          * Job is still in progress,
          * but we still have pending items; then increase the attempt value.
          */
-        await crudJobs.updateJob(activeJob.id, {
+        await crudJobs.updateJob(db, activeJob.id, {
           attempt: activeJob.attempt + 1,
         });
       }
@@ -55,12 +65,12 @@ TaskManager.defineTask(SYNC_FORM_SUBMISSION_TASK_NAME, async () => {
          */
 
         if (pendingToSync.length) {
-          await crudJobs.updateJob(activeJob.id, {
+          await crudJobs.updateJob(db, activeJob.id, {
             status: jobStatus.PENDING,
             attempt: 0, // RESET attempt to 0
           });
         } else {
-          await crudJobs.deleteJob(activeJob.id);
+          await crudJobs.deleteJob(db, activeJob.id);
         }
       }
     }
@@ -69,11 +79,12 @@ TaskManager.defineTask(SYNC_FORM_SUBMISSION_TASK_NAME, async () => {
       activeJob?.status === jobStatus.PENDING ||
       (activeJob?.status === jobStatus.FAILED && activeJob?.attempt <= MAX_ATTEMPT)
     ) {
-      await crudJobs.updateJob(activeJob.id, {
+      await crudJobs.updateJob(db, activeJob.id, {
         status: jobStatus.ON_PROGRESS,
       });
       await backgroundTask.syncFormSubmission(activeJob);
     }
+    await db.closeAsync();
     return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (err) {
     Sentry.captureMessage(`[${SYNC_FORM_SUBMISSION_TASK_NAME}] Define task manager failed`);
@@ -93,11 +104,11 @@ Sentry.init({
   // Set it to `false` in production
   environment: SENTRY_ENV,
   debug: false,
-  integrations: [
-    new Sentry.ReactNativeTracing({
-      routingInstrumentation,
-    }),
-  ],
+  enableAppStartTracking: true,
+  enableNativeFramesTracking: true,
+  enableStallTracking: true,
+  enableUserInteractionTracing: true,
+  integrations: [reactNavigationIntegration],
 });
 
 const App = () => {
@@ -106,43 +117,16 @@ const App = () => {
   const gpsThreshold = BuildParamsState.useState((s) => s.gpsThreshold);
   const gpsAccuracyLevel = BuildParamsState.useState((s) => s.gpsAccuracyLevel);
   const geoLocationTimeout = BuildParamsState.useState((s) => s.geoLocationTimeout);
+  const appVersion = BuildParamsState.useState((s) => s.appVersion);
   const locationIsGranted = UserState.useState((s) => s.locationIsGranted);
 
-  const handleCheckSession = useCallback(() => {
-    // check users exist
-    crudUsers
-      .getActiveUser()
-      .then((user) => {
-
-        const page = 'Home';
-        return { user, page };
-      })
-      .then(({ user, page }) => {
-        api.setToken(user.token);
-        UserState.update((s) => {
-          s.id = user.id;
-          s.name = user.name;
-          s.password = user.password;
-          s.certifications = user?.certifications
-            ? JSON.parse(user.certifications.replace(/''/g, "'"))
-            : [];
-        });
-        AuthState.update((s) => {
-          s.token = user.token;
-          s.authenticationCode = user.password;
-        });
-        UIState.update((s) => {
-          s.currentPage = page;
-        });
-      });
-  }, []);
-
-  const handleInitConfig = useCallback(async () => {
-    const configExist = await crudConfig.getConfig();
+  const handleInitConfig = async (db) => {
+    const configExist = await crudConfig.getConfig(db);
     const serverURL = configExist?.serverURL || serverURLState;
     const syncInterval = configExist?.syncInterval || syncValue;
     if (!configExist) {
-      await crudConfig.addConfig({
+      await crudConfig.addConfig(db, {
+        appVersion,
         serverURL,
         syncInterval,
         gpsThreshold,
@@ -171,34 +155,59 @@ const App = () => {
         s.syncWifiOnly = configExist?.syncWifiOnly;
       });
     }
+  };
 
-  }, [geoLocationTimeout, gpsAccuracyLevel, gpsThreshold, serverURLState, syncValue]);
-
-  const handleInitDB = useCallback(async () => {
-    /**
-     * Exclude the reset in the try-catch block
-     * to prevent other queries from being skipped after this process.
-     */
-    await conn.reset();
-    try {
-      const db = conn.init;
-      const queries = tables.map((t) => {
-        const queryString = query.initialQuery(t.name, t.fields);
-        return conn.tx(db, queryString);
+  const handleCheckSession = async (db) => {
+    // check users exist
+    const user = await crudUsers.getActiveUser(db);
+    if (!user) {
+      UIState.update((s) => {
+        s.currentPage = 'GetStarted';
       });
-      await Promise.all(queries);
-      await handleInitConfig();
-      handleCheckSession();
-    } catch (error) {
-      Sentry.captureMessage(`[INITIAL DB]`);
-      Sentry.captureException(error);
-      ToastAndroid.show(`[INITIAL DB]: ${error}`, ToastAndroid.LONG);
+      return;
     }
-  }, [handleInitConfig, handleCheckSession]);
+    if (user.token) {
+      api.setToken(user.token);
+      UserState.update((s) => {
+        s.id = user.id;
+        s.name = user.name;
+        s.password = user.password;
+        s.certifications = user?.certifications
+          ? JSON.parse(user.certifications.replace(/''/g, "'"))
+          : [];
+      });
+      AuthState.update((s) => {
+        s.token = user.token;
+        s.authenticationCode = user.password;
+      });
+      UIState.update((s) => {
+        s.currentPage = 'Home';
+      });
+    }
+  };
 
-  useEffect(() => {
-    handleInitDB();
-  }, [handleInitDB]);
+  const migrateDbIfNeeded = async (db) => {
+    let { user_version: currentDbVersion } = await db.getFirstAsync('PRAGMA user_version');
+    if (currentDbVersion >= DATABASE_VERSION) {
+      await handleInitConfig(db);
+      await handleCheckSession(db);
+      return;
+    }
+    if (currentDbVersion === 0) {
+      await db.execAsync(`PRAGMA journal_mode = 'wal';`);
+      currentDbVersion = 1;
+    }
+
+    if (currentDbVersion === 1) {
+      await Promise.all(
+        tables.map(async (t) => {
+          await sql.createTable(db, t.name, t.fields);
+        }),
+      );
+      currentDbVersion = 2;
+    }
+    await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);
+  };
 
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
@@ -250,9 +259,13 @@ const App = () => {
 
   return (
     <SafeAreaProvider>
-      <Navigation />
-      <NetworkStatusBar />
-      <SyncService />
+      <Suspense fallback={null}>
+        <SQLiteProvider databaseName={DATABASE_NAME} onInit={migrateDbIfNeeded}>
+          <Navigation />
+          <NetworkStatusBar />
+          <SyncService />
+        </SQLiteProvider>
+      </Suspense>
     </SafeAreaProvider>
   );
 };

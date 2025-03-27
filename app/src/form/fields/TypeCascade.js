@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { View, Text } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import PropTypes from 'prop-types';
 
 import { FieldLabel } from '../support';
 import styles from '../styles';
@@ -14,11 +13,11 @@ const TypeCascade = ({
   keyform,
   id,
   label,
-  tooltip,
   required,
-  requiredSign,
   source,
-  disabled,
+  requiredSign = '*',
+  disabled = false,
+  tooltip = null,
 }) => {
   const [dataSource, setDataSource] = useState([]);
   const [dropdownItems, setDropdownItems] = useState([]);
@@ -135,10 +134,13 @@ const TypeCascade = ({
 
     if (cascadeParent === 'administrator.sqlite') {
       if (filterDs?.length) {
+        const defaultValue = filterDs.find(
+          (d) => d?.name === value?.[0] || d?.id === value?.[0],
+        )?.id;
         return [
           {
             options: filterDs,
-            value: value?.[0] || null,
+            value: defaultValue || value?.[0] || null,
           },
         ];
       }
@@ -213,11 +215,11 @@ const TypeCascade = ({
   }, [dropdownItems, initialDropdowns, source, prevAdmAnswer]);
 
   const loadDataSource = useCallback(async () => {
-    const { rows } = await cascades.loadDataSource(source);
-    setDataSource(rows._array);
+    const rows = await cascades.loadDataSource(source);
+    setDataSource(rows);
     if (cascadeType) {
       FormState.update((s) => {
-        s.entityOptions[id] = rows._array?.filter((a) => a?.entity === cascadeType);
+        s.entityOptions[id] = rows?.filter((a) => a?.entity === cascadeType);
       });
     }
   }, [cascadeType, source, id]);
@@ -228,9 +230,9 @@ const TypeCascade = ({
 
   const handleDefaultValue = useCallback(() => {
     if (typeof value?.[0] === 'string' && dropdownItems.length) {
-      const lastValue = dropdownItems.slice(-1)?.[0]?.value;
-      if (lastValue) {
-        onChange(id, [lastValue]);
+      const lastItem = dropdownItems.slice(-1)?.[0] || { value: null, options: [] };
+      if (lastItem?.value) {
+        onChange(id, [lastItem.value]);
       }
     }
   }, [value, id, dropdownItems, onChange]);
@@ -279,23 +281,3 @@ const TypeCascade = ({
 };
 
 export default TypeCascade;
-
-TypeCascade.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.array,
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  required: PropTypes.bool.isRequired,
-  requiredSign: PropTypes.string,
-  source: PropTypes.object.isRequired,
-  disabled: PropTypes.bool,
-};
-
-TypeCascade.defaultProps = {
-  value: null,
-  requiredSign: '*',
-  disabled: false,
-  tooltip: null,
-};

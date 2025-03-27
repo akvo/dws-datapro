@@ -1,7 +1,6 @@
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { Text, Icon } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import styles from '../styles';
 
 const QuestionGroupListItem = ({ label, active, completedQuestionGroup, onPress }) => {
@@ -29,14 +28,3 @@ const QuestionGroupListItem = ({ label, active, completedQuestionGroup, onPress 
 };
 
 export default QuestionGroupListItem;
-
-QuestionGroupListItem.propTypes = {
-  label: PropTypes.string.isRequired,
-  active: PropTypes.bool.isRequired,
-  completedQuestionGroup: PropTypes.bool,
-  onPress: PropTypes.func.isRequired,
-};
-
-QuestionGroupListItem.defaultProps = {
-  completedQuestionGroup: false,
-};

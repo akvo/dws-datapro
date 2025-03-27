@@ -1,25 +1,21 @@
-import { conn, query } from '..';
-
-const db = conn.init;
+import sql from '../sql';
 
 const monitoringQuery = () => ({
-  syncForm: async ({ formId, administrationId, lastUpdated, formJSON }) => {
-    const findQuery = query.read('monitoring', { uuid: formJSON.uuid });
-    const { rows } = await conn.tx(db, findQuery, [formJSON.uuid]);
+  syncForm: async (db, { formId, administrationId, lastUpdated, formJSON }) => {
+    const rows = await sql.getFilteredRows(db, 'monitoring', { uuid: formJSON.uuid });
     if (rows.length) {
-      const monitoringID = rows._array[0].id;
-      const updateQuery = query.update(
+      const res = await sql.updateRow(
+        db,
         'monitoring',
-        { id: monitoringID },
+        { id: rows?.[0]?.id },
         {
           administrationId,
           json: formJSON ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
         },
       );
-      const res = await conn.tx(db, updateQuery, [monitoringID]);
       return res;
     }
-    const insertQuery = query.insert('monitoring', {
+    const res = await sql.insertRow(db, 'monitoring', {
       formId,
       uuid: formJSON.uuid,
       name: formJSON?.datapoint_name || null,
@@ -27,18 +23,18 @@ const monitoringQuery = () => ({
       json: formJSON ? JSON.stringify(formJSON.answers).replace(/'/g, "''") : null,
       syncedAt: lastUpdated, // store last updated instead of unnecessary current time
     });
-    const res = await conn.tx(db, insertQuery, []);
     return res;
   },
-  getTotal: async (formId, search) => {
+  getTotal: async (db, formId, search) => {
     const querySQL = search.length
       ? `SELECT COUNT(*) AS count FROM monitoring where formId = ? AND name LIKE ? COLLATE NOCASE`
       : `SELECT COUNT(*) AS count FROM monitoring where formId = ? `;
     const params = search.length ? [formId, `%${search}%`] : [formId];
-    const { rows } = await conn.tx(db, querySQL, params);
-    return rows._array?.[0]?.count;
+    const res = await sql.executeQuery(db, querySQL, params);
+    const { count } = res?.[0] || { count: 0 };
+    return count;
   },
-  getFormsPaginated: async ({ formId, search = '', limit = 10, offset = 0 }) => {
+  getFormsPaginated: async (db, { formId, search = '', limit = 10, offset = 0 }) => {
     let sqlQuery = 'SELECT * FROM monitoring WHERE formId = $1';
     const queryParams = [formId];
 
@@ -49,12 +45,8 @@ const monitoringQuery = () => ({
 
     sqlQuery += ' ORDER BY syncedAt DESC LIMIT $3 OFFSET $4';
     queryParams.push(limit, offset * limit); // Fix offset calculation
-    const { rows } = await conn.tx(db, sqlQuery, queryParams);
-
-    if (!rows.length) {
-      return [];
-    }
-    return rows._array;
+    const rows = await sql.executeQuery(db, sqlQuery, queryParams);
+    return rows;
   },
 });
 

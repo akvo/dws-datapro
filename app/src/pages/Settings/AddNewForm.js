@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Platform, ToastAndroid } from 'react-native';
 import { Input, Button, Text, Dialog } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
-
+import { useSQLiteContext } from 'expo-sqlite';
 import { BaseLayout } from '../../components';
 import { i18n, api, cascades } from '../../lib';
 import { UIState } from '../../store';
@@ -15,6 +15,7 @@ const AddNewForm = ({ navigation }) => {
   const [loading, setLoading] = useState(false);
   const [formId, setFormId] = useState(null);
   const [error, setError] = useState(null);
+  const db = useSQLiteContext();
 
   const handleDownloadForm = () => {
     if (!isNetworkAvailable) {
@@ -32,7 +33,7 @@ const AddNewForm = ({ navigation }) => {
           const { data } = res;
           await cascades.createSqliteDir();
           // save forms
-          await crudForms.addForm({
+          await crudForms.addForm(db, {
             id: data.id,
             version: data.version,
             formJSON: data,

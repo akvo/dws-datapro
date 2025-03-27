@@ -1,7 +1,6 @@
 import React from 'react';
 import { View } from 'react-native';
 import { Input } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { FieldLabel } from '../support';
 import styles from '../styles';
 
@@ -13,7 +12,7 @@ const TypeText = ({
   label,
   tooltip,
   required,
-  requiredSign,
+  requiredSign = '*',
   meta_uuid: metaUUID,
   disabled,
 }) => {
@@ -43,24 +42,3 @@ const TypeText = ({
 };
 
 export default TypeText;
-
-TypeText.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.string,
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  required: PropTypes.bool.isRequired,
-  requiredSign: PropTypes.string,
-  disabled: PropTypes.bool,
-  meta_uuid: PropTypes.bool,
-};
-
-TypeText.defaultProps = {
-  value: '',
-  disabled: false,
-  meta_uuid: false,
-  requiredSign: '*',
-  tooltip: null,
-};

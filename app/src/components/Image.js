@@ -1,9 +1,8 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Image as RneImage } from '@rneui/themed';
-import PropTypes from 'prop-types';
 
-const Image = ({ src, style }) =>
+const Image = ({ src = "", style = {} }) =>
   src ? (
     <RneImage
       source={{ uri: src }}
@@ -19,14 +18,3 @@ const styles = StyleSheet.create({
 });
 
 export default Image;
-
-Image.propTypes = {
-  src: PropTypes.string,
-  // eslint-disable-next-line react/forbid-prop-types
-  style: PropTypes.object,
-};
-
-Image.defaultProps = {
-  src: null,
-  style: {},
-};

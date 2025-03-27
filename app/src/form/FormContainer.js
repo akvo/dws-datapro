@@ -1,14 +1,12 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
-import { Dialog } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { useRoute } from '@react-navigation/native';
 import { BaseLayout } from '../components';
 import { FormNavigation, QuestionGroupList } from './support';
 import QuestionGroup from './components/QuestionGroup';
 import { transformForm, generateDataPointName } from './lib';
 import { FormState } from '../store';
-import { helpers, i18n } from '../lib';
+import { helpers } from '../lib';
 import { SUBMISSION_TYPES } from '../lib/constants';
 
 // TODO:: Allow other not supported yet
@@ -46,39 +44,13 @@ const style = {
   flex: 1,
 };
 
-const LoadingOverlay = ({ trans }) => (
-  <View
-    style={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    }}
-  >
-    <Dialog isVisible>
-      <Dialog.Title title={`${trans.loadingPrefilledAnswer}...`} />
-      <Dialog.Loading />
-    </Dialog>
-  </View>
-);
-
-LoadingOverlay.propTypes = {
-  trans: PropTypes.shape({ loadingPrefilledAnswer: PropTypes.string }).isRequired,
-};
-
-const FormContainer = ({ forms, onSubmit, setShowDialogMenu }) => {
+const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [showQuestionGroupList, setShowQuestionGroupList] = useState(false);
   const [isDefaultFilled, setIsDefaultFilled] = useState(false);
   const currentValues = FormState.useState((s) => s.currentValues);
   const cascades = FormState.useState((s) => s.cascades);
   const activeLang = FormState.useState((s) => s.lang);
-  const trans = i18n.text(activeLang);
-  const formLoading = FormState.useState((s) => s.loading);
   const route = useRoute();
 
   const dependantQuestions =
@@ -194,7 +166,6 @@ const FormContainer = ({ forms, onSubmit, setShowDialogMenu }) => {
 
   return (
     <>
-      {formLoading && <LoadingOverlay trans={trans} />}
       <BaseLayout.Content>
         <View style={style}>
           {!showQuestionGroupList ? (
@@ -231,13 +202,3 @@ const FormContainer = ({ forms, onSubmit, setShowDialogMenu }) => {
 };
 
 export default FormContainer;
-
-FormContainer.propTypes = {
-  forms: PropTypes.object,
-  onSubmit: PropTypes.func.isRequired,
-  setShowDialogMenu: PropTypes.func.isRequired,
-};
-
-FormContainer.defaultProps = {
-  forms: {},
-};

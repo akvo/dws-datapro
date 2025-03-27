@@ -2,7 +2,6 @@ import React, { useMemo } from 'react';
 import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { View } from 'react-native';
 import { ListItem } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import { BaseLayout } from '../components';
 import { UIState, FormState, UserState } from '../store';
 import { i18n } from '../lib';
@@ -144,11 +143,3 @@ const ManageForm = ({ navigation, route }) => {
 };
 
 export default ManageForm;
-
-ManageForm.propTypes = {
-  route: PropTypes.object,
-};
-
-ManageForm.defaultProps = {
-  route: null,
-};

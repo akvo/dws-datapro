@@ -1,19 +1,17 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View } from 'react-native';
 import { ListItem, Switch } from '@rneui/themed';
 import * as Crypto from 'expo-crypto';
 import * as Sentry from '@sentry/react-native';
-
-import PropTypes from 'prop-types';
+import * as SQLite from 'expo-sqlite';
 import { BaseLayout } from '../../components';
 import { config } from './config';
 import { BuildParamsState, UIState, AuthState, UserState } from '../../store';
-import { conn, query } from '../../database';
 import DialogForm from './DialogForm';
 import { backgroundTask, i18n } from '../../lib';
 import { accuracyLevels } from '../../lib/loc';
-
-const db = conn.init;
+import { crudConfig } from '../../database/crud';
+import { DATABASE_NAME } from '../../lib/constants';
 
 const SettingsForm = ({ route }) => {
   const [edit, setEdit] = useState(null);
@@ -51,7 +49,7 @@ const SettingsForm = ({ route }) => {
 
   const nonEnglish = lang !== 'en';
   const curConfig = config.find((c) => c.id === route?.params?.id);
-  const pageTitle = nonEnglish ? i18n.transform(lang, curConfig)?.name : route?.params.name;
+  const pageTitle = nonEnglish ? i18n.transform(lang, curConfig)?.name : route?.params?.name;
 
   const editState = useMemo(() => {
     if (edit && edit?.key) {
@@ -73,6 +71,9 @@ const SettingsForm = ({ route }) => {
   };
 
   const handleUpdateOnDB = async (field, value) => {
+    const dbUpdate = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
     const configFields = [
       'apVersion',
       'authenticationCode',
@@ -84,20 +85,17 @@ const SettingsForm = ({ route }) => {
       'gpsAccuracyLevel',
       'geoLocationTimeout',
     ];
-    const id = 1;
     if (configFields.includes(field)) {
-      const updateQuery = query.update('config', { id }, { [field]: value });
-      await conn.tx(db, updateQuery, [id]);
+      await crudConfig.updateConfig(dbUpdate, { [field]: value });
     }
     if (field === 'name') {
-      const updateQuery = query.update('users', { id }, { name: value });
-      await conn.tx(db, updateQuery, [id]);
+      await crudConfig.updateConfig(dbUpdate, { name: value });
     }
     if (field === 'password') {
       const encrypted = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA1, value);
-      const updateQuery = query.update('users', { id }, { password: encrypted });
-      await conn.tx(db, updateQuery, [id]);
+      await crudConfig.updateConfig(dbUpdate, { password: encrypted });
     }
+    await dbUpdate.closeAsync();
   };
 
   const handleOnRestarTask = async (v) => {
@@ -161,17 +159,6 @@ const SettingsForm = ({ route }) => {
     return settingsState?.[fieldName];
   };
 
-  const loadSettings = useCallback(async () => {
-    const selectQuery = query.read('config', { id: 1 });
-    const { rows } = await conn.tx(db, selectQuery, [1]);
-
-    const configRows = rows._array[0];
-    setSettingsState((s) => ({
-      ...s,
-      ...configRows,
-    }));
-  }, []);
-
   const list = useMemo(() => {
     if (route.params?.id) {
       const findConfig = config.find((c) => c?.id === route.params.id);
@@ -179,10 +166,6 @@ const SettingsForm = ({ route }) => {
     }
     return [];
   }, [route.params?.id]);
-
-  useEffect(() => {
-    loadSettings();
-  }, [loadSettings]);
 
   return (
     <BaseLayout title={pageTitle} rightComponent={false}>
@@ -229,11 +212,3 @@ const SettingsForm = ({ route }) => {
 };
 
 export default SettingsForm;
-
-SettingsForm.propTypes = {
-  route: PropTypes.object,
-};
-
-SettingsForm.defaultProps = {
-  route: null,
-};

@@ -2,14 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { ScrollView, BackHandler, Platform, ToastAndroid } from 'react-native';
 import { Button, ListItem, Skeleton } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/Ionicons';
-import PropTypes from 'prop-types';
+import { useSQLiteContext } from 'expo-sqlite';
 import { BaseLayout } from '../components';
-import { conn, query } from '../database';
 import { UserState, UIState, AuthState } from '../store';
 import { api, i18n } from '../lib';
-import { crudConfig } from '../database/crud';
-
-const db = conn.init;
+import { crudConfig, crudUsers } from '../database/crud';
 
 const Users = ({ navigation, route }) => {
   const [loading, setLoading] = useState(true);
@@ -17,27 +14,18 @@ const Users = ({ navigation, route }) => {
   const currUserID = UserState.useState((s) => s.id);
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
-
-  // const goToCreate = () => {
-  //   navigation.navigate('AddUser');
-  // };
+  const db = useSQLiteContext();
 
   const loadUsers = useCallback(async () => {
-    const selectQuery = query.read('users');
-    const { rows } = await conn.tx(db, selectQuery);
-    setUsers(rows._array);
+    const rows = await crudUsers.getAllUsers(db);
+    setUsers(rows);
     setLoading(false);
-  }, []);
+  }, [db]);
 
   const handleSelectUser = async ({ id, name, password, token, certifications }) => {
-    const currUserQuery = query.update('users', { id: currUserID }, { active: 0 });
-    await conn.tx(db, currUserQuery, [currUserID]);
-
-    const thisUserQuery = query.update('users', { id }, { active: 1 });
-    await conn.tx(db, thisUserQuery, [id]);
-    // change passcode when switching users
-    await crudConfig.updateConfig({ authenticationCode: password });
-    // update axios bearer token & global state
+    await crudUsers.toggleActive(db, { id: currUserID, active: 1 });
+    await crudUsers.toggleActive(db, { id, active: 0 });
+    await crudConfig.updateConfig(db, { authenticationCode: password });
     api.setToken(token);
 
     AuthState.update((s) => {
@@ -70,12 +58,12 @@ const Users = ({ navigation, route }) => {
 
   useEffect(() => {
     const handleBackPress = () => {
-      navigation.navigate('Home'); // Change the destination force to 'Home'
-      return true; // Return true to prevent default back behavior
+      navigation.navigate('Home');
+      return true;
     };
     const backHandler = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
     return () => {
-      backHandler.remove(); // Cleanup the event listener on component unmount
+      backHandler.remove();
     };
   }, [navigation]);
 
@@ -112,11 +100,3 @@ const Users = ({ navigation, route }) => {
 };
 
 export default Users;
-
-Users.propTypes = {
-  route: PropTypes.object,
-};
-
-Users.defaultProps = {
-  route: null,
-};

@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { View } from 'react-native';
 import { ListItem, Dialog, Text, Icon } from '@rneui/themed';
 import { useNavigation } from '@react-navigation/native';
+import * as SQLite from 'expo-sqlite';
 import { AuthState, UserState, FormState, UIState } from '../store';
-import { conn, query } from '../database';
 import { api, cascades, i18n } from '../lib';
-
-const db = conn.init;
+import { DATABASE_NAME } from '../lib/constants';
+import sql from '../database/sql';
 
 const LogoutButton = () => {
   const [visible, setVisible] = useState(false);
@@ -20,10 +20,15 @@ const LogoutButton = () => {
   };
 
   const handleYesPress = async () => {
+    const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
+      useNewConnection: true,
+    });
     const tables = ['sessions', 'users', 'forms', 'config', 'datapoints', 'jobs', 'monitoring'];
-    const clearQuery = query.clear(tables);
-    setLoading(true);
-    await conn.tx(db, clearQuery);
+    await Promise.all(
+      tables.map(async (table) => {
+        await sql.truncateTable(db, table);
+      }),
+    );
     AuthState.update((s) => {
       s.token = null;
     });
@@ -48,6 +53,7 @@ const LogoutButton = () => {
      * Remove sqlite files
      */
     await cascades.dropFiles();
+    await db.closeAsync();
     /**
      * Reset axios token
      */

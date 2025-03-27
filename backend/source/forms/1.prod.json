@@ -75,7 +75,7 @@
 					"meta": true,
 					"type": "cascade",
 					"api": {
-						"endpoint": "/api/v1/entity-data/1/list/"
+						"endpoint": "/api/v1/entity-data/3/list/"
 					},
 					"required": true,
 					"extra": {
@@ -204,7 +204,7 @@
 							"Low": "#4CAF50",
 							"High": "#FD3F31"
 						},
-						"fnString": "#turbitity > 5 ? 'warning' : 'normal'",
+						"fnString": "#turbitity# > 5 ? \"warning\" : \"normal\"",
 						"multiline": false
 					}
 				}

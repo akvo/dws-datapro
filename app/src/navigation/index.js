@@ -28,9 +28,7 @@ import { UIState, AuthState, FormState } from '../store';
 import { backgroundTask, notification } from '../lib';
 import { SYNC_FORM_SUBMISSION_TASK_NAME, SYNC_FORM_VERSION_TASK_NAME } from '../lib/constants';
 
-export const routingInstrumentation = new Sentry.ReactNavigationInstrumentation({
-  enableTimeToInitialDisplay: true,
-});
+export const reactNavigationIntegration = Sentry.reactNavigationIntegration();
 
 const Stack = createNativeStackNavigator();
 
@@ -124,7 +122,7 @@ const Navigation = () => {
       onStateChange={handleOnChangeNavigation}
       testID="navigation-element"
       onReady={() => {
-        routingInstrumentation.registerNavigationContainer(navigationRef);
+        reactNavigationIntegration.registerNavigationContainer(navigationRef);
       }}
     >
       <RootNavigator />

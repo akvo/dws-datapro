@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Dropdown } from 'react-native-element-dropdown';
-import PropTypes from 'prop-types';
 import { FieldLabel, OptionItem } from '../support';
 import styles from '../styles';
 import { FormState } from '../../store';
@@ -13,11 +12,11 @@ const TypeOption = ({
   keyform,
   id,
   label,
-  option,
-  tooltip,
   required,
-  requiredSign,
-  disabled,
+  option = [],
+  tooltip = null,
+  requiredSign = '*',
+  disabled = false,
 }) => {
   const showSearch = useMemo(() => option.length > 3, [option]);
   const activeLang = FormState.useState((s) => s.lang);
@@ -77,24 +76,3 @@ const TypeOption = ({
 };
 
 export default TypeOption;
-
-TypeOption.propTypes = {
-  onChange: PropTypes.func.isRequired,
-  value: PropTypes.array,
-  keyform: PropTypes.number.isRequired,
-  id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
-  label: PropTypes.string.isRequired,
-  tooltip: PropTypes.object,
-  required: PropTypes.bool.isRequired,
-  requiredSign: PropTypes.string,
-  disabled: PropTypes.bool,
-  option: PropTypes.array,
-};
-
-TypeOption.defaultProps = {
-  value: null,
-  requiredSign: '*',
-  disabled: false,
-  option: [],
-  tooltip: null,
-};
