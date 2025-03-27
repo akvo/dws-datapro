@@ -199,9 +199,11 @@ const App = () => {
     }
 
     if (currentDbVersion === 1) {
-      tables.forEach(async (t) => {
-        await sql.createTable(db, t.name, t.fields);
-      });
+      await Promise.all(
+        tables.map(async (t) => {
+          await sql.createTable(db, t.name, t.fields);
+        }),
+      );
       currentDbVersion = 2;
     }
     await db.execAsync(`PRAGMA user_version = ${DATABASE_VERSION}`);

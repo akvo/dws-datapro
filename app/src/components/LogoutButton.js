@@ -24,9 +24,11 @@ const LogoutButton = () => {
       useNewConnection: true,
     });
     const tables = ['sessions', 'users', 'forms', 'config', 'datapoints', 'jobs', 'monitoring'];
-    await Promise.all(tables.map(async (table) => {
-      await sql.truncateTable(db, table);
-    }));
+    await Promise.all(
+      tables.map(async (table) => {
+        await sql.truncateTable(db, table);
+      }),
+    );
     AuthState.update((s) => {
       s.token = null;
     });
