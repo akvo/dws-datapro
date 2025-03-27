@@ -3,8 +3,7 @@ import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Asset } from 'expo-asset';
 import { View, StyleSheet, Platform, ToastAndroid } from 'react-native';
-import { Input, Button, Text, Dialog } from '@rneui/themed';
-import PropTypes from 'prop-types';
+import { Input, Button, Text } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 
@@ -20,11 +19,6 @@ const ToggleEye = ({ hidden, onPress }) => {
       <Icon name={iconName} size={24} />
     </Button>
   );
-};
-
-ToggleEye.propTypes = {
-  hidden: PropTypes.bool.isRequired,
-  onPress: PropTypes.func.isRequired,
 };
 
 const AuthForm = ({ navigation }) => {
@@ -182,11 +176,6 @@ const AuthForm = ({ navigation }) => {
         {trans.buttonLogin}
       </Button>
       <Text>App version - {appVersion}</Text>
-      {/* Loading dialog */}
-      <Dialog isVisible={loading} style={styles.dialogLoadingContainer}>
-        <Dialog.Loading />
-        <Text style={styles.dialogLoadingText}>{trans.fetchingData}</Text>
-      </Dialog>
     </CenterLayout>
   );
 };

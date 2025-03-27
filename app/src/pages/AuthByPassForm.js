@@ -2,7 +2,7 @@
 import React from 'react';
 import { Asset } from 'expo-asset';
 import { View, StyleSheet, Platform, ToastAndroid } from 'react-native';
-import { Input, Button, Text, Dialog } from '@rneui/themed';
+import { Input, Button, Text } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 
@@ -100,7 +100,6 @@ const AuthByPassForm = ({ navigation }) => {
       <Image src={logo || null} />
       {loading ? (
         <View>
-          <Dialog.Loading />
           <Text style={styles.dialogLoadingText}>{trans.fetchingData}</Text>
         </View>
       ) : (
