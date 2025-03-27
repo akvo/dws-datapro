@@ -36,7 +36,7 @@ jobs:
         id: eas_release
         working-directory: ./app
         run: |
-          npm run eas:release > output.txt
+          npm run eas-cli:release > output.txt
           cat output.txt
           echo "APK_URL=$(tail -n 1 output.txt)" >> $GITHUB_ENV
 
