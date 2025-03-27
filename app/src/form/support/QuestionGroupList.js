@@ -1,7 +1,6 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Text, Divider } from '@rneui/themed';
-import PropTypes from 'prop-types';
 import QuestionGroupListItem from './QuestionGroupListItem';
 import { validateDependency, modifyDependency, generateDataPointName } from '../lib';
 import styles from '../styles';
@@ -86,10 +85,3 @@ const QuestionGroupList = ({
 };
 
 export default QuestionGroupList;
-
-QuestionGroupList.propTypes = {
-  form: PropTypes.object.isRequired,
-  activeQuestionGroup: PropTypes.number.isRequired,
-  setActiveQuestionGroup: PropTypes.func.isRequired,
-  setShowQuestionGroupList: PropTypes.func.isRequired,
-};
