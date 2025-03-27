@@ -8,10 +8,11 @@ from api.v1.v1_profile.models import (
     UserRoleTypes,
 )
 from api.v1.v1_forms.models import Forms
+from api.v1.v1_profile.constants import EntityTypes
 
 
 def seed_randomly(repeat: int = 1):
-    entity_types = ["School", "Health Care Facilities"]
+    entity_types = EntityTypes.FieldStr.values()
     for t in entity_types:
         entity, created = Entity.objects.get_or_create(name=t)
         for i in range(repeat):
@@ -42,10 +43,14 @@ def seed_data(self, repeat: int = 1, test: bool = False):
             for adm in Administration.objects.filter(
                 path__startswith=path
             )[:repeat].all():
-                entity_types = ["School", "Health Care Facilities"]
+                entity_types = EntityTypes.FieldStr.items()
                 for t in entity_types:
-                    entity, created = Entity.objects.get_or_create(name=t)
-                    name = entity.name if created else t
+                    key, value = t
+                    entity, created = Entity.objects.get_or_create(
+                        id=key,
+                        name=value,
+                    )
+                    name = entity.name if created else value
                     EntityData.objects.get_or_create(
                         name=f"{name} - {adm.name}",
                         administration=adm,
