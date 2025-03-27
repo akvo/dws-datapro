@@ -1,4 +1,4 @@
-import React, { Suspense, use, useCallback, useEffect, useState } from 'react';
+import React, { Suspense, useCallback, useEffect } from 'react';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import NetInfo from '@react-native-community/netinfo';
 import * as Notifications from 'expo-notifications';
