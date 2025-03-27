@@ -189,8 +189,8 @@ const App = () => {
   const migrateDbIfNeeded = async (db) => {
     let { user_version: currentDbVersion } = await db.getFirstAsync('PRAGMA user_version');
     if (currentDbVersion >= DATABASE_VERSION) {
-      handleInitConfig(db);
-      handleCheckSession(db);
+      await handleInitConfig(db);
+      await handleCheckSession(db);
       return;
     }
     if (currentDbVersion === 0) {
