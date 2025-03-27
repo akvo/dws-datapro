@@ -52,3 +52,17 @@ class OrganisationTypes:
         member: "member",
         partnership: "partnership",
     }
+
+
+class EntityTypes:
+    school = 1
+    health_care_facility = 2
+    water_treatment_plant = 3
+    rural_water_supply = 4
+
+    FieldStr = {
+        school: "School",
+        health_care_facility: "Health Care Facilities",
+        water_treatment_plant: "Water Treatment Plant",
+        rural_water_supply: "Rural Water Supply",
+    }
