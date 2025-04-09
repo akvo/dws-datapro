@@ -15,11 +15,13 @@ const ApproversTree = () => {
     user: authUser,
     forms,
     selectedForm,
+    levels,
   } = store.useState((s) => s);
 
   const administration = useMemo(() => {
-    return filterOption.filter((item) => item.level !== 3);
-  }, [filterOption]);
+    const maxLevel = levels?.slice(-2)[0]?.level;
+    return filterOption.filter((item) => item.level !== maxLevel);
+  }, [filterOption, levels]);
 
   const [nodes, setNodes] = useState([]);
   const [dataset, setDataset] = useState([]);
