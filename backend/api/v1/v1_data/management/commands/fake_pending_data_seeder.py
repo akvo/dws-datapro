@@ -16,16 +16,15 @@ from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
 from api.v1.v1_forms.models import FormApprovalAssignment
 from api.v1.v1_forms.models import Forms, UserForms
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_profile.management.commands.administration_seeder import (
-    MAX_LEVEL_IN_SOURCE_FILE,
-)
 from api.v1.v1_profile.models import Administration, Access, Levels
 from api.v1.v1_users.models import SystemUser, Organisation
 from api.v1.v1_users.management.commands.demo_approval_flow import (
     create_approver,
 )
+from api.v1.v1_profile.functions import get_max_administration_level
 
 fake = Faker()
+MAX_ADM_LEVEL = get_max_administration_level()
 
 
 def set_answer_data(data, question):
@@ -112,7 +111,7 @@ def seed_data(form, fake_geo, repeat, created_by):
 def create_or_get_submitter(role):
     organisation = Organisation.objects.first()
     level = (
-        Levels.objects.filter(level__lt=MAX_LEVEL_IN_SOURCE_FILE)
+        Levels.objects.filter(level__lt=MAX_ADM_LEVEL)
         .order_by("-level")
         .first()
     )
@@ -153,7 +152,7 @@ def assign_batch_for_approval(batch, user, test):
     randoms = Levels.objects.filter(level__gt=1).count()
     randoms = [n + 1 for n in range(randoms)]
     levels = (
-        Levels.objects.filter(level__lt=MAX_LEVEL_IN_SOURCE_FILE)
+        Levels.objects.filter(level__lt=MAX_ADM_LEVEL)
         .order_by("-level")
         .all()
     )
