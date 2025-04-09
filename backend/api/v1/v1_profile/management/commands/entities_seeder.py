@@ -9,6 +9,9 @@ from api.v1.v1_profile.models import (
 )
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.constants import EntityTypes
+from api.v1.v1_profile.functions import get_max_administration_level
+
+MAX_ADM_LEVEL = get_max_administration_level()
 
 
 def seed_randomly(repeat: int = 1):
@@ -17,7 +20,7 @@ def seed_randomly(repeat: int = 1):
         entity, created = Entity.objects.get_or_create(name=t)
         for i in range(repeat):
             administration = Administration.objects.filter(
-                level__name="Village"
+                level__level=MAX_ADM_LEVEL
             ).order_by("?").first()
             name = entity.name if created else t
             EntityData.objects.create(
