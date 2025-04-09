@@ -15,3 +15,8 @@ def get_administration_ids_by_path(administration_id):
         "id", flat=True
     )
     return childs
+
+
+def get_max_administration_level():
+    max_level = Levels.objects.order_by("-level").first()
+    return max_level.level if max_level else 0
