@@ -234,4 +234,4 @@ class AdministrationAttributeTestCase(TestCase, ProfileTestHelperMixin):
         )
 
     def test_run_administration_attribute_seeder(self):
-        call_command("administration_attribute_seeder", "--test")
+        call_command("administration_attribute_seeder", "--test", True)
