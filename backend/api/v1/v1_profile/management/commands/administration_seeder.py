@@ -1,6 +1,11 @@
 import pandas as pd
 from django.core.management import BaseCommand
 from api.v1.v1_profile.models import Levels, Administration
+from api.v1.v1_profile.constants import (
+    DEFAULT_ADMINISTRATION_DATA,
+    DEFAULT_ADMINISTRATION_LEVELS,
+    DEFAULT_SOURCE_FILE,
+)
 
 
 def seed_levels(geo_config: list = []):
@@ -35,47 +40,17 @@ def seed_administration(row: dict, geo_config: list = []):
         )
 
 
-def seed_administration_test():
-    geo_config = [
-        {"id": 1, "level": 0, "name": "NAME_0", "alias": "National"},
-        {"id": 2, "level": 1, "name": "NAME_1", "alias": "Province"},
-        {"id": 3, "level": 2, "name": "NAME_1", "alias": "District"},
-        {"id": 4, "level": 3, "name": "NAME_2", "alias": "Subdistrict"},
-        {"id": 5, "level": 4, "name": "NAME_3", "alias": "Village"},
-    ]
+def seed_administration_test(
+    rows: list = DEFAULT_ADMINISTRATION_DATA,
+    geo_config: list = DEFAULT_ADMINISTRATION_LEVELS,
+):
     seed_levels(geo_config=geo_config)
-    rows = [
-        {
-            "0_code": "ID",
-            "0_National": "Indonesia",
-            "1_code": "ID-JK",
-            "1_Province": "Jakarta",
-            "2_code": "ID-JK-JKE",
-            "2_District": "East Jakarta",
-            "3_code": "ID-JK-JKE-KJ",
-            "3_Subdistrict": "Kramat Jati",
-            "4_code": "ID-JK-JKE-KJ-CW",
-            "4_Village": "Cawang",
-        },
-        {
-            "0_code": "ID",
-            "0_National": "Indonesia",
-            "1_code": "ID-YGK",
-            "1_Province": "Yogyakarta",
-            "2_code": "ID-YGK-SLE",
-            "2_District": "Sleman",
-            "3_code": "ID-YGK-SLE-SET",
-            "3_Subdistrict": "Seturan",
-            "4_code": "ID-YGK-SLE-SET-CEP",
-            "4_Village": "Cepit Baru",
-        },
-    ]
     for row in rows:
         seed_administration(row=row, geo_config=geo_config)
 
 
 def seed_administration_prod(
-    source_file: str = "./source/administrations_fiji.csv"
+    source_file: str = DEFAULT_SOURCE_FILE,
 ):
     Levels.objects.all().delete()
 
@@ -119,7 +94,7 @@ class Command(BaseCommand):
             "--source",
             nargs="?",
             const=1,
-            default="./source/administrations_fiji.csv",
+            default=DEFAULT_SOURCE_FILE,
             type=str,
         )
 
