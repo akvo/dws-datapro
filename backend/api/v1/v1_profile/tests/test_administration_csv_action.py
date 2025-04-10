@@ -40,8 +40,10 @@ class AdministrationCSVTestCase(TestCase):
         self.assertEqual(last_record["village_id"], 111)
 
     def test_update_data_in_csv(self):
-        adm_id = 5
-        adm = Administration.objects.get(pk=adm_id)
+        max_level = Levels.objects.order_by('-id').first()
+        adm = Administration.objects.filter(
+            level__level=max_level.level,
+        ).first()
         adm.name = 'Village name changed'
         adm.save()
 
@@ -55,8 +57,11 @@ class AdministrationCSVTestCase(TestCase):
         self.assertTrue(contains_value)
 
     def test_delete_data_in_csv(self):
-        adm_id = 5
-        adm = Administration.objects.get(pk=adm_id)
+        max_level = Levels.objects.order_by('-id').first()
+        adm = Administration.objects.filter(
+            level__level=max_level.level,
+        ).first()
+        adm_id = adm.id
         adm_name = adm.name
         adm.delete()
 
