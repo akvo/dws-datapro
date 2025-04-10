@@ -11,12 +11,55 @@ class UpdateAdministrationPathTestCase(TestCase):
 
     def setUp(self):
         super().setUp()
-        county = [
-            ["Jakarta/DKI Jakarta", "East Jakarta", "Kramat Djati", "Cawang"],
-            ["Jakarta", "East-Jakarta", "Kramat Jati", "Balekambang"],
-            ["Yogyakarta", "Sleman", "Seturan", "Cepit Baru"],
+        rows = [
+            {
+                "0_code": "ID",
+                "0_National": "Indonesia",
+                "1_code": "ID-JK",
+                "1_Provinsi": "Jakarta/DKI Jakarta",
+                "2_code": "ID-JKE",
+                "2_Kabupaten": "East Jakarta",
+                "3_code": "ID-JKE-KJ",
+                "3_Kecamatan": "Kramat Djati",
+                "4_code": "ID-JKE-KJ-CW",
+                "4_Kelurahan": "Cawang",
+            },
+            {
+                "0_code": "ID",
+                "0_National": "Indonesia",
+                "1_code": "ID-JK",
+                "1_Provinsi": "Jakarta",
+                "2_code": "ID-JKE",
+                "2_Kabupaten": "East-Jakarta",
+                "3_code": "ID-JKE-KJ",
+                "3_Kecamatan": "Kramat Jati",
+                "4_code": "ID-JKE-KJ-BK",
+                "4_Kelurahan": "Balekambang",
+            },
+            {
+                "0_code": "ID",
+                "0_National": "Indonesia",
+                "1_code": "ID-YGK",
+                "1_Provinsi": "Yogyakarta",
+                "2_code": "ID-YGK-SL",
+                "2_Kabupaten": "Sleman",
+                "3_code": "ID-YGK-SL-SET",
+                "3_Kecamatan": "Seturan",
+                "4_code": "ID-YGK-SL-SET-CP",
+                "4_Kelurahan": "Cepit Baru",
+            },
         ]
-        administration_seeder.seed_administration_test(county=county)
+        geo_config = [
+            {"id": 1, "level": 0, "name": "NAME_0", "alias": "National"},
+            {"id": 2, "level": 1, "name": "NAME_1", "alias": "Provinsi"},
+            {"id": 3, "level": 2, "name": "NAME_1", "alias": "Kabupaten"},
+            {"id": 4, "level": 3, "name": "NAME_2", "alias": "Kecamatan"},
+            {"id": 5, "level": 4, "name": "NAME_3", "alias": "Kelurahan"},
+        ]
+        administration_seeder.seed_administration_test(
+            rows=rows,
+            geo_config=geo_config
+        )
 
         user_payload = {"email": "admin@rush.com", "password": "Test105*"}
         user_response = self.client.post(
@@ -111,6 +154,6 @@ class UpdateAdministrationPathTestCase(TestCase):
 
         villages_count = Administration.objects.filter(
             path__startswith=current_path,
-            level__name="Village"
+            level__name="Kelurahan",
         ).count()
         self.assertEqual(villages_count, 2)
