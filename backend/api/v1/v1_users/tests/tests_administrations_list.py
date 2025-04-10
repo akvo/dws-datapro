@@ -18,8 +18,8 @@ class AdministrationsListTestCase(TestCase):
             ["Yogyakarta", "Bantul", "Bantul", "Bantul"],
         ]
         administration_seeder.seed_administration_test(county=county)
-        self.assignee_level = Levels.objects.filter(name="Sub-County").first()
-        self.target_level = Levels.objects.filter(name="Village").first()
+        self.assignee_level = Levels.objects.filter(level=2).first()
+        self.target_level = Levels.objects.filter(level=4).first()
         self.assignee = Administration.objects.filter(
             level=self.assignee_level
         ).first()
