@@ -6,7 +6,8 @@ from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from api.v1.v1_profile.management.commands.administration_seeder import (
-        seed_levels, geo_config)
+    seed_levels
+)
 from api.v1.v1_profile.models import (
         Administration, AdministrationAttribute, Levels)
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
@@ -34,8 +35,9 @@ class AdministrationTestCase(TestCase, ProfileTestHelperMixin):
 
         self.assertEqual(response.status_code, 200)
         body = response.json()
-        self.assertEqual(len(body.get('data')), len(geo_config) * 2 - 1)
-        self.assertEqual(body.get('total'), len(geo_config) * 2 - 1)
+        total_levels = Levels.objects.count()
+        self.assertEqual(len(body.get('data')), total_levels * 2 - 1)
+        self.assertEqual(body.get('total'), total_levels * 2 - 1)
         self.assertEqual(body.get('current'), 1)
         self.assertEqual(body.get('total_page'), 1)
 
@@ -113,7 +115,7 @@ class AdministrationTestCase(TestCase, ProfileTestHelperMixin):
         self.assertIn('parent', body)
 
     def test_retrieve(self):
-        adm = Administration.objects.get(id=2)
+        adm = Administration.objects.filter(level__level=1).first()
         response = typing.cast(
                 HttpResponse,
                 self.client.get(
@@ -184,7 +186,7 @@ class AdministrationTestCase(TestCase, ProfileTestHelperMixin):
                 Administration.objects.filter(id=test_adm.id).exists())
 
     def test_delete_administration_that_have_relations(self):
-        root = Administration.objects.get(id=1)
+        root = Administration.objects.first()
         response = typing.cast(
                 HttpResponse,
                 self.client.delete(
@@ -221,7 +223,7 @@ class AdministrationAttributeValueTestCase(TestCase, ProfileTestHelperMixin):
                 options=['opt #1', 'opt #2'])
 
     def test_get_administration_with_attributes(self):
-        adm = Administration.objects.get(id=1)
+        adm = Administration.objects.first()
         adm.attributes.create(attribute=self.value_att, value={'value': '1'})
         adm.attributes.create(
                 attribute=self.option_att,
@@ -394,7 +396,7 @@ class AdministrationAttributeValueTestCase(TestCase, ProfileTestHelperMixin):
         self.assertIn('attributes', body)
 
     def test_update_attribute(self):
-        adm = Administration.objects.get(id=1)
+        adm = Administration.objects.first()
         adm.attributes.create(attribute=self.value_att, value={'value': '1'})
         payload = {
             'parent': adm.id,
@@ -443,7 +445,14 @@ class AdministrationListFiltersTestCase(TestCase, ProfileTestHelperMixin):
             )
 
     def generate_administrations(self):
-        seed_levels()
+        geo_config = [
+            {"id": 1, "level": 0, "name": "NAME_0", "alias": "National"},
+            {"id": 2, "level": 1, "name": "NAME_1", "alias": "Province"},
+            {"id": 3, "level": 2, "name": "NAME_1", "alias": "District"},
+            {"id": 4, "level": 3, "name": "NAME_2", "alias": "Subdistrict"},
+            {"id": 5, "level": 4, "name": "NAME_3", "alias": "Village"},
+        ]
+        seed_levels(geo_config=geo_config)
         administration = {
             'name': 'Indonesia',
             'code': 'ind',
