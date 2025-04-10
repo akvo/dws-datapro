@@ -1,3 +1,4 @@
+import os
 from io import StringIO
 
 from django.test import TestCase
@@ -30,10 +31,13 @@ class DownloadAllAdmTestCase(TestCase, ProfileTestHelperMixin):
         return out.getvalue()
 
     def test_csv_generated(self):
-        output = self.call_command()
+        self.call_command()
         location = "./storage/master_data/kenya-administration_test.csv"
-        text = f"File Created: {location}"
-        self.assertTrue(output, text)
+        # Check if the file exists
+        self.assertTrue(
+            os.path.exists(location),
+            "File not found: {0}".format(location),
+        )
 
     def test_generate_with_job(self):
         administration = Administration.objects.first()
