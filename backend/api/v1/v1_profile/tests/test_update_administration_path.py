@@ -4,9 +4,6 @@ from django.http import HttpResponse
 from django.test.utils import override_settings
 from api.v1.v1_profile.management.commands import administration_seeder
 from api.v1.v1_profile.models import Administration
-from api.v1.v1_profile.functions import get_max_administration_level
-
-MAX_ADM_LEVEL = get_max_administration_level()
 
 
 @override_settings(USE_TZ=False)
@@ -114,6 +111,6 @@ class UpdateAdministrationPathTestCase(TestCase):
 
         villages_count = Administration.objects.filter(
             path__startswith=current_path,
-            level__level=MAX_ADM_LEVEL
+            level__name="Village"
         ).count()
         self.assertEqual(villages_count, 2)
