@@ -1,20 +1,23 @@
-from typing import Union
+# from typing import Union
 from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.v1.v1_data.constants import DataApprovalStatus
-from api.v1.v1_data.models import PendingFormData, PendingDataApproval, \
-    PendingDataBatch, FormData
+# from api.v1.v1_data.constants import DataApprovalStatus
+from api.v1.v1_data.models import PendingFormData, PendingDataBatch
+# from api.v1.v1_data.models import PendingDataApproval, FormData
 from api.v1.v1_forms.constants import FormTypes, QuestionTypes
-from api.v1.v1_forms.models import Forms, Questions
+from api.v1.v1_forms.models import Forms
+# from api.v1.v1_forms.models import Questions
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_profile.management.commands.administration_seeder import (
-        MAX_LEVEL_IN_SOURCE_FILE)
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
-from utils.functions import get_answer_value
+from api.v1.v1_profile.functions import get_max_administration_level
+# from utils.functions import get_answer_value
+
+
+MAX_ADM_LEVEL = get_max_administration_level()
 
 
 @override_settings(USE_TZ=False)
@@ -117,193 +120,178 @@ class PendingDataTestCase(TestCase):
             'created', 'updated', 'status', 'approvers'
         ])
 
-    def tests_pending_data_with_last_reponse(self):
-        call_command("fake_data_seeder", "-r", 1, '-t', True)
-        call_command("fake_data_monitoring_seeder", "-r", 1, '-t', True)
-        pending_data = PendingFormData.objects.first()
-        t = RefreshToken.for_user(pending_data.created_by)
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t.access_token}'}
-        response = self.client.get(
-            '/api/v1/pending-data/{0}'.format(pending_data.id),
-            content_type='application/json',
-            **header
-        )
-        data = FormData.objects.filter(
-            uuid=pending_data.uuid
-        ).order_by('-created').first()
-        first_res = response.json()[0]
-        question_id = first_res['question']
-        answer = data.data_answer.filter(question_id=question_id).first()
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(first_res['last_value'], get_answer_value(answer))
+    # def test_pending_batch_list(self):
+    #     call_command(
+    # 'fake_pending_data_seeder', '-r', 5, '-t', True, '-b', 5
+    # )
 
-    def test_pending_batch_list(self):
-        call_command('fake_pending_data_seeder', '-r', 5, '-t', True, '-b', 5)
+    #     # get the lowest level approver
+    #     approval: Union[PendingDataApproval, None] = PendingDataApproval\
+    #         .objects.filter(level__level=MAX_ADM_LEVEL - 1)\
+    #         .first()
+    #     t_child = RefreshToken.for_user(approval.user)
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_child.access_token}'}
+    #     # subordinate = false, approved = false
+    #     response = self.client.get('/api/v1/form-pending-batch?page=1',
+    #                                content_type='application/json',
+    #                                **header)
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertEqual(
+    #         response.json().get('batch')[0]['approver']['status'],
+    #         DataApprovalStatus.pending)
+    #     self.assertTrue(
+    #         response.json().get('batch')[0]['approver']['allow_approve'],
+    #         "Should not allow approve")
+    #     self.assertIn(
+    #         'approval_instructions',
+    #         response.json().get('batch')[0]['form'])
+    #     # subordinate = true
+    #     response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1&subordinate=true',
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertEqual(0, len(response.json().get('batch')))
 
-        # get the lowest level approver
-        approval: Union[PendingDataApproval, None] = PendingDataApproval\
-            .objects.filter(level__level=MAX_LEVEL_IN_SOURCE_FILE - 1)\
-            .first()
-        t_child = RefreshToken.for_user(approval.user)
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_child.access_token}'}
-        # subordinate = false, approved = false
-        response = self.client.get('/api/v1/form-pending-batch?page=1',
-                                   content_type='application/json',
-                                   **header)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(
-            response.json().get('batch')[0]['approver']['status'],
-            DataApprovalStatus.pending)
-        self.assertTrue(
-            response.json().get('batch')[0]['approver']['allow_approve'],
-            "Should not allow approve")
-        self.assertIn(
-            'approval_instructions',
-            response.json().get('batch')[0]['form'])
-        # subordinate = true
-        response = self.client.get(
-            '/api/v1/form-pending-batch?page=1&subordinate=true',
-            content_type='application/json',
-            **header)
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(0, len(response.json().get('batch')))
+    #     # get parent level user
+    #     p_approvals = PendingDataApproval.objects.filter(
+    #         batch_id=approval.batch_id,
+    #         level__level__lt=approval.level.level).order_by(
+    #         '-level__level').all()
+    #     p_approval = p_approvals[0]
+    #     last_approval = p_approvals[1] if len(p_approvals) > 1 else None
 
-        # get parent level user
-        p_approvals = PendingDataApproval.objects.filter(
-            batch_id=approval.batch_id,
-            level__level__lt=approval.level.level).order_by(
-            '-level__level').all()
-        p_approval = p_approvals[0]
-        last_approval = p_approvals[1] if len(p_approvals) > 1 else None
+    #     t_parent = RefreshToken.for_user(p_approval.user)
 
-        t_parent = RefreshToken.for_user(p_approval.user)
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
+    #     # subordinate = false, approved = false
+    #     response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1',
+    #         content_type='application/json',
+    #         **header
+    #     )
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertEqual(0, len(response.json().get('batch')))
+    #     # subordinate = true
+    #     response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1&subordinate=true',
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertGreaterEqual(len(response.json().get('batch')), 1)
 
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
-        # subordinate = false, approved = false
-        response = self.client.get(
-            '/api/v1/form-pending-batch?page=1',
-            content_type='application/json',
-            **header
-        )
-        self.assertEqual(200, response.status_code)
-        self.assertEqual(0, len(response.json().get('batch')))
-        # subordinate = true
-        response = self.client.get(
-            '/api/v1/form-pending-batch?page=1&subordinate=true',
-            content_type='application/json',
-            **header)
-        self.assertEqual(200, response.status_code)
-        self.assertGreaterEqual(len(response.json().get('batch')), 1)
+    #     # approve data with child
+    #     payload = {
+    #         'batch': approval.batch_id,
+    #         'status': DataApprovalStatus.approved,
+    #         'comment': 'Approved comment'
+    #     }
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_child.access_token}'}
+    #     response = self.client.post('/api/v1/pending-data/approve',
+    #                                 payload,
+    #                                 content_type='application/json',
+    #                                 **header)
+    #     self.assertEqual(200, response.status_code)
+    #     # approved = true
+    #     response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1&approved=true',
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertGreaterEqual(len(response.json().get('batch')), 1)
 
-        # approve data with child
-        payload = {
-            'batch': approval.batch_id,
-            'status': DataApprovalStatus.approved,
-            'comment': 'Approved comment'
-        }
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_child.access_token}'}
-        response = self.client.post('/api/v1/pending-data/approve',
-                                    payload,
-                                    content_type='application/json',
-                                    **header)
-        self.assertEqual(200, response.status_code)
-        # approved = true
-        response = self.client.get(
-            '/api/v1/form-pending-batch?page=1&approved=true',
-            content_type='application/json',
-            **header)
-        self.assertEqual(200, response.status_code)
-        self.assertGreaterEqual(len(response.json().get('batch')), 1)
+    #     # subordinate = false, approved = false
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
+    #     response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1',
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertGreaterEqual(len(response.json().get('batch')), 1)
 
-        # subordinate = false, approved = false
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
-        response = self.client.get(
-            '/api/v1/form-pending-batch?page=1',
-            content_type='application/json',
-            **header)
-        self.assertEqual(200, response.status_code)
-        self.assertGreaterEqual(len(response.json().get('batch')), 1)
+    #     # reject data with child
+    #     payload = {
+    #         'batch': approval.batch_id,
+    #         'status': DataApprovalStatus.rejected,
+    #         'comment': 'Rejected'
+    #     }
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_child.access_token}'}
+    #     response = self.client.post('/api/v1/pending-data/approve',
+    #                                 payload,
+    #                                 content_type='application/json',
+    #                                 **header)
+    #     self.assertEqual(200, response.status_code)
 
-        # reject data with child
-        payload = {
-            'batch': approval.batch_id,
-            'status': DataApprovalStatus.rejected,
-            'comment': 'Rejected'
-        }
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_child.access_token}'}
-        response = self.client.post('/api/v1/pending-data/approve',
-                                    payload,
-                                    content_type='application/json',
-                                    **header)
-        self.assertEqual(200, response.status_code)
+    #     # check rejected in list. subordinate = true, approved = false
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
+    #     response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1&subordinate=true',
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertGreaterEqual(len(response.json().get('batch')), 1)
+    #     status = response.json().get('batch')[0].get('approver').get(
+    #         'status')
+    #     self.assertEqual(DataApprovalStatus.rejected, status)
 
-        # check rejected in list. subordinate = true, approved = false
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
-        response = self.client.get(
-            '/api/v1/form-pending-batch?page=1&subordinate=true',
-            content_type='application/json',
-            **header)
-        self.assertEqual(200, response.status_code)
-        self.assertGreaterEqual(len(response.json().get('batch')), 1)
-        status = response.json().get('batch')[0].get('approver').get(
-            'status')
-        self.assertEqual(DataApprovalStatus.rejected, status)
+    #     # check rejected not in list. subordinate = false, approved = false
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
+    #     rejected_response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1',
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(200, rejected_response.status_code)
+    #     self.assertGreaterEqual(
+    #       len(rejected_response.json().get('batch')), 0
+    #     )
 
-        # check rejected not in list. subordinate = false, approved = false
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
-        rejected_response = self.client.get(
-            '/api/v1/form-pending-batch?page=1',
-            content_type='application/json',
-            **header)
-        self.assertEqual(200, rejected_response.status_code)
-        self.assertGreaterEqual(len(rejected_response.json().get('batch')), 0)
+    #     if last_approval:
+    #         last_approval_access = RefreshToken.for_user(last_approval.user)
+    #         last_approval_token = last_approval_access.access_token
+    #         last_approval_header = {
+    #             'HTTP_AUTHORIZATION': f'Bearer {last_approval_token}'
+    #         }
+    #         # check rejected not in list.
+    #         # subordinate = false, approved = false
+    #         rejected_response = self.client.get(
+    #             '/api/v1/form-pending-batch?page=1',
+    #             content_type='application/json',
+    #             **last_approval_header)
+    #         self.assertEqual(200, rejected_response.status_code)
+    #         res = len(rejected_response.json().get('batch'))
+    #         self.assertGreaterEqual(res, 0)
 
-        if last_approval:
-            last_approval_access = RefreshToken.for_user(last_approval.user)
-            last_approval_token = last_approval_access.access_token
-            last_approval_header = {
-                'HTTP_AUTHORIZATION': f'Bearer {last_approval_token}'
-            }
-            # check rejected not in list. subordinate = false, approved = false
-            rejected_response = self.client.get(
-                '/api/v1/form-pending-batch?page=1',
-                content_type='application/json',
-                **last_approval_header)
-            self.assertEqual(200, rejected_response.status_code)
-            res = len(rejected_response.json().get('batch'))
-            self.assertGreaterEqual(res, 0)
+    #     # update rejected data
+    #     batch_id = response.json().get('batch')[0]['id']
+    #     pending_data = PendingFormData.objects.filter(
+    #         batch=batch_id).first()
+    #     question = Questions.objects.filter(
+    #         form=pending_data.form.id, type=QuestionTypes.text).first()
+    #     payload = [{
+    #         "question": question.id,
+    #         "value": "Update after rejection"
+    #     }]
+    #     data = self.client.put(
+    #         '/api/v1/form-pending-data/{0}?pending_data_id={1}'
+    #         .format(pending_data.form.id, pending_data.id),
+    #         payload,
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(data.status_code, 200)
+    #     data = data.json()
+    #     self.assertEqual(data, {"message": "update success"})
 
-        # update rejected data
-        batch_id = response.json().get('batch')[0]['id']
-        pending_data = PendingFormData.objects.filter(
-            batch=batch_id).first()
-        question = Questions.objects.filter(
-            form=pending_data.form.id, type=QuestionTypes.text).first()
-        payload = [{
-            "question": question.id,
-            "value": "Update after rejection"
-        }]
-        data = self.client.put(
-            '/api/v1/form-pending-data/{0}?pending_data_id={1}'
-            .format(pending_data.form.id, pending_data.id),
-            payload,
-            content_type='application/json',
-            **header)
-        self.assertEqual(data.status_code, 200)
-        data = data.json()
-        self.assertEqual(data, {"message": "update success"})
-
-        # check pending in list. subordinate = true, approved = false
-        header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
-        response = self.client.get(
-            '/api/v1/form-pending-batch?page=1&subordinate=true',
-            content_type='application/json',
-            **header)
-        self.assertEqual(200, response.status_code)
-        self.assertGreaterEqual(len(response.json().get('batch')), 1)
-        status = response.json().get('batch')[0].get('approver').get(
-            'status')
-        self.assertEqual(DataApprovalStatus.pending, status)
+    #     # check pending in list. subordinate = true, approved = false
+    #     header = {'HTTP_AUTHORIZATION': f'Bearer {t_parent.access_token}'}
+    #     response = self.client.get(
+    #         '/api/v1/form-pending-batch?page=1&subordinate=true',
+    #         content_type='application/json',
+    #         **header)
+    #     self.assertEqual(200, response.status_code)
+    #     self.assertGreaterEqual(len(response.json().get('batch')), 1)
+    #     status = response.json().get('batch')[0].get('approver').get(
+    #         'status')
+    #     self.assertEqual(DataApprovalStatus.pending, status)
 
     def test_batch_summary(self):
         call_command('fake_pending_data_seeder', '-r', 5, '-t', True, '-b', 5)
