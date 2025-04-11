@@ -4,9 +4,7 @@
   "type": 1,
   "submission_types": [
     "registration",
-    "monitoring",
-    "verification",
-    "certification"
+    "monitoring"
   ],
   "question_groups": [
     {
@@ -205,7 +203,7 @@
             }
           ],
           "hidden": {
-            "submission_type": ["registration", "monitoring", "certification"]
+            "submission_type": ["registration", "monitoring"]
           }
         },
         {

@@ -16,9 +16,7 @@
   },
   "submission_types": [
     "registration",
-    "monitoring",
-    "verification",
-    "certification"
+    "monitoring"
   ],
   "question_groups": [
     {
@@ -52,16 +50,6 @@
               "order": 2,
               "label": "Update",
               "value": "update"
-            },
-            {
-              "order": 3,
-              "label": "Verification",
-              "value": "verification"
-            },
-            {
-              "order": 4,
-              "label": "Certification",
-              "value": "certification"
             }
           ],
           "dependency": null,
@@ -69,9 +57,7 @@
           "default_value": {
             "submission_type": {
               "monitoring": "update",
-              "registration": "new",
-              "verification": "verification",
-              "certification": "certification"
+              "registration": "new"
             }
           }
         },
@@ -89,7 +75,7 @@
           "meta": false,
           "fn": null,
           "disabled": {
-            "submission_type": ["monitoring", "verification", "certification"]
+            "submission_type": ["monitoring"]
           }
         },
         {
@@ -110,7 +96,7 @@
             "parentId": 16993548493821
           },
           "disabled": {
-            "submission_type": ["monitoring", "verification", "certification"]
+            "submission_type": ["monitoring"]
           }
         },
         {
@@ -131,7 +117,7 @@
             "parentId": 16993548493821
           },
           "disabled": {
-            "submission_type": ["monitoring", "verification", "certification"]
+            "submission_type": ["monitoring"]
           }
         },
         {
@@ -147,7 +133,7 @@
           "options": null,
           "fn": null,
           "disabled": {
-            "submission_type": ["monitoring", "verification", "certification"]
+            "submission_type": ["monitoring"]
           }
         },
         {
