@@ -89,8 +89,13 @@ class FormCertificationAssignmentTestCase(TestCase):
         self.assertEqual(len(data["data"]), 1)
 
         # get with administration filter
+        adm = Administration.objects.filter(level__level=0).first()
+        api_url = (
+            "/api/v1/form/certification-assignment?"
+            f"page=1&administration={adm.id}"
+        )
         response = self.client.get(
-            "/api/v1/form/certification-assignment?page=1&administration=1",
+            api_url,
             content_type="application/json",
             **self.header,
         )
@@ -103,8 +108,12 @@ class FormCertificationAssignmentTestCase(TestCase):
         self.assertEqual(len(data["data"]), 1)
 
         # get with administration filter
+        adm_lv2 = Administration.objects.filter(level__level=2).first()
         response = self.client.get(
-            "/api/v1/form/certification-assignment?page=1&administration=3",
+            (
+                "/api/v1/form/certification-assignment?"
+                f"page=1&administration={adm_lv2.id}"
+            ),
             content_type="application/json",
             **self.header,
         )
