@@ -1,5 +1,5 @@
 import requests
-from django.db.models import Sum, Q
+from django.db.models import Sum
 from django.utils import timezone
 from django_q.tasks import async_task
 from drf_spectacular.types import OpenApiTypes
@@ -22,7 +22,6 @@ from api.v1.v1_data.models import (
 from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
 from api.v1.v1_forms.models import (
     Questions,
-    QuestionOptions,
     Forms,
     FormApprovalAssignment,
 )
@@ -346,124 +345,6 @@ class ListFormDataSerializer(serializers.ModelSerializer):
         ]
 
 
-class ListMapDataPointRequestSerializer(serializers.Serializer):
-    marker = CustomPrimaryKeyRelatedField(
-        queryset=Questions.objects.none(), required=False
-    )
-    shape = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        queryset = self.context.get("form").form_questions.all()
-        self.fields.get("marker").queryset = queryset
-        self.fields.get("shape").queryset = queryset
-
-
-class ListMapDataPointSerializer(serializers.ModelSerializer):
-    marker = serializers.SerializerMethodField()
-    shape = serializers.SerializerMethodField()
-
-    @extend_schema_field(CustomListField)
-    def get_marker(self, instance):
-        if self.context.get("marker"):
-            return get_answer_value(
-                instance.data_answer.get(question=self.context.get("marker"))
-            )
-        return None
-
-    @extend_schema_field(OpenApiTypes.INT)
-    def get_shape(self, instance: FormData):
-        return get_answer_value(
-            instance.data_answer.get(question=self.context.get("shape"))
-        )
-
-    class Meta:
-        model = FormData
-        fields = ["id", "loc", "name", "geo", "marker", "shape"]
-
-
-class ListMapOverviewDataPointRequestSerializer(serializers.Serializer):
-    shape = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        queryset = self.context.get("form").form_questions.all()
-        self.fields.get("shape").queryset = queryset
-
-
-class ListMapOverviewDataPointSerializer(serializers.ModelSerializer):
-    shape = serializers.SerializerMethodField()
-
-    @extend_schema_field(OpenApiTypes.INT)
-    def get_shape(self, instance: FormData):
-        return get_answer_value(
-            instance.data_answer.get(question=self.context.get("shape"))
-        )
-
-    class Meta:
-        model = FormData
-        fields = ["id", "administration_id", "shape"]
-
-
-class ListChartDataPointRequestSerializer(serializers.Serializer):
-    stack = CustomPrimaryKeyRelatedField(
-        queryset=Questions.objects.none(), required=False
-    )
-    question = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        queryset = self.context.get("form").form_questions
-        self.fields.get("question").queryset = queryset.filter(
-            Q(type=QuestionTypes.option)
-            | Q(type=QuestionTypes.number)
-            | Q(type=QuestionTypes.multiple_option)
-        )
-        self.fields.get("stack").queryset = queryset.filter(
-            Q(type=QuestionTypes.option)
-            | Q(type=QuestionTypes.multiple_option)
-        )
-
-
-class ListChartQuestionDataPointSerializer(serializers.ModelSerializer):
-    total = serializers.SerializerMethodField()
-
-    @extend_schema_field(OpenApiTypes.INT)
-    def get_total(self, instance: QuestionOptions):
-        value = instance.question.question_answer.filter(
-            options__contains=instance.value
-        )
-        if self.context.get("data_ids"):
-            value = value.filter(data_id__in=self.context.get("data_ids"))
-        return value.count()
-
-    class Meta:
-        model = QuestionOptions
-        fields = ["label", "total"]
-
-
-class ChartDataSerializer(serializers.Serializer):
-    type = (serializers.CharField(),)
-    data = ListChartQuestionDataPointSerializer(many=True)
-
-
-class ListChartAdministrationRequestSerializer(serializers.Serializer):
-    question = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
-    administration = CustomPrimaryKeyRelatedField(
-        queryset=Administration.objects.none()
-    )
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        queryset = self.context.get("form").form_questions.filter(
-            type=QuestionTypes.option
-        )
-        self.fields.get("question").queryset = queryset
-        self.fields.get(
-            "administration"
-        ).queryset = Administration.objects.all()
-
-
 class ListOptionsChartCriteriaSerializer(serializers.Serializer):
     question = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
     option = CustomListField()
@@ -471,14 +352,6 @@ class ListOptionsChartCriteriaSerializer(serializers.Serializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.fields.get("question").queryset = Questions.objects.all()
-
-
-class ListChartCriteriaRequestSerializer(serializers.Serializer):
-    name = CustomCharField()
-    options = ListOptionsChartCriteriaSerializer(many=True)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
 
 
 class ListPendingFormDataRequestSerializer(serializers.Serializer):
@@ -1251,12 +1124,6 @@ class SubmitPendingFormSerializer(serializers.Serializer):
         )
 
         direct_to_data = is_super_admin or is_county_admin
-        direct_submission_types = [
-            SubmissionTypes.certification,
-            SubmissionTypes.verification,
-        ]
-        if data.get("submission_type") in direct_submission_types:
-            direct_to_data = True
 
         # save to pending data
         if not direct_to_data:
@@ -1363,8 +1230,7 @@ class SubmitPendingFormSerializer(serializers.Serializer):
             if data.get("uuid"):
                 obj_data.uuid = data["uuid"]
             obj_data.save()
-            if obj_data.submission_type not in direct_submission_types:
-                obj_data.save_to_file
+            obj_data.save_to_file
 
         async_task("api.v1.v1_data.functions.refresh_materialized_data")
 
