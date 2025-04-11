@@ -10,10 +10,6 @@ for file in "$dir"/*.prod.json; do
     form_id="${filename%.prod.json}"
     ./manage.py generate_excel_data "$form_id" --latest=True --use-label=True
     ./manage.py generate_excel_data "$form_id" --use-label=True
-    ./manage.py generate_excel_data "$form_id" --submission="verification" --latest=True --use-label=True
-    ./manage.py generate_excel_data "$form_id" --submission="verification" --use-label=True
-    ./manage.py generate_excel_data "$form_id" --submission="certification" --latest=True --use-label=True
-    ./manage.py generate_excel_data "$form_id" --submission="certification" --use-label=True
     sleep 5
 done
 echo "FINISHED"
