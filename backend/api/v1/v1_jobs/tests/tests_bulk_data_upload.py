@@ -15,8 +15,6 @@ from api.v1.v1_data.management.commands.fake_data_seeder import (
 )
 from api.v1.v1_profile.functions import get_max_administration_level
 
-MAX_ADM_LEVEL = get_max_administration_level()
-
 
 class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
@@ -37,7 +35,7 @@ class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
 
     def test_upload_empty_data(self):
         form = Forms.objects.get(pk=1)
-
+        MAX_ADM_LEVEL = get_max_administration_level()
         administration = Administration.objects.filter(
             level__level=MAX_ADM_LEVEL
         ).first()

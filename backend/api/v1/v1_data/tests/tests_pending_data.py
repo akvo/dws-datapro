@@ -13,11 +13,8 @@ from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.functions import get_max_administration_level
+# from api.v1.v1_profile.functions import get_max_administration_level
 # from utils.functions import get_answer_value
-
-
-MAX_ADM_LEVEL = get_max_administration_level()
 
 
 @override_settings(USE_TZ=False)
@@ -126,6 +123,7 @@ class PendingDataTestCase(TestCase):
     # )
 
     #     # get the lowest level approver
+    #     MAX_ADM_LEVEL = get_max_administration_level()
     #     approval: Union[PendingDataApproval, None] = PendingDataApproval\
     #         .objects.filter(level__level=MAX_ADM_LEVEL - 1)\
     #         .first()
