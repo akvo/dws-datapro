@@ -4,12 +4,19 @@ import { Row, Col, Space, Button } from "antd";
 import AdministrationDropdown from "./AdministrationDropdown";
 import RemoveFiltersButton from "./RemoveFiltersButton";
 
-const ApproverFilters = ({ loading, disabled, visible, reset, save }) => {
+const ApproverFilters = ({
+  loading,
+  disabled,
+  visible,
+  reset,
+  save,
+  maxLevel,
+}) => {
   return (
     <Row>
       <Col flex={1}>
         <Space>
-          <AdministrationDropdown loading={loading} limitLevel={3} />
+          <AdministrationDropdown loading={loading} maxLevel={maxLevel} />
           <RemoveFiltersButton />
         </Space>
       </Col>

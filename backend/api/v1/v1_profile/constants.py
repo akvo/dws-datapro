@@ -105,7 +105,7 @@ DEFAULT_ADMINISTRATION_DATA = [
 DEFAULT_ADMINISTRATION_LEVELS = [
     {"id": 1, "level": 0, "name": "NAME_0", "alias": "National"},
     {"id": 2, "level": 1, "name": "NAME_1", "alias": "Province"},
-    {"id": 3, "level": 2, "name": "NAME_1", "alias": "District"},
-    {"id": 4, "level": 3, "name": "NAME_2", "alias": "Subdistrict"},
-    {"id": 5, "level": 4, "name": "NAME_3", "alias": "Village"},
+    {"id": 3, "level": 2, "name": "NAME_2", "alias": "District"},
+    {"id": 4, "level": 3, "name": "NAME_3", "alias": "Subdistrict"},
+    {"id": 5, "level": 4, "name": "NAME_4", "alias": "Village"},
 ]

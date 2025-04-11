@@ -17,7 +17,9 @@ const MasterData = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const navigate = useNavigate();
-  const { language, administration, filters } = store.useState((s) => s);
+  const { language, administration, filters, levels } = store.useState(
+    (s) => s
+  );
   const { active: activeLang } = language;
   const parent = administration.slice(-1)?.[0]?.id;
 
@@ -147,7 +149,7 @@ const MasterData = () => {
               })
             }
             onSearchChange={(value) => fetchData(currentPage, parent, value)}
-            maxLevel={4}
+            maxLevel={levels?.length - 1}
             search={search}
           />
           <Divider />
