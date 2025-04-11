@@ -16,7 +16,6 @@ from api.v1.v1_forms.constants import FormTypes
 from api.v1.v1_forms.models import (
     Forms,
     FormApprovalAssignment,
-    FormCertificationAssignment,
 )
 from api.v1.v1_forms.serializers import (
     ListFormSerializer,
@@ -25,15 +24,11 @@ from api.v1.v1_forms.serializers import (
     ListFormRequestSerializer,
     FormApproverRequestSerializer,
     FormApproverResponseSerializer,
-    FormCertificationAssignmentSerializer,
-    FormCertificationAssignmentRequestSerializer,
 )
-from rest_framework.viewsets import ModelViewSet
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_data.functions import get_cache, create_cache
 from utils.custom_permissions import IsSuperAdmin, IsAdmin
 from utils.custom_serializer_fields import validate_serializers_message
-from utils.custom_pagination import Pagination
 
 
 @extend_schema(
@@ -179,85 +174,3 @@ def check_form_approver(request, form_id, version):
         form=form, administration_id__in=adm_ids
     ).count()
     return Response({"count": approver}, status=status.HTTP_200_OK)
-
-
-@extend_schema(tags=["Certification Assignment"])
-class FormCertificationAssignmentViewSet(ModelViewSet):
-    serializer_class = FormCertificationAssignmentSerializer
-    permission_classes = [IsAuthenticated]
-    pagination_class = Pagination
-
-    def get_queryset(self):
-        user_administration_id = (
-            self.request.user.user_access.administration_id
-        )
-        if self.request.user.is_superuser:
-            queryset = FormCertificationAssignment.objects.all().order_by(
-                "-id"
-            )
-        else:
-            allowed_path = self.request.user.user_access.administration.path
-            if user_administration_id:
-                if allowed_path:
-                    allowed_path += f"{user_administration_id}"
-                else:
-                    allowed_path = f"{user_administration_id}."
-            queryset = (
-                FormCertificationAssignment.objects.prefetch_related(
-                    "administrations"
-                )
-                .filter(assignee__path__startswith=allowed_path)
-                .order_by("-id")
-                .distinct()
-            )
-
-        # Filter by administration_id if provided in the query parameters
-        adm_id = self.request.query_params.get("administration")
-        if adm_id:
-            filter_administration = Administration.objects.get(pk=adm_id)
-            if filter_administration.path:
-                filter_path = "{0}{1}.".format(
-                    filter_administration.path, filter_administration.id
-                )
-            else:
-                filter_path = f"{filter_administration.id}."
-            filter_descendants = list(
-                Administration.objects.filter(
-                    path__startswith=filter_path
-                ).values_list("id", flat=True)
-            )
-            filter_descendants.append(filter_administration.id)
-            queryset = queryset.filter(assignee__in=filter_descendants)
-
-        return queryset
-
-    def get_serializer_class(self):
-        if self.action in ["create", "update"]:
-            return FormCertificationAssignmentRequestSerializer
-        return FormCertificationAssignmentSerializer
-
-    def list(self, request, *args, **kwargs):
-        return super().list(request, *args, **kwargs)
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        return Response(serializer.data)
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    def update(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance, data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data)
-
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        instance.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
