@@ -9,6 +9,7 @@ from api.v1.v1_jobs.job import (
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration
+from api.v1.v1_profile.functions import get_max_administration_level
 
 
 @override_settings(USE_TZ=False)
@@ -22,7 +23,7 @@ class JobDownloadUnitTestCase(TestCase):
                                 user,
                                 content_type='application/json')
         call_command("fake_data_seeder", "-r", 2, "--test", True)
-        call_command("fake_data_claim_seeder", "-r", 2, "-t", True)
+        # call_command("fake_data_claim_seeder", "-r", 2, "-t", True)
 
     def test_download_all_data(self):
         form = Forms.objects.get(pk=1)
@@ -52,8 +53,9 @@ class JobDownloadUnitTestCase(TestCase):
             user_access__role=UserRoleTypes.admin
         ).first()
 
+        max_level = get_max_administration_level()
         ward = Administration.objects.filter(
-            level__name="Ward"
+            level__level=max_level - 1,
         ).order_by("?").first()
 
         result = call_command(
