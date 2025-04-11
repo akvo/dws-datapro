@@ -191,6 +191,10 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
+"""
+The TIME_ZONE has been set to 'Pacific/Fiji'
+to align with the application's focus on Fiji.
+"""
 TIME_ZONE = "Pacific/Fiji"
 
 USE_I18N = True
