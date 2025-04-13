@@ -772,40 +772,6 @@ const uiText = {
     ),
     updateDataButton: "Update data",
     updateDataError: "Unable to update data",
-    certificationDesc:
-      "This page is designed for assigning sub-county user admins to specific administration. The goal is to enable sub-county admins to manage their mobile users with certification permissions.",
-    certificationTitle: "Certification Assignment",
-    certificationAdd: "New assignment",
-    certificationEdit: "Edit assignment",
-    certifyAssignee: "Certifying Sub-county",
-    certifyAssigneeRequired: "Certifying Sub-county is required",
-    admToCertify: "Villages to certify",
-    admToCertifyRequired: "Villages to certify is required",
-    certifySuccessAdded: "Certification sub-county successfully added",
-    certifySuccessUpdated: "Certification sub-county successfully updated",
-    certifySuccessDeleted: "Certification sub-county has been deleted",
-    selectCounty: "Select county",
-    selectSubCounty: "Select Sub-county",
-    selectCertification: "Select certification",
-    certificationList: "Certification list",
-    ManageCertificationDataTitle: "Manage Grade Certification",
-    CertificationDetailTitle: "Certification Detail",
-    ManageCertificationDataText: (
-      <Fragment>This is where you can view certification data</Fragment>
-    ),
-    CertificationDetailText: (
-      <Fragment>This is where you can view certification detail</Fragment>
-    ),
-    backManageCertificationData: "Back to Manage Grade Certification",
-    ManageVerificationDataTitle: "Manage Grade Claim",
-    VerificationDetailTitle: "Grade Claim Details",
-    ManageVerificationDataText: (
-      <Fragment>This is where you can view Grade Claim</Fragment>
-    ),
-    VerificationDetailText: (
-      <Fragment>This is where you can view verification detail</Fragment>
-    ),
-    backManageVerification: "Back to Manage Grade Claim",
   },
 
   de: {},
