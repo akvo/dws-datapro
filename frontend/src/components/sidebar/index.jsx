@@ -47,18 +47,6 @@ const Sidebar = () => {
         url: "/control-center/master-data/organisations",
       },
     ],
-    certification: {
-      label: "Certification Assignment'",
-      url: "/control-center/certification",
-    },
-    "certification-data": {
-      label: "Manage Grade Certification",
-      url: "/control-center/certification-data",
-    },
-    "verification-data": {
-      label: "Manage Grade Claim",
-      url: "/control-center/verification-data",
-    },
   };
 
   const controlCenterToLabelMapping = {
@@ -69,12 +57,12 @@ const Sidebar = () => {
     "manage-user": {
       label: "Users",
       icon: UserOutlined,
-      childrenKeys: ["user", "approvers", "mobile", "certification"],
+      childrenKeys: ["user", "approvers", "mobile"],
     },
     "manage-data": {
       label: "Data",
       icon: TableOutlined,
-      childrenKeys: ["data", "certification-data", "verification-data"],
+      childrenKeys: ["data"],
     },
     "manage-master-data": {
       label: "Master Data",
