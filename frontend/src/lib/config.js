@@ -46,7 +46,6 @@ const config = {
         "master-data",
         "downloads",
         "mobile",
-        "certification",
       ],
       administration_level: [1],
       description:
@@ -77,7 +76,6 @@ const config = {
         "form",
         "reports",
         "downloads",
-        "certification",
       ],
       administration_level: [2],
       description:
@@ -149,22 +147,10 @@ const config = {
     return roles?.page_access?.includes(page);
   },
   approvalsLiteral: ({ role, administration, isButton = false }) => {
-    if (role.id === 1 || role.id === 2) {
-      return isButton ? "Certify" : "Certification";
-    }
-    if (
-      role.id === 3 &&
-      (administration.level === 0 || administration.level === 1)
-    ) {
-      return isButton ? "Certify" : "Certification";
-    }
     if (role.id === 3 && administration.level === 2) {
       return isButton ? "Approve" : "Approvals";
     }
-    if (role.id === 3 && administration.level === 3) {
-      return isButton ? "Verify" : "Verification";
-    }
-    return isButton ? "Approve" : "Approvals";
+    return null;
   },
   designations: [
     {
@@ -910,14 +896,10 @@ const config = {
   submissionType: {
     registration: 1,
     monitoring: 2,
-    verification: 3,
-    certification: 4,
   },
   submissionTypeColor: {
     registration: "#2563eb",
     monitoring: "#0891b2",
-    verification: "#ca8a04",
-    certification: "#ea580c",
   },
 };
 
