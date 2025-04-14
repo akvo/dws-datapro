@@ -102,7 +102,10 @@ def administration_csv_add(data: dict, test: bool = False):
         logger.error(
             {
                 "context": "insert_administration_row_csv",
-                "message": "test-administration.csv doesn't exists",
+                "message": (
+                    f"{('test' if test else COUNTRY_NAME)}-administration.csv"
+                    " doesn't exist"
+                ),
             }
         )
     return None
@@ -144,7 +147,7 @@ def administration_csv_update(data: dict, test: bool = False):
         logger.error(
             {
                 "context": "update_administration_row_csv",
-                "message": "test-administration.csv doesn't exists",
+                "message": f"{filename} doesn't exist",
             }
         )
     return None
@@ -166,7 +169,7 @@ def administration_csv_delete(id: int, test: bool = False):
         logger.error(
             {
                 "context": "delete_administration_row_csv",
-                "message": "test-administration.csv doesn't exists",
+                "message": f"{filename} doesn't exist",
             }
         )
     return None
