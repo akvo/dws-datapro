@@ -8,6 +8,7 @@ from django.utils.timezone import make_aware
 from faker import Faker
 from uuid import uuid4
 
+from iwsims.settings import COUNTRY_NAME
 from api.v1.v1_data.models import FormData, Answers, PendingAnswers
 from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
 from api.v1.v1_forms.models import Forms, UserForms, FormApprovalAssignment
@@ -280,7 +281,9 @@ class Command(BaseCommand):
         test = options.get("test")
         repeat = options.get("repeat")
         FormData.objects.all().delete()
-        fake_geo = pd.read_csv("./source/kenya_random_points-2024.csv")
+        fake_geo = pd.read_csv(
+            f"./source/{COUNTRY_NAME}_random_points.csv"
+        )
         fake_geo = fake_geo.sample(frac=1).reset_index(drop=True)
         now_date = datetime.now()
         start_date = now_date - timedelta(days=5 * 365)

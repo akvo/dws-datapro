@@ -4,6 +4,7 @@ from django.core.management import BaseCommand
 from faker import Faker
 
 from django.utils.timezone import make_aware
+from iwsims.settings import COUNTRY_NAME
 from api.v1.v1_data.models import (
     FormData,
     PendingFormData,
@@ -24,7 +25,7 @@ fake = Faker()
 
 
 def create_registration(index, form, administration, user):
-    fake_geo = pd.read_csv("./source/kenya_random_points-2024.csv")
+    fake_geo = pd.read_csv(f"./source/{COUNTRY_NAME}_random_points.csv")
     fake_geo = fake_geo.sample(frac=1).reset_index(drop=True)
     geo = fake_geo.iloc[index].to_dict()
     geo_value = [geo["X"], geo["Y"]]
