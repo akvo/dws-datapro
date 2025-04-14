@@ -21,7 +21,7 @@ const PanelApprovals = () => {
     return uiText[activeLang];
   }, [activeLang]);
 
-  const approvalsText = approvalsLiteral(authUser);
+  const approvalsText = approvalsLiteral();
 
   const panelItems = useMemo(() => {
     const items = [
