@@ -54,18 +54,6 @@ export const Visuals = ({ current, mapValues, setMapValues }) => {
 };
 
 const Home = () => {
-  // const { highlights } = window;
-  // const [currentHighlight, setCurrentHighlight] = useState(highlights?.[0]);
-  // const [mapValues, setMapValues] = useState([]);
-
-  // const onTabClick = (active) => {
-  //   setCurrentHighlight(highlights.find((x) => x.name === active));
-  //   queue.update((q) => {
-  //     q.next = 1;
-  //     q.wait = null;
-  //   });
-  // };
-
   useEffect(() => {
     queue.update((q) => {
       q.next = 1;
