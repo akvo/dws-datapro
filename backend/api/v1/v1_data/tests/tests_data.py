@@ -238,20 +238,20 @@ class DataTestCase(TestCase):
         hitory = AnswerHistory.objects.filter(data_id=data_id).count()
         self.assertEqual(hitory, 0)
 
-    # def test_monitoring_details_by_parent_id(self):
-    #     header = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+    def test_monitoring_details_by_parent_id(self):
+        header = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
 
-    #     parent = FormData.objects.filter(children__gt=0).first()
-    #     form_id = parent.form.id
-    #     url = f"/api/v1/form-data/{form_id}"
-    #     url += f"?page=1&parent={parent.id}&submission_type=2"
-    #     data = self.client.get(url, follow=True, **header)
-    #     result = data.json()
-    #     self.assertEqual(data.status_code, 200)
-    #     self.assertEqual(
-    #         list(result), ["current", "total", "total_page", "data"]
-    #     )
-    #     # total equal to number of children + the data itself
-    #     self.assertEqual(result["total"], parent.children.count() + 1)
-    #     # make sure the last item is parent
-    #     self.assertEqual(result["data"][-1]["name"], parent.name)
+        parent = FormData.objects.filter(children__gt=0).first()
+        form_id = parent.form.id
+        url = f"/api/v1/form-data/{form_id}"
+        url += f"?page=1&parent={parent.id}&submission_type=2"
+        data = self.client.get(url, follow=True, **header)
+        result = data.json()
+        self.assertEqual(data.status_code, 200)
+        self.assertEqual(
+            list(result), ["current", "total", "total_page", "data"]
+        )
+        # total equal to number of children + the data itself
+        self.assertEqual(result["total"], parent.children.count() + 1)
+        # make sure the last item is parent
+        self.assertEqual(result["data"][-1]["name"], parent.name)
