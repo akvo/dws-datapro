@@ -2,7 +2,7 @@ import api from "./api";
 
 const config = {
   siteTitle: "RUSH",
-  siteSubTitle: "Kenya Rural and Urban Sanitation & Hygiene Monitoring System",
+  siteSubTitle: "",
   siteLogo: "/logo-full.png",
   trainedStatus: [
     {
