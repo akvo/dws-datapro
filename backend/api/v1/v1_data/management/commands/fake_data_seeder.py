@@ -290,7 +290,7 @@ class Command(BaseCommand):
         created = fake.date_between(start_date, now_date)
         created = datetime.combine(created, time.min)
         counties = (
-            Administration.objects.filter(level__name="County")
+            Administration.objects.filter(level__level=1)
             .distinct("name")
             .all()
         )
