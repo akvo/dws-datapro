@@ -4,7 +4,7 @@
 2. [Form and Data Workflow](https://app.excalidraw.com/l/2tVeGVHqKIQ/1ktf3ES2YYn), Excalidraw
 3. [DB Design](https://dbdocs.io/deden/iwsims), DBdocs
 4. [DB Model](https://dbdocs.io/deden/iwsims-django), DBdocs
-5. [TopoJSON](https://github.com/akvo/iwsims/blob/main/doc/resource/kenya.topojson) and [GeoJSON](https://github.com/akvo/iwsims/blob/main/doc/resource/kenya.geojson) Resources
+5. [TopoJSON](https://github.com/akvo/iwsims-demo/tree/main/backend/source/fiji.topojson) and [GeoJSON](https://github.com/akvo/iwsims-demo/blob/main/doc/resource/fiji.geojson) Resources
 
 ## SCRIPTS
 
