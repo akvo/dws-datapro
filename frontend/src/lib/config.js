@@ -146,11 +146,8 @@ const config = {
   checkAccess: (roles, page) => {
     return roles?.page_access?.includes(page);
   },
-  approvalsLiteral: ({ role, administration, isButton = false }) => {
-    if (role.id === 3 && administration.level === 2) {
-      return isButton ? "Approve" : "Approvals";
-    }
-    return null;
+  approvalsLiteral: (props = { isButton: false }) => {
+    return props?.isButton ? "Approve" : "Approvals";
   },
   designations: [
     {
