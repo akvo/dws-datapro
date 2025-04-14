@@ -33,7 +33,7 @@ class DownloadAllAdmTestCase(TestCase, ProfileTestHelperMixin):
 
     def test_csv_generated(self):
         self.call_command()
-        location = f"{STORAGE_PATH}/master_data/kenya-administration_test.csv"
+        location = f"{STORAGE_PATH}/master_data/test-administration.csv"
         # Check if the file exists
         self.assertTrue(
             os.path.exists(location),
