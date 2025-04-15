@@ -1,19 +1,6 @@
 import re
 from django.core.cache import cache
 from datetime import datetime
-from django.db import transaction, connection
-
-
-@transaction.atomic
-def refresh_materialized_data():
-    with connection.cursor() as cursor:
-        cursor.execute("""
-            REFRESH MATERIALIZED VIEW view_data_options;
-            REFRESH MATERIALIZED VIEW view_options;
-            REFRESH MATERIALIZED VIEW view_jmp_criteria;
-            REFRESH MATERIALIZED VIEW view_jmp_data;
-            REFRESH MATERIALIZED VIEW view_jmp_count;
-            """)
 
 
 def get_cache(name):
