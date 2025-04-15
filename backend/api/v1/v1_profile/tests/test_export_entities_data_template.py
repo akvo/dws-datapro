@@ -75,10 +75,10 @@ class EntitiesDataBulkUploadTemplateExportTestCase(
         self.assertEqual(response["Content-Type"], self.XLSX_MIME)
 
         df = pd.read_excel(response.content, sheet_name=entity_type.name)
-        last_record = df.tail(1).to_dict("records")[0]
-        last_adm = Administration.objects.order_by('-id').first()
-        # check the last record equal with last administration
-        self.assertEqual(last_record["Village"], last_adm.name)
+        self.assertEqual(
+            len(df.to_records("dict")),
+            Administration.objects.filter(level__level__gt=0).count()
+        )
 
     def test_export_prefilled_entity_with_selected_adm_template(self):
         entity_type = Entity.objects.order_by('?').first()

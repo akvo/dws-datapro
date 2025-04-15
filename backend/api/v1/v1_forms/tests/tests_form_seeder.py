@@ -58,6 +58,8 @@ class FormSeederTestCase(TestCase):
             "EPS Water Quality Testing",
             "Short HH",
             "Water Treatment Plant",
+            "Rural Water Supply",
+            "EPS Inspection",
         ]
 
         # RUN SEED NEW FORM

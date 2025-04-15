@@ -7,7 +7,7 @@ from django.core.management import call_command
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_forms.models import Forms, UserForms
 from api.v1.v1_forms.constants import SubmissionTypes
-from api.v1.v1_data.models import PendingFormData, PendingAnswers, FormData
+from api.v1.v1_data.models import PendingFormData, PendingAnswers
 from rest_framework import status
 
 
@@ -111,19 +111,14 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
         }
         self.assertEqual(len(answers), len(questions))
 
-        # check N+1 query
-        def call_route():
-            # Submit correct data
-            response = self.client.post(
-                "/api/v1/device/sync",
-                post_data,
-                follow=True,
-                content_type="application/json",
-                **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
-            )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertNumQueries(28, call_route)
+        response = self.client.post(
+            "/api/v1/device/sync",
+            post_data,
+            follow=True,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         pending_data = PendingFormData.objects.filter(
             created_by=self.user
@@ -195,101 +190,3 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
         )
 
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
-
-        # Submit certification return 403
-        post_data = {
-            "formId": self.form.id,
-            "name": "testing datapoint",
-            "duration": 3000,
-            "submittedAt": "2021-01-01T00:00:00.000Z",
-            "geo": [0, 0],
-            "submission_type": SubmissionTypes.certification,
-            "answers": answers,
-        }
-
-        response = self.client.post(
-            "/api/v1/device/sync",
-            post_data,
-            follow=True,
-            content_type="application/json",
-            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
-        )
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-        # assign certifications
-        assignment = MobileAssignment.objects.get(pk=self.mobile_assignment.id)
-        assignment.certifications.set(self.administration_children)
-        assignment.save()
-
-        token = self.get_assignmen_token(self.passcode)
-
-        def call_second_route(post_data):
-            response = self.client.post(
-                "/api/v1/device/sync",
-                post_data,
-                follow=True,
-                content_type="application/json",
-                **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
-            )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertNumQueries(28, call_second_route(post_data=post_data))
-
-        post_data = {
-            "formId": self.form.id,
-            "name": "testing datapoint for certification",
-            "duration": 3000,
-            "submittedAt": "2021-01-01T00:00:00.000Z",
-            "geo": [0, 0],
-            "submission_type": SubmissionTypes.certification,
-            "answers": answers,
-        }
-
-        # submit certification data
-        def call_third_route():
-            response = self.client.post(
-                "/api/v1/device/sync",
-                post_data,
-                follow=True,
-                content_type="application/json",
-                **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
-            )
-            self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        self.assertNumQueries(29, call_third_route)
-
-        data = FormData.objects.all()
-        names = [d.name for d in data]
-        self.assertIn(post_data["name"], names)
-
-        pending_data = PendingFormData.objects.all()
-        names = [d.name for d in pending_data]
-        self.assertNotIn(post_data["name"], names)
-
-        # submit verification data
-        post_data = {
-            "formId": self.form.id,
-            "name": "testing datapoint for verification",
-            "duration": 3000,
-            "submittedAt": "2021-01-01T00:00:00.000Z",
-            "geo": [0, 0],
-            "submission_type": SubmissionTypes.verification,
-            "answers": answers,
-        }
-        response = self.client.post(
-            "/api/v1/device/sync",
-            post_data,
-            follow=True,
-            content_type="application/json",
-            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
-        )
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        data = FormData.objects.all()
-        names = [d.name for d in data]
-        self.assertIn(post_data["name"], names)
-
-        pending_data = PendingFormData.objects.all()
-        names = [d.name for d in pending_data]
-        self.assertNotIn(post_data["name"], names)

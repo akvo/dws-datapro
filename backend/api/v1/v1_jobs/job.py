@@ -44,11 +44,8 @@ def download_data(
     form: Forms, administration_ids, download_type="all", submission_type=None
 ):
     filter_data = {}
-    if administration_ids and submission_type != SubmissionTypes.certification:
+    if administration_ids and submission_type:
         filter_data["administration_id__in"] = administration_ids
-    if administration_ids and submission_type == SubmissionTypes.certification:
-        filter_adm_key = "created_by__user_access__administration_id__in"
-        filter_data[filter_adm_key] = administration_ids
     if submission_type:
         filter_data["submission_type"] = submission_type
     else:

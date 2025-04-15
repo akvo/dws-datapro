@@ -5,6 +5,10 @@ from api.v1.v1_profile.tests.utils import AdministrationEntitiesTestFactory
 from iwsims.settings import MASTER_DATA
 from django.test import TestCase
 from api.v1.v1_profile.models import Administration, Entity, EntityData
+from api.v1.v1_profile.management.commands.administration_seeder import (
+    seed_levels
+)
+from api.v1.v1_profile.constants import DEFAULT_ADMINISTRATION_LEVELS
 from api.v1.v1_users.models import Organisation
 from django.core.management import call_command
 from utils.custom_generator import generate_sqlite, update_sqlite
@@ -156,6 +160,7 @@ class EntitiesSQLiteGenerationTest(TestCase):
         call_command("organisation_seeder", "--test")
         sdCilandak = "SD NEGERI CILANDAK TIMUR 01"
         sdMenteng = "SD MENTENG ATAS 21 PAGI"
+        seed_levels(geo_config=DEFAULT_ADMINISTRATION_LEVELS)
         AdministrationEntitiesTestFactory(
             {
                 "name": "Indonesia",

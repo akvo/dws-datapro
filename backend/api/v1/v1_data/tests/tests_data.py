@@ -53,8 +53,11 @@ class DataTestCase(TestCase):
         header = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
 
         # PRIVATE ACCESS
+        form = Forms.objects.filter(
+            form_form_data__gt=0
+        ).first()
         data = self.client.get(
-            "/api/v1/form-data/1?submission_type=1&page=1&administration=1",
+            f"/api/v1/form-data/{form.id}?submission_type=1&page=1",
             content_type="application/json",
             **header,
         )
@@ -84,13 +87,16 @@ class DataTestCase(TestCase):
 
         # PUBLIC ACCESS WITHOUT HEADER TOKEN
         data = self.client.get(
-            "/api/v1/form-data/1?page=1",
+            f"/api/v1/form-data/{form.id}?page=1",
             content_type="application/json",
         )
         self.assertEqual(data.status_code, 401)
 
         # # EMPTY PAGE 2
-        data = self.client.get("/api/v1/form-data/1?page=2", **header)
+        data = self.client.get(
+            f"/api/v1/form-data/{form.id}?page=2",
+            **header
+        )
         self.assertEqual(data.status_code, 404)
 
     def test_datapoint_deletion(self):
@@ -128,10 +134,11 @@ class DataTestCase(TestCase):
         # Answer for UUID flag in question
         random_uuid = "xxxxx-xxxx-example-uuid"
         # Add data to edit
+        adm = Administration.objects.filter(level__level=1).first()
         payload = {
             "data": {
                 "name": "Testing Data",
-                "administration": 2,
+                "administration": adm.id,
                 "geo": [6.2088, 106.8456],
                 "submission_type": SubmissionTypes.registration,
             },

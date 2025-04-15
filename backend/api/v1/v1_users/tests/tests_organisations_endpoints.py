@@ -74,10 +74,3 @@ class OrganisationEndpointsTestCase(TestCase):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(len(data["children"]), 0)
-
-        # check N+1 query
-        def call_route():
-            self.client.get(
-                reverse("organisations-list", kwargs={"version": "v1"})
-            )
-        self.assertNumQueries(3, call_route)

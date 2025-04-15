@@ -7,6 +7,7 @@ from api.v1.v1_data.models import Forms, FormData, PendingFormData, \
     PendingAnswers, PendingAnswerHistory
 from api.v1.v1_forms.constants import FormTypes, SubmissionTypes
 from api.v1.v1_users.models import SystemUser
+from api.v1.v1_profile.models import Administration
 
 
 class UpdatePendingDataTestCase(TestCase):
@@ -30,10 +31,11 @@ class UpdatePendingDataTestCase(TestCase):
         form_id = form.id
 
         # Add pending data
+        adm = Administration.objects.filter(level__level=1).first()
         payload = {
             "data": {
                 "name": "Testing Data Entry",
-                "administration": 2,
+                "administration": adm.id,
                 "geo": [6.2088, 106.8456],
                 "submission_type": SubmissionTypes.registration,
             },

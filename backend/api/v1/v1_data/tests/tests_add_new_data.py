@@ -62,10 +62,11 @@ class AddNewDataTestCase(TestCase):
         self.assertEqual(form.name, "Test Form")
         self.assertEqual(form.type, FormTypes.county)
         form_id = form.id
+        adm = Administration.objects.filter(level__level=1).first()
         payload = {
             "data": {
                 "name": "Testing Data",
-                "administration": 2,
+                "administration": adm.id,
                 "geo": [6.2088, 106.8456],
                 "submission_type": SubmissionTypes.registration,
             },
@@ -122,6 +123,8 @@ class AddNewDataTestCase(TestCase):
 
     def test_add_new_data_by_county_admin(self):
         call_command("administration_seeder", "--test")
+        adm = Administration.objects.filter(level__level=1).first()
+
         user = create_user(1)
         user = {"email": user.email, "password": "Test105*"}
         user = self.client.post('/api/v1/login',
@@ -142,7 +145,7 @@ class AddNewDataTestCase(TestCase):
         payload = {
             "data": {
                 "name": "Testing Data County",
-                "administration": 2,
+                "administration": adm.id,
                 "geo": [6.2088, 106.8456],
                 "submission_type": SubmissionTypes.registration,
             },
@@ -208,7 +211,7 @@ class AddNewDataTestCase(TestCase):
         payload = {
             "data": {
                 "name": "Testing Data National",
-                "administration": 2,
+                "administration": adm.id,
                 "geo": [6.2088, 106.8456],
                 "submission_type": SubmissionTypes.registration,
             },
@@ -267,10 +270,11 @@ class AddNewDataTestCase(TestCase):
         self.assertEqual(form.name, "Test Form")
         self.assertEqual(form.type, FormTypes.county)
         form_id = form.id
+        adm = Administration.objects.filter(level__level=1).first()
         payload = {
             "data": {
                 "name": "Testing Data Entry",
-                "administration": 2,
+                "administration": adm.id,
                 "geo": [6.2088, 106.8456],
                 "submission_type": SubmissionTypes.registration,
             },

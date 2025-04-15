@@ -50,13 +50,7 @@ import {
   BIDashboard,
   MonitoringDetail,
   Downloads,
-  CertificationAssignment,
-  ManageCertificationData,
-  ManageVerificationData,
-  VerificationDetail,
   DownloadEntitiesData,
-  CertificationDetail,
-  // Visualisation,
 } from "./pages";
 import { useCookies } from "react-cookie";
 import { store, api, config } from "./lib";
@@ -64,7 +58,6 @@ import { Layout, PageLoader } from "./components";
 import { useNotification } from "./util/hooks";
 import { eraseCookieFromAllPaths } from "./util/date";
 import { reloadData } from "./util/form";
-import CertificationAssignmentForm from "./pages/certification-assignment/CertificationAssignmentForm";
 
 const Private = ({ element: Element, alias }) => {
   const [cookies] = useCookies(["expiration_time"]);
@@ -235,22 +228,6 @@ const RouteList = () => {
           element={<Private element={Submissions} alias="data" />}
         />
         <Route
-          path="certification-data"
-          element={<Private element={ManageCertificationData} alias="data" />}
-        />
-        <Route
-          path="certification-data/:form/certification/:parentId"
-          element={<Private element={CertificationDetail} alias="data" />}
-        />
-        <Route
-          path="verification-data"
-          element={<Private element={ManageVerificationData} alias="data" />}
-        />
-        <Route
-          path="verification-data/:form/verification/:parentId"
-          element={<Private element={VerificationDetail} alias="data" />}
-        />
-        <Route
           path="approvals"
           element={<Private element={Approvals} alias="approvals" />}
         />
@@ -283,30 +260,6 @@ const RouteList = () => {
         <Route
           path="profile"
           element={<Private element={Profile} alias="profile" />}
-        />
-        <Route
-          path="certification"
-          element={
-            <Private element={CertificationAssignment} alias="certification" />
-          }
-        />
-        <Route
-          path="certification/add"
-          element={
-            <Private
-              element={CertificationAssignmentForm}
-              alias="certification"
-            />
-          }
-        />
-        <Route
-          path="certification/:id/edit"
-          element={
-            <Private
-              element={CertificationAssignmentForm}
-              alias="certification"
-            />
-          }
         />
       </Route>
       <Route

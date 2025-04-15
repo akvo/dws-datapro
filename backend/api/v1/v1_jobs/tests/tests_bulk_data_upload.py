@@ -13,6 +13,7 @@ from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from api.v1.v1_data.management.commands.fake_data_seeder import (
     add_fake_answers
 )
+from api.v1.v1_profile.functions import get_max_administration_level
 
 
 class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
@@ -34,9 +35,9 @@ class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
 
     def test_upload_empty_data(self):
         form = Forms.objects.get(pk=1)
-
+        MAX_ADM_LEVEL = get_max_administration_level()
         administration = Administration.objects.filter(
-            level__name="Village"
+            level__level=MAX_ADM_LEVEL
         ).first()
         upload_file = f"{self.test_folder}/test-error-empty-data.xlsx"
         output = validate(
@@ -273,7 +274,7 @@ class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
         FormData.objects.all().delete()
         name = "new - Jane Doe - 44 – wife__husband__partner"
         data = FormData.objects.create(
-            id=2,
+            id=9999,
             uuid=meta_uuid,
             name=name,
             geo=["-8.6384108", "116.2469499"],

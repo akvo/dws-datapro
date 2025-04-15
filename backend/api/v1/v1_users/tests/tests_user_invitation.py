@@ -5,8 +5,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from django.test.utils import override_settings
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_profile.management.commands.administration_seeder import (
-        geo_config)
+from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser, Organisation
 from api.v1.v1_forms.models import FormApprovalAssignment
 from utils.email_helper import EmailTypes
@@ -28,19 +27,22 @@ class UserInvitationTestCase(TestCase):
         self.org = Organisation.objects.order_by('?').first()
 
     def test_user_list(self):
-        response = self.client.get("/api/v1/users?administration=1&role=1",
-                                   follow=True,
-                                   **self.header)
+        adm = Administration.objects.filter(level__level=0).first()
+        response = self.client.get(
+            f"/api/v1/users?administration={adm.id}&role=1",
+            follow=True,
+            **self.header
+        )
         users = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(users['data'][0]['first_name'], 'Admin')
         self.assertEqual(users['data'][0]['last_name'], 'RUSH')
         self.assertEqual(users['data'][0]['email'], 'admin@rush.com')
         self.assertEqual(users['data'][0]['administration'], {
-            'id': 1,
-            'name': 'Indonesia',
+            'id': adm.id,
+            'name': adm.name,
             'level': 0,
-            'full_name': 'Indonesia'
+            'full_name': adm.full_name,
         })
         self.assertEqual(users['data'][0]['role'], {
             'id': 1,
@@ -114,11 +116,12 @@ class UserInvitationTestCase(TestCase):
                          ['current', 'data', 'total', 'total_page'])
 
     def test_add_edit_user(self):
+        adm1, adm2 = Administration.objects.filter(level__level=1)[:2]
         payload = {
             "first_name": "John",
             "last_name": "Doe",
             "email": "john@example.com",
-            "administration": 2,
+            "administration": adm1.id,
             "organisation": self.org.id,
             "forms": [1],
             "trained": True,
@@ -143,7 +146,7 @@ class UserInvitationTestCase(TestCase):
             "first_name": "Joe",
             "last_name": "Doe",
             "email": "john@example.com",
-            "administration": 2,
+            "administration": adm1.id,
             "organisation": self.org.id,
             "trained": False,
             "role": 6,
@@ -186,7 +189,7 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(add_response.json(),
                          {'message': 'User updated successfully'})
         # change administration
-        edit_payload["administration"] = 3
+        edit_payload["administration"] = adm2.id
         add_response = self.client.put("/api/v1/user/{0}".format(fl[0]['id']),
                                        edit_payload,
                                        content_type='application/json',
@@ -253,11 +256,12 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(response.status_code, 403)
 
     def test_add_admin_user(self):
+        adm1, adm2 = Administration.objects.filter(level__level=1)[:2]
         payload = {
             "first_name": "County",
             "last_name": "Admin",
             "email": "county_admin@example.com",
-            "administration": 2,
+            "administration": adm1.id,
             "organisation": self.org.id,
             "role": 2,
             "forms": [1],
@@ -273,14 +277,14 @@ class UserInvitationTestCase(TestCase):
         user = SystemUser.objects.filter(
             email="county_admin@example.com").first()
         form_approval_assignment = FormApprovalAssignment.objects.filter(
-            form=1, administration=2, user=user).first()
+            form=1, administration=adm1.id, user=user).first()
         self.assertEqual(form_approval_assignment.user, user)
         # Add user for same form and administration
         payload = {
             "first_name": "Second County",
             "last_name": "Admin",
             "email": "county_admin2@example.com",
-            "administration": 2,
+            "administration": adm1.id,
             "organisation": self.org.id,
             "role": 2,
             "forms": [1],
@@ -296,7 +300,7 @@ class UserInvitationTestCase(TestCase):
             "first_name": "Third County",
             "last_name": "Admin",
             "email": "county_admin3@example.com",
-            "administration": 3,
+            "administration": adm2.id,
             "organisation": self.org.id,
             "role": 2,
             "forms": [1],
@@ -309,11 +313,12 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(add_response.status_code, 200)
 
     def test_add_aprroval_user(self):
+        adm1, adm2 = Administration.objects.filter(level__level=1)[:2]
         payload = {
             "first_name": "Test",
             "last_name": "Approver",
             "email": "test_approver@example.com",
-            "administration": 2,
+            "administration": adm1.id,
             "organisation": self.org.id,
             "role": 3,
             "forms": [1],
@@ -329,14 +334,14 @@ class UserInvitationTestCase(TestCase):
         user = SystemUser.objects.filter(
             email="test_approver@example.com").first()
         form_approval_assignment = FormApprovalAssignment.objects.filter(
-            form=1, administration=2, user=user).first()
+            form=1, administration=adm1.id, user=user).first()
         self.assertEqual(form_approval_assignment.user, user)
         # Add user for same form and administration
         payload = {
             "first_name": "Test Second",
             "last_name": "Approver",
             "email": "test2_approver@example.com",
-            "administration": 2,
+            "administration": adm1.id,
             "organisation": self.org.id,
             "role": 3,
             "forms": [1],
@@ -352,7 +357,7 @@ class UserInvitationTestCase(TestCase):
             "first_name": "Test Third",
             "last_name": "Approver",
             "email": "test3_approver@example.com",
-            "administration": 3,
+            "administration": adm2.id,
             "organisation": self.org.id,
             "role": 3,
             "forms": [1],
@@ -368,7 +373,7 @@ class UserInvitationTestCase(TestCase):
             "first_name": "Data",
             "last_name": "Entry",
             "email": "data_entry@example.com",
-            "administration": 3,
+            "administration": adm2.id,
             "organisation": self.org.id,
             "role": 4,
             "forms": [1],
@@ -382,14 +387,14 @@ class UserInvitationTestCase(TestCase):
         user = SystemUser.objects.filter(
             email="data_entry@example.com").first()
         form_approval_assignment = FormApprovalAssignment.objects.filter(
-            form=1, administration=3, user=user).first()
+            form=1, administration=adm2.id, user=user).first()
         self.assertEqual(form_approval_assignment, None)
         # Add another role with same form and administration
         payload = {
             "first_name": "Second Data",
             "last_name": "Entry",
             "email": "data_entry2@example.com",
-            "administration": 3,
+            "administration": adm2.id,
             "organisation": self.org.id,
             "role": 4,
             "forms": [1],
@@ -434,7 +439,7 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual([
             'email', 'name', 'administration', 'trained',
             'role', 'phone_number', 'designation', 'forms',
-            'organisation', 'last_login', 'passcode', 'certification',
+            'organisation', 'last_login', 'passcode',
         ], list(response.json().keys()))
 
     def test_get_user_roles(self):
@@ -486,18 +491,6 @@ class UserInvitationTestCase(TestCase):
                                           password_payload,
                                           content_type='application/json')
         self.assertEqual(invite_response.status_code, 200)
-
-    def test_list_administration(self):
-        administration = self.client.get('/api/v1/administration/1',
-                                         content_type='application/json')
-        self.assertEqual(administration.status_code, 200)
-
-        response = self.client.get('/api/v1/levels',
-                                   content_type='application/json')
-        levels = response.json()
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.json()), len(geo_config))
-        self.assertEqual(list(levels[0]), ['id', 'name', 'level'])
 
     def test_get_email_template(self):
         # test get user_register template
@@ -593,8 +586,6 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_re_adding_user(self):
-        call_command("administration_seeder", "--test")
-        call_command("form_seeder", "--test")
         call_command("fake_organisation_seeder", "--repeat", 3)
         user_payload = {"email": "admin@rush.com", "password": "Test105*"}
         user_response = self.client.post('/api/v1/login',
@@ -611,6 +602,7 @@ class UserInvitationTestCase(TestCase):
                 UserRoleTypes.user
             ],
             password__isnull=False).first()
+        adm_id = u.user_access.administration_id
         # delete the user first
         response = self.client.delete('/api/v1/user/{0}'.format(u.id),
                                       content_type='application/json',
@@ -630,7 +622,7 @@ class UserInvitationTestCase(TestCase):
             "organisation": org.id,
             "role": 3,
             "forms": [1],
-            "administration": 2,
+            "administration": adm_id,
             "trained": True,
         }
         add_response = self.client.post(
@@ -645,5 +637,5 @@ class UserInvitationTestCase(TestCase):
             {'message': 'User added successfully'}
         )
         form_approval_assignment = FormApprovalAssignment.objects.filter(
-            form=1, administration=2, user=user).first()
+            form=1, administration=adm_id, user=user).first()
         self.assertEqual(form_approval_assignment.user, user)

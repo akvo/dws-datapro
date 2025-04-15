@@ -61,13 +61,12 @@ def seed_administration_attribute_value(
 def seed_data(self, repeat: int = 2, test: bool = False):
     adm_attributes = AdministrationAttribute.objects.all()
     mobile_assignments = MobileAssignment.objects.prefetch_related(
-        "administrations", "certifications"
+        "administrations",
     ).all()
     adms = [
         adm
         for m in mobile_assignments
         for adm in [a for a in m.administrations.all()]
-        + [c for c in m.certifications.all()]
     ]
     for adm in adms:
         seed_administration_attribute_value(

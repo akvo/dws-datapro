@@ -169,8 +169,6 @@ def sync_pending_form_data(request, version):
     form = get_object_or_404(Forms, pk=request.data.get("formId"))
     assignment = cast(MobileAssignmentToken, request.auth).assignment
     user = assignment.user
-    # TODO : Get certifications administration list
-    certifications = assignment.certifications.count()
     # administration = Access.objects.filter(user=user).first().administration
     administration = Access.objects.select_related(
         'administration').filter(user=user).first().administration
@@ -180,17 +178,6 @@ def sync_pending_form_data(request, version):
             {"message": "Answers is required."},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    # Validate certifications submission
-    # TODO : Check for spesific administration certification assigment
-    if (
-        request.data.get("submission_type") == SubmissionTypes.certification
-        and not certifications
-    ):
-        return Response(
-            {"message": "Certifications not assigned."},
-            status=status.HTTP_403_FORBIDDEN,
-        )
-    # EOL Validate certifications submission
     answers = []
     qna = request.data.get("answers")
     adm_id = administration.id
@@ -460,16 +447,7 @@ class MobileAssignmentViewSet(ModelViewSet):
 def get_datapoint_download_list(request, version):
     assignment = cast(MobileAssignmentToken, request.auth).assignment
     forms = assignment.forms.values("id")
-    is_certification = request.query_params.get("certification")
-    is_certification = str(is_certification) == "true"
-    if is_certification:
-        administrations = assignment.certifications.values("id")
-        forms = Forms.objects.filter(
-            id__in=forms,
-            submission_types__contains=[SubmissionTypes.certification],
-        ).values("id")
-    else:
-        administrations = assignment.administrations.values("id")
+    administrations = assignment.administrations.values("id")
     paginator = Pagination()
 
     latest_ids_per_uuid = (
@@ -491,7 +469,7 @@ def get_datapoint_download_list(request, version):
         form_id__in=forms,
         pk__in=latest_ids_per_uuid,
     )
-    if assignment.last_synced_at and not is_certification:
+    if assignment.last_synced_at:
         queryset = queryset.filter(
             Q(created__gte=assignment.last_synced_at)
             | Q(updated__gte=assignment.last_synced_at)

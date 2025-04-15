@@ -124,7 +124,7 @@ const ApprovalDetail = ({
     new Array(record.form?.approval_instructions?.action.length).fill(false)
   );
   const [resetButton, setresetButton] = useState({});
-  const { user: authUser, language } = store.useState((s) => s);
+  const { language } = store.useState((s) => s);
   const { approvalsLiteral } = config;
   const { active: activeLang } = language;
   const text = useMemo(() => {
@@ -673,7 +673,7 @@ const ApprovalDetail = ({
               disabled={!approve || approveButtonEnable}
               shape="round"
             >
-              {approvalsLiteral({ ...authUser, isButton: true })}
+              {approvalsLiteral({ isButton: true })}
             </Button>
           </Space>
         </Col>

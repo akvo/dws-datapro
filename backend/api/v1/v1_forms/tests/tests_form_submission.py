@@ -4,6 +4,7 @@ from django.test.utils import override_settings
 
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_users.models import Organisation
+from api.v1.v1_profile.models import Administration
 
 
 @override_settings(USE_TZ=False)
@@ -36,10 +37,11 @@ class FormSubmissionTestCase(TestCase):
     def test_create_new_submission(self):
         form = Forms.objects.first()
         self.assertEqual(form.name, "Test Form")
+        adm = Administration.objects.filter(level__level=1).first()
         payload = {
             "data": {
                 "name": "Testing Data",
-                "administration": 2,
+                "administration": adm.id,
                 "geo": [6.2088, 106.8456]
             },
             "answer": [{

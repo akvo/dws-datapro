@@ -7,25 +7,9 @@ Object {
     "AdministrationDataDownload": "Administration Data Download",
     "AdministrationDataUpload": "Administration Data Upload",
     "AdministrationDownloadPageHint": "Uncheck Prefilled if you only want an upload template",
-    "CertificationDetailText": <React.Fragment>
-      This is where you can view certification detail
-    </React.Fragment>,
-    "CertificationDetailTitle": "Certification Detail",
     "EntitiesDataDownload": "Entities Data Download",
     "EntitiesDataUpload": "Entities Data Upload",
     "EntitiesDownloadPageHint": "Uncheck Prefilled if you only want an upload template",
-    "ManageCertificationDataText": <React.Fragment>
-      This is where you can view certification data
-    </React.Fragment>,
-    "ManageCertificationDataTitle": "Manage Grade Certification",
-    "ManageVerificationDataText": <React.Fragment>
-      This is where you can view Grade Claim
-    </React.Fragment>,
-    "ManageVerificationDataTitle": "Manage Grade Claim",
-    "VerificationDetailText": <React.Fragment>
-      This is where you can view verification detail
-    </React.Fragment>,
-    "VerificationDetailTitle": "Grade Claim Details",
     "aboutHighlight": <React.Fragment>
       The Kenya Rural Urban Sanitation and Hygiene (RUSH) platform is a real-time monitoring and information system owned by the Ministry of Health. 
       <br />
@@ -84,8 +68,6 @@ Object {
     "admSuccessDeleted": "Administration deleted",
     "admSuccessUpdated": "Administration updated",
     "admTabTitle": "Administrative List",
-    "admToCertify": "Villages to certify",
-    "admToCertifyRequired": "Villages to certify is required",
     "administrationField": "Administration",
     "administrationLabel": "Administration",
     "administrationUploadSuccessTitle": "Administration Data has been Successfully Uploaded",
@@ -108,9 +90,7 @@ Object {
     "attrTypeRequired": "Attribute type is required",
     "backBtn": "Back",
     "backHome": "Back to Homepage",
-    "backManageCertificationData": "Back to Manage Grade Certification",
     "backManageData": "Back to Manage Routine Data",
-    "backManageVerification": "Back to Manage Grade Claim",
     "backToAdmLabel": "Back to Administrative List",
     "backToCenterLabel": "Back to Control Center",
     "batchDatasets": "Batch Datasets",
@@ -127,16 +107,6 @@ Object {
     "bulkUploadNoApproverMessage": "Can't upload data, because there's no approver yet.",
     "cancelButton": "Cancel",
     "ccDescriptionPanel": "Instant access to all the administration pages and overview panels for data approvals.",
-    "certificationAdd": "New assignment",
-    "certificationDesc": "This page is designed for assigning sub-county user admins to specific administration. The goal is to enable sub-county admins to manage their mobile users with certification permissions.",
-    "certificationEdit": "Edit assignment",
-    "certificationList": "Certification list",
-    "certificationTitle": "Certification Assignment",
-    "certifyAssignee": "Certifying Sub-county",
-    "certifyAssigneeRequired": "Certifying Sub-county is required",
-    "certifySuccessAdded": "Certification sub-county successfully added",
-    "certifySuccessDeleted": "Certification sub-county has been deleted",
-    "certifySuccessUpdated": "Certification sub-county successfully updated",
     "chooseTemplate": "Choose a template",
     "codeField": "Code",
     "codeFieldRequired": "Code is required",
@@ -628,13 +598,10 @@ Object {
     "searchPlaceholder": "Search...",
     "second": "Second",
     "selectAttributes": "Select attributes...",
-    "selectCertification": "Select certification",
-    "selectCounty": "Select county",
     "selectEntity": "Select entity...",
     "selectForm": "Please select a form",
     "selectLevel": "Select level...",
     "selectOne": "Select one...",
-    "selectSubCounty": "Select Sub-county",
     "selectText": "Select...",
     "selectType": "Select type...",
     "sendInstructions": "Send Instructions",

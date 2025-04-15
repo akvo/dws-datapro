@@ -9,6 +9,7 @@ from api.v1.v1_jobs.models import Jobs
 from api.v1.v1_jobs.constants import JobTypes, JobStatus
 from api.v1.v1_profile.job import download_master_data
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
+from iwsims.settings import STORAGE_PATH
 
 
 @override_settings(USE_TZ=False)
@@ -32,7 +33,7 @@ class DownloadAllAdmTestCase(TestCase, ProfileTestHelperMixin):
 
     def test_csv_generated(self):
         self.call_command()
-        location = "./storage/master_data/kenya-administration_test.csv"
+        location = f"{STORAGE_PATH}/master_data/kenya-administration_test.csv"
         # Check if the file exists
         self.assertTrue(
             os.path.exists(location),
