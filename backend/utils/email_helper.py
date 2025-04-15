@@ -72,11 +72,7 @@ def email_context(context: dict, type: str):
                 .""",
                 "image": f"{WEBDOMAIN}/email-icons/check-circle.png",
                 "success_text": "Successfully Registered",
-                "message_list": [
-                    "JMP/SDG Status",
-                    "CLTS Progress",
-                    "Water Infrastructure",
-                ],
+                "message_list": [],
                 "explore_button": True,
             }
         )
