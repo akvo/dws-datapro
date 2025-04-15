@@ -17,7 +17,6 @@ from api.v1.v1_profile.models import Access, Administration, Entity, EntityData
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_users.management.commands.fake_user_seeder import create_user
-from api.v1.v1_data.functions import refresh_materialized_data
 
 fake = Faker()
 
@@ -329,4 +328,3 @@ class Command(BaseCommand):
                         administration=adm,
                         repeat=repeat
                     )
-        refresh_materialized_data()

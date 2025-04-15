@@ -8,7 +8,6 @@ from wsgiref.util import FileWrapper
 from django.utils import timezone
 from django.db.models import F, Max
 from django.http import HttpResponse
-from django_q.tasks import async_task
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema,
@@ -350,7 +349,6 @@ class FormDataAddListView(APIView):
             data.updated_by = user
             data.save()
             data.save_to_file
-            async_task("api.v1.v1_data.functions.refresh_materialized_data")
             return Response(
                 {"message": "direct update success"}, status=status.HTTP_200_OK
             )

@@ -710,7 +710,6 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
             batch.approved = True
             batch.updated = timezone.now()
             batch.save()
-            async_task("api.v1.v1_data.functions.refresh_materialized_data")
         return object
 
     def update(self, instance, validated_data):
@@ -1231,7 +1230,5 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 obj_data.uuid = data["uuid"]
             obj_data.save()
             obj_data.save_to_file
-
-        async_task("api.v1.v1_data.functions.refresh_materialized_data")
 
         return obj_data

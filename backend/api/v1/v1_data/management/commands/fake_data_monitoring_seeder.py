@@ -17,7 +17,6 @@ from api.v1.v1_data.management.commands.fake_data_seeder import (
     add_fake_answers,
 )
 from api.v1.v1_profile.models import Administration
-from api.v1.v1_data.functions import refresh_materialized_data
 from api.v1.v1_data.tasks import seed_approved_data
 from api.v1.v1_data.constants import DataApprovalStatus
 
@@ -143,4 +142,3 @@ class Command(BaseCommand):
                     repeat=repeat,
                     approved=approved,
                 )
-            refresh_materialized_data()
