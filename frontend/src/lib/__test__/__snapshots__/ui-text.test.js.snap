@@ -10,19 +10,9 @@ Object {
     "EntitiesDataDownload": "Entities Data Download",
     "EntitiesDataUpload": "Entities Data Upload",
     "EntitiesDownloadPageHint": "Uncheck Prefilled if you only want an upload template",
-    "aboutHighlight": <React.Fragment>
-      The Kenya Rural Urban Sanitation and Hygiene (RUSH) platform is a real-time monitoring and information system owned by the Ministry of Health. 
-      <br />
-      <br />
-       The platform aggregates quantitative and qualitative data from county and national levels and facilitates data analysis, report generation and visualizations.
-    </React.Fragment>,
+    "aboutHighlight": <React.Fragment />,
     "aboutRush": "About RUSH",
-    "aboutText": <React.Fragment>
-      The Rural Sanitation and Hygiene (RuSH) Protocol was developed by the Ministry of Health (MOH), with support from USAID, the Government of Japan, and UNICEF, followed by an extensive consultation process with stakeholders at national and county levels. The Protocol tracks progress from open defecation to a clean and healthy environment. The RuSH Protocol was designed to build on previous sanitation policies on implementation and monitoring to accelerate and enhance rural sanitation and hygiene services across Kenya.
-      <br />
-      <br />
-      The RUSH protocol has paved the way for developing the Real-time Monitoring Information System (IWSIMS) based on a graded system that aims for safely managed sanitation and hygiene services in rural and urban areas. The IWSIMS provides real-time information on sanitation and hygiene, aggregates county and national data based on national and global M&E framework (RuSH Protocol, JMP, GLAAS), and facilitates data analysis, report generation, and visualization.
-    </React.Fragment>,
+    "aboutText": <React.Fragment />,
     "accountDisclaimer": "The user is accountable for his/her account and in case there are any changes (Transfers, retirement, any kind of leave, resignation etc) this should be communicated to the County Administrator or National Super Admin who might be able to assign the roles to the new officer.",
     "actionColumn": "Action",
     "addAdmDesc": "This page allows you to add administration to the RUSH platform.",
@@ -252,9 +242,9 @@ Object {
     "finish": "Finish",
     "finishSubmissionBatchBtn": "Finish and Go to Batch",
     "finishSubmissionBtn": "Finish and Go to Manage Routine Data",
-    "footerAboutDescription": "All the data contained in the RUSH platform is aggregated from both primary and secondary data sources from the 47 counties in Kenya. The data is updated on a monthly basis.",
+    "footerAboutDescription": "",
     "footerAboutTitle": "About Data",
-    "footerContactAddress": "Afya House, Cathedral Road, P.O. Box:30016–00100, Nairobi, Kenya",
+    "footerContactAddress": "",
     "footerContactEmail": "rushiwsims.system@health.go.ke",
     "footerContactFeedback": Object {
       "text": "Feedback Form",

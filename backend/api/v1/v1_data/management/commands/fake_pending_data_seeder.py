@@ -6,6 +6,7 @@ from django.core.management import BaseCommand
 from django.utils import timezone
 from faker import Faker
 
+from iwsims.settings import COUNTRY_NAME
 from api.v1.v1_data.models import (
     PendingFormData,
     PendingAnswers,
@@ -221,7 +222,7 @@ class Command(BaseCommand):
         PendingDataApproval.objects.all().delete()
         PendingDataBatch.objects.all().delete()
         PendingFormData.objects.all().delete()
-        fake_geo = pd.read_csv("./source/kenya_random_points.csv")
+        fake_geo = pd.read_csv(f"./source/{COUNTRY_NAME}_random_points.csv")
         forms = Forms.objects.filter(type=FormTypes.county).all()
         user = None
         if options.get("email"):

@@ -35,7 +35,7 @@ module.exports = function (app) {
       target: "http://localhost:3000",
       changeOrigin: true,
       pathRewrite: {
-        "^/master-data": "/master_data/kenya-administration.csv",
+        "^/master-data": "/master_data/fiji-administration.csv",
       },
     })
   );

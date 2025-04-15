@@ -175,7 +175,7 @@ def fill_administration_data(
 ):
     filename = ADMINISTRATION_CSV_FILE
     if testing:
-        filename = "kenya-administration_test.csv"
+        filename = "test-administration.csv"
     source_file = "{0}/master_data/{1}".format(
         STORAGE_PATH,
         filename

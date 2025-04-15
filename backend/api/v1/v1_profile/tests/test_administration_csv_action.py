@@ -32,7 +32,7 @@ class AdministrationCSVTestCase(TestCase):
         filepath = administration_csv_add(data=new_adm, test=True)
         self.assertEqual(
             filepath,
-            f"{STORAGE_PATH}/master_data/kenya-administration_test.csv"
+            f"{STORAGE_PATH}/master_data/test-administration.csv"
         )
         df = pd.read_csv(filepath)
         last_record = df.iloc[-1]
@@ -50,7 +50,7 @@ class AdministrationCSVTestCase(TestCase):
         filepath = administration_csv_update(data=adm, test=True)
         self.assertEqual(
             filepath,
-            f"{STORAGE_PATH}/master_data/kenya-administration_test.csv"
+            f"{STORAGE_PATH}/master_data/test-administration.csv"
         )
         df = pd.read_csv(filepath)
         contains_value = (df == "Village name changed").any().any()
@@ -68,7 +68,7 @@ class AdministrationCSVTestCase(TestCase):
         filepath = administration_csv_delete(id=adm_id, test=True)
         self.assertEqual(
             filepath,
-            f"{STORAGE_PATH}/master_data/kenya-administration_test.csv"
+            f"{STORAGE_PATH}/master_data/test-administration.csv"
         )
         df = pd.read_csv(filepath)
         contains_value = (df == adm_name).any().any()

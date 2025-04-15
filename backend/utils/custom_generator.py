@@ -2,7 +2,7 @@ import os
 import sqlite3
 import pandas as pd
 import logging
-from iwsims.settings import MASTER_DATA, STORAGE_PATH
+from iwsims.settings import MASTER_DATA, STORAGE_PATH, COUNTRY_NAME
 from api.v1.v1_profile.models import Administration
 
 logger = logging.getLogger(__name__)
@@ -77,7 +77,9 @@ def update_sqlite(model, data, id=None):
 
 
 def administration_csv_add(data: dict, test: bool = False):
-    filename = "kenya-administration{0}.csv".format("_test" if test else "")
+    filename = "{0}-administration.csv".format(
+        "test" if test else COUNTRY_NAME
+    )
     filepath = f"{STORAGE_PATH}/master_data/{filename}"
     if os.path.exists(filepath):
         df = pd.read_csv(filepath)
@@ -100,7 +102,10 @@ def administration_csv_add(data: dict, test: bool = False):
         logger.error(
             {
                 "context": "insert_administration_row_csv",
-                "message": "kenya-administration_test.csv doesn't exists",
+                "message": (
+                    f"{('test' if test else COUNTRY_NAME)}-administration.csv"
+                    " doesn't exist"
+                ),
             }
         )
     return None
@@ -116,7 +121,9 @@ def find_index_by_id(df, id):
 
 
 def administration_csv_update(data: dict, test: bool = False):
-    filename = "kenya-administration{0}.csv".format("_test" if test else "")
+    filename = "{0}-administration.csv".format(
+        "test" if test else COUNTRY_NAME
+    )
     filepath = f"{STORAGE_PATH}/master_data/{filename}"
     if os.path.exists(filepath):
         df = pd.read_csv(filepath)
@@ -140,14 +147,16 @@ def administration_csv_update(data: dict, test: bool = False):
         logger.error(
             {
                 "context": "update_administration_row_csv",
-                "message": "kenya-administration_test.csv doesn't exists",
+                "message": f"{filename} doesn't exist",
             }
         )
     return None
 
 
 def administration_csv_delete(id: int, test: bool = False):
-    filename = "kenya-administration{0}.csv".format("_test" if test else "")
+    filename = "{0}-administration.csv".format(
+        "test" if test else COUNTRY_NAME
+    )
     filepath = f"{STORAGE_PATH}/master_data/{filename}"
     if os.path.exists(filepath):
         df = pd.read_csv(filepath)
@@ -160,7 +169,7 @@ def administration_csv_delete(id: int, test: bool = False):
         logger.error(
             {
                 "context": "delete_administration_row_csv",
-                "message": "kenya-administration_test.csv doesn't exists",
+                "message": f"{filename} doesn't exist",
             }
         )
     return None

@@ -32,37 +32,8 @@ const uiText = {
     service3Text:
       "Real-time insights optimize sanitation metrics for efficient resource allocation.",
     aboutRush: "About RUSH",
-    aboutText: (
-      <>
-        The Rural Sanitation and Hygiene (RuSH) Protocol was developed by the
-        Ministry of Health (MOH), with support from USAID, the Government of
-        Japan, and UNICEF, followed by an extensive consultation process with
-        stakeholders at national and county levels. The Protocol tracks progress
-        from open defecation to a clean and healthy environment. The RuSH
-        Protocol was designed to build on previous sanitation policies on
-        implementation and monitoring to accelerate and enhance rural sanitation
-        and hygiene services across Kenya.
-        <br />
-        <br />
-        The RUSH protocol has paved the way for developing the Real-time
-        Monitoring Information System (IWSIMS) based on a graded system that
-        aims for safely managed sanitation and hygiene services in rural and
-        urban areas. The IWSIMS provides real-time information on sanitation and
-        hygiene, aggregates county and national data based on national and
-        global M&E framework (RuSH Protocol, JMP, GLAAS), and facilitates data
-        analysis, report generation, and visualization.
-      </>
-    ),
-    aboutHighlight: (
-      <Fragment>
-        The Kenya Rural Urban Sanitation and Hygiene (RUSH) platform is a
-        real-time monitoring and information system owned by the Ministry of
-        Health. <br />
-        <br /> The platform aggregates quantitative and qualitative data from
-        county and national levels and facilitates data analysis, report
-        generation and visualizations.
-      </Fragment>
-    ),
+    aboutText: <></>,
+    aboutHighlight: <Fragment></Fragment>,
     learnMoreButton: "Learn more",
     realTime: "Real-Time Monitoring and Information System (IWSIMS)",
     reportText: "Report generation and visualizations.",
@@ -95,13 +66,11 @@ const uiText = {
     errorMandatoryFields: "Please answer all the mandatory questions",
     // Footer
     footerAboutTitle: "About Data",
-    footerAboutDescription:
-      "All the data contained in the RUSH platform is aggregated from both primary and secondary data sources from the 47 counties in Kenya. The data is updated on a monthly basis.",
+    footerAboutDescription: "",
     footerDonorSupport:
       "IWSIMS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
     footerContactTitle: "Contacts",
-    footerContactAddress:
-      "Afya House, Cathedral Road, P.O. Box:30016–00100, Nairobi, Kenya",
+    footerContactAddress: "",
     footerContactPhone: "+254-20-2717077",
     footerContactEmail: "rushiwsims.system@health.go.ke",
     footerContactFeedback: {

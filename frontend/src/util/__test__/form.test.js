@@ -21,7 +21,7 @@ describe("util/form", () => {
       name: "Fanilo Toky",
       administration: {
         id: 1,
-        name: "Kenya",
+        name: "Test country",
         level: 0,
       },
       trained: false,

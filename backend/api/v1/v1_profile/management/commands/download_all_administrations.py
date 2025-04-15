@@ -17,7 +17,7 @@ class Command(BaseCommand):
         test = options.get("test")
         filename = ADMINISTRATION_CSV_FILE
         if test:
-            filename = "kenya-administration_test.csv"
+            filename = "test-administration.csv"
         file_path = "./tmp/{0}".format(filename)
         if os.path.exists(file_path):
             os.remove(file_path)
