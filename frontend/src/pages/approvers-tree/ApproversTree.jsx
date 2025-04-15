@@ -15,11 +15,14 @@ const ApproversTree = () => {
     user: authUser,
     forms,
     selectedForm,
+    levels,
   } = store.useState((s) => s);
+  const maxLevel =
+    levels?.length > 2 ? levels?.slice(-2)[0]?.level : levels[0]?.level;
 
   const administration = useMemo(() => {
-    return filterOption.filter((item) => item.level !== 3);
-  }, [filterOption]);
+    return filterOption.filter((item) => item.level !== maxLevel);
+  }, [filterOption, maxLevel]);
 
   const [nodes, setNodes] = useState([]);
   const [dataset, setDataset] = useState([]);
@@ -80,7 +83,8 @@ const ApproversTree = () => {
               {
                 id: selectedAdministration.id,
                 childLevelName:
-                  selectedAdministration.childLevelName || startingLevel?.name,
+                  selectedAdministration.childLevelName ||
+                  selectedAdministration?.children_level_name,
                 children: res.data.map((cI) => ({
                   ...cI,
                   user: cI.user,
@@ -344,6 +348,7 @@ const ApproversTree = () => {
             loading={false}
             disabled={isPristine || loading}
             visible={false}
+            maxLevel={maxLevel}
           />
           <Divider />
           <div style={{ padding: 0, minHeight: "40vh" }}>

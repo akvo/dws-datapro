@@ -191,7 +191,11 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "Africa/Nairobi"
+"""
+The TIME_ZONE has been set to 'Pacific/Fiji'
+to align with the application's focus on Fiji.
+"""
+TIME_ZONE = "Pacific/Fiji"
 
 USE_I18N = True
 
@@ -233,7 +237,9 @@ FAKE_STORAGE = False
 EMAIL_BACKEND = "django_mailjet.backends.MailjetBackend"
 MAILJET_API_KEY = environ["MAILJET_APIKEY"]
 MAILJET_API_SECRET = environ["MAILJET_SECRET"]
-EMAIL_FROM = environ.get("EMAIL_FROM") or "noreply@akvo.org"
+EMAIL_FROM = environ.get("EMAIL_FROM", "noreply@akvo.org")
+
+COUNTRY_NAME = "fiji"
 
 Q_CLUSTER = {
     "name": "DjangORM",

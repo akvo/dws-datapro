@@ -11,7 +11,7 @@ from api.v1.v1_profile.models import (
     Administration,
     Entity,
 )
-
+from api.v1.v1_profile.constants import ADMINISTRATION_CSV_FILE
 from api.v1.v1_users.models import SystemUser
 from utils.storage import upload
 from iwsims.settings import STORAGE_PATH
@@ -173,7 +173,7 @@ def fill_administration_data(
     administration: Administration = None,
     testing: bool = False,
 ):
-    filename = "kenya-administration.csv"
+    filename = ADMINISTRATION_CSV_FILE
     if testing:
         filename = "kenya-administration_test.csv"
     source_file = "{0}/master_data/{1}".format(

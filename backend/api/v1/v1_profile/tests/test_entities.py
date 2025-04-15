@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from api.v1.v1_profile.models import Administration, Entity, EntityData
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from api.v1.v1_profile.tests.utils import AdministrationEntitiesTestFactory
+from api.v1.v1_profile.management.commands.administration_seeder import (
+    seed_levels
+)
 
 
 @override_settings(USE_TZ=False)
@@ -236,6 +239,14 @@ class EntityDataFilterTestCase(TestCase, ProfileTestHelperMixin):
 
     def setUp(self):
         super().setUp()
+        geo_config = [
+            {"id": 1, "level": 0, "name": "NAME_0", "alias": "National"},
+            {"id": 2, "level": 1, "name": "NAME_1", "alias": "Province"},
+            {"id": 3, "level": 2, "name": "NAME_1", "alias": "District"},
+            {"id": 4, "level": 3, "name": "NAME_2", "alias": "Subdistrict"},
+            {"id": 5, "level": 4, "name": "NAME_3", "alias": "Village"},
+        ]
+        seed_levels(geo_config=geo_config)
         self.populate_test_data()
         self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
         self.token = self.get_auth_token(self.user.email)

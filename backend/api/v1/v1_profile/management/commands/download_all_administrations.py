@@ -3,6 +3,7 @@ from django.core.management import BaseCommand
 
 import pandas as pd
 from api.v1.v1_profile.models import Administration, Levels
+from api.v1.v1_profile.constants import ADMINISTRATION_CSV_FILE
 from utils.storage import upload
 
 
@@ -14,7 +15,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         test = options.get("test")
-        filename = "kenya-administration.csv"
+        filename = ADMINISTRATION_CSV_FILE
         if test:
             filename = "kenya-administration_test.csv"
         file_path = "./tmp/{0}".format(filename)
@@ -47,4 +48,5 @@ class Command(BaseCommand):
             )
         df.to_csv(file_path, index=False)
         url = upload(file=file_path, folder="master_data")
-        self.stdout.write(f"File Created: {url}")
+        if not test:
+            self.stdout.write(f"File Created: {url}")
