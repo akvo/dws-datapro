@@ -1,21 +1,19 @@
 import * as SQLite from 'expo-sqlite';
 
-import { crudCertification, crudMonitoring } from '../database/crud';
+import { crudMonitoring } from '../database/crud';
 import { DatapointSyncState } from '../store';
 import api from './api';
 import { DATABASE_NAME } from './constants';
 
-export const fetchDatapoints = async (isCertification = false, pageNumber = 1) => {
+export const fetchDatapoints = async (pageNumber = 1) => {
   try {
-    const { data: apiData } = await api.get(
-      `/datapoint-list?certification=${isCertification}&page=${pageNumber}`,
-    );
+    const { data: apiData } = await api.get(`/datapoint-list?page=${pageNumber}`);
     const { data, total_page: totalPage, current: page } = apiData;
     DatapointSyncState.update((s) => {
       s.progress = (page / totalPage) * 100;
     });
     if (page < totalPage) {
-      return data.concat(await fetchDatapoints(isCertification, page + 1));
+      return data.concat(await fetchDatapoints(page + 1));
     }
     return data;
   } catch (error) {
@@ -23,10 +21,7 @@ export const fetchDatapoints = async (isCertification = false, pageNumber = 1) =
   }
 };
 
-export const downloadDatapointsJson = async (
-  isCertification,
-  { formId, administrationId, url, lastUpdated, submissionType },
-) => {
+export const downloadDatapointsJson = async ({ formId, administrationId, url, lastUpdated }) => {
   try {
     const db = await SQLite.openDatabaseAsync(DATABASE_NAME, {
       useNewConnection: true,
@@ -34,24 +29,13 @@ export const downloadDatapointsJson = async (
     const response = await api.get(url);
     if (response.status === 200) {
       const jsonData = response.data;
-      if (isCertification) {
-        await crudCertification.syncForm(db, {
-          formId,
-          administrationId,
-          lastUpdated,
-          submissionType,
-          formJSON: jsonData,
-        });
-        await db.closeAsync();
-      } else {
-        await crudMonitoring.syncForm(db, {
-          formId,
-          administrationId,
-          lastUpdated,
-          formJSON: jsonData,
-        });
-        await db.closeAsync();
-      }
+      await crudMonitoring.syncForm(db, {
+        formId,
+        administrationId,
+        lastUpdated,
+        formJSON: jsonData,
+      });
+      await db.closeAsync();
     }
   } catch (error) {
     Promise.reject(error);
