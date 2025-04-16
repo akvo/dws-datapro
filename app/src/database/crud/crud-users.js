@@ -21,9 +21,6 @@ const usersQuery = () => ({
   addNew: async (db, payload) => {
     const params = {
       ...payload,
-      certifications: payload?.certifications
-        ? JSON.stringify(payload.certifications).replace(/'/g, "''")
-        : null,
     };
     const row = await sql.insertRow(db, 'users', params);
     return row;
