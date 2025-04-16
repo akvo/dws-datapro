@@ -13,8 +13,6 @@ const Card = ({ title = null, subTitles = [], submissionType = null }) => {
   const colors = {
     [SUBMISSION_TYPES.registration]: '#2563eb',
     [SUBMISSION_TYPES.monitoring]: '#0891b2',
-    [SUBMISSION_TYPES.verification]: '#ca8a04',
-    [SUBMISSION_TYPES.certification]: '#ea580c',
   };
   const titleWidth = submissionType ? '70%' : '100%';
   return (
