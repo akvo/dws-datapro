@@ -35,8 +35,6 @@ const LogoutButton = () => {
     UserState.update((s) => {
       s.id = null;
       s.name = null;
-      s.password = '';
-      s.certifications = [];
     });
     setLoading(false);
     setVisible(false);

@@ -22,7 +22,7 @@ const Users = ({ navigation, route }) => {
     setLoading(false);
   }, [db]);
 
-  const handleSelectUser = async ({ id, name, password, token, certifications }) => {
+  const handleSelectUser = async ({ id, name, password, token }) => {
     await crudUsers.toggleActive(db, { id: currUserID, active: 1 });
     await crudUsers.toggleActive(db, { id, active: 0 });
     await crudConfig.updateConfig(db, { authenticationCode: password });
@@ -34,7 +34,6 @@ const Users = ({ navigation, route }) => {
     UserState.update((s) => {
       s.id = id;
       s.name = name;
-      s.certifications = certifications ? JSON.parse(certifications.replace(/''/g, "'")) : [];
     });
     await loadUsers();
 

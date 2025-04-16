@@ -68,12 +68,8 @@ const AuthByPassForm = ({ navigation }) => {
             goTo('AddUser');
           } else {
             UserState.update((s) => {
-              s.id = activeUser.id;
-              s.name = activeUser.name;
-              s.password = activeUser.password;
-              s.certifications = activeUser?.certifications
-                ? JSON.parse(activeUser.certifications.replace(/''/g, "'"))
-                : [];
+              s.id = activeUser?.id;
+              s.name = activeUser?.name;
             });
             goTo('Home');
           }
