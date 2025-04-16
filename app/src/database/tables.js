@@ -7,7 +7,6 @@ const tables = [
       password: 'TEXT',
       active: 'TINYINT',
       token: 'TEXT',
-      certifications: 'TEXT NULL',
       lastSyncedAt: 'DATETIME',
     },
   },
@@ -68,19 +67,6 @@ const tables = [
       administrationId: 'INTEGER NOT NULL',
       syncedAt: 'DATETIME',
       json: 'TEXT',
-    },
-  },
-  {
-    name: 'certifications',
-    fields: {
-      id: 'INTEGER PRIMARY KEY NOT NULL',
-      formId: 'INTEGER NOT NULL',
-      uuid: 'VARCHAR(191)',
-      name: 'VARCHAR(255)',
-      administrationId: 'INTEGER NOT NULL',
-      syncedAt: 'DATETIME',
-      json: 'TEXT',
-      isCertified: 'TINYINT',
     },
   },
   {
