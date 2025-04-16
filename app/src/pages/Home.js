@@ -60,6 +60,7 @@ const Home = ({ navigation, route }) => {
   };
   const syncAllForms = async (newForms = []) => {
     try {
+      await cascades.dropFiles();
       const endpoints = [...newForms, ...data].map((d) => api.get(`/form/${d.formId}`));
       const results = await Promise.allSettled(endpoints);
       const responses = results.filter(({ status }) => status === 'fulfilled');
@@ -107,12 +108,6 @@ const Home = ({ navigation, route }) => {
   const syncUserForms = async () => {
     const { data: apiData } = await api.post('/auth', { code: passcode });
     api.setToken(apiData.syncToken);
-    /**
-     * Update certification assignment
-     */
-    UserState.update((s) => {
-      s.certifications = apiData.certifications;
-    });
 
     const myForms = await crudForms.getMyForms(db);
 
