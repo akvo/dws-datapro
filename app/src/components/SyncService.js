@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import * as Network from 'expo-network';
 import { useSQLiteContext } from 'expo-sqlite';
-import { BuildParamsState, DatapointSyncState, UIState, UserState } from '../store';
+import { BuildParamsState, DatapointSyncState, UIState } from '../store';
 import { backgroundTask } from '../lib';
 import crudJobs, {
   jobStatus,
@@ -18,7 +18,6 @@ const SyncService = () => {
   const isOnline = UIState.useState((s) => s.online);
   const syncInterval = BuildParamsState.useState((s) => s.dataSyncInterval);
   const syncInSecond = parseInt(syncInterval, 10) * 1000;
-  const certifications = UserState.useState((s) => s.certifications);
   const db = useSQLiteContext();
 
   const onSync = useCallback(async () => {
@@ -121,7 +120,7 @@ const SyncService = () => {
 
       try {
         const monitoringRes = await fetchDatapoints();
-        let apiURLs = monitoringRes.map(
+        const apiURLs = monitoringRes.map(
           ({
             url,
             form_id: formId,
@@ -135,29 +134,8 @@ const SyncService = () => {
           }),
         );
 
-        if (certifications?.length) {
-          const certifyRes = await fetchDatapoints(true);
-          apiURLs = [
-            ...apiURLs,
-            ...certifyRes.map(
-              ({
-                url,
-                form_id: formId,
-                administration_id: administrationId,
-                last_updated: lastUpdated,
-              }) => ({
-                url,
-                formId,
-                administrationId,
-                lastUpdated,
-                isCertification: true,
-              }),
-            ),
-          ];
-        }
-
         await Promise.all(
-          apiURLs.map(({ isCertification, ...u }) => downloadDatapointsJson(isCertification, u)),
+          apiURLs.map((u) => downloadDatapointsJson(u)),
         );
         await crudJobs.deleteJob(db, activeJob.id);
 
@@ -182,7 +160,7 @@ const SyncService = () => {
         s.inProgress = false;
       });
     }
-  }, [db, certifications?.length]);
+  }, [db]);
 
   useEffect(() => {
     const unsubsDataSync = DatapointSyncState.subscribe(
