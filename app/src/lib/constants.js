@@ -13,8 +13,6 @@ export const SYNC_STATUS = {
 export const SUBMISSION_TYPES = {
   registration: 1,
   monitoring: 2,
-  verification: 3,
-  certification: 4,
 };
 
 export const DATABASE_NAME = 'app.db';
