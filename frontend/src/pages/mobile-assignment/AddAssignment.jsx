@@ -10,8 +10,6 @@ import {
 import { useNotification } from "../../util/hooks";
 import "./style.scss";
 
-const { Option } = Select;
-
 const AddAssignment = () => {
   const { id } = useParams();
   const navigate = useNavigate();
