@@ -42,7 +42,7 @@ const DetailAssignment = ({ record }) => {
               },
               {
                 key: "administrations",
-                field: "Villages",
+                field: "Administration(s)",
                 value: (
                   <>{record.administrations.map((a) => a.name).join(" | ")}</>
                 ),
