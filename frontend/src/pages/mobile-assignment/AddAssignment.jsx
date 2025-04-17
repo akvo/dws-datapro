@@ -48,7 +48,7 @@ const AddAssignment = () => {
    * AND
    * the current selected administration have a children
    */
-  const admIsRequired =
+  const isAdmRequired =
     admLevels.map((a) => a.id).includes(level) &&
     selectedAdm?.[0]?.children?.length > 0;
 
@@ -156,7 +156,9 @@ const AddAssignment = () => {
     try {
       const payload = {
         name: values.name,
-        administrations: selectedAdministrations,
+        administrations: isAdmRequired
+          ? selectedAdministrations
+          : [authUser.administration.id],
         forms: values.forms,
       };
       if (id) {
@@ -317,7 +319,7 @@ const AddAssignment = () => {
                 </Form.Item>
               </div>
             )}
-            {admIsRequired && (
+            {isAdmRequired && (
               <div className="form-row">
                 <Form.Item
                   name="administrations"
