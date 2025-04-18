@@ -8,16 +8,12 @@ from api.v1.v1_forms.constants import FormTypes
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.models import Levels
 from api.v1.v1_forms.serializers import FormDataSerializer
-from django_q.tasks import async_task
 
 
 class Command(BaseCommand):
     def handle(self, *args, **options):
         print("GENERATING CONFIG JS")
         topojson = open(f"source/{COUNTRY_NAME}.topojson").read()
-        dashboard_json = "source/config/dashboard.json"
-        reports_json = "source/config/reports.json"
-        power_bi_dashboard = "source/config/power-bi-dashboard.json"
 
         # write config
         config_file = jsmin(open("source/config/config.js").read())
@@ -45,15 +41,6 @@ class Command(BaseCommand):
         min_config = jsmin(
             "".join(
                 [
-                    "var dashboard=",
-                    open(dashboard_json).read(),
-                    ";",
-                    "var reports=",
-                    open(reports_json).read(),
-                    ";",
-                    "var powerBIDashboard=",
-                    open(power_bi_dashboard).read(),
-                    ";",
                     "var topojson=",
                     topojson,
                     ";",
@@ -72,6 +59,3 @@ class Command(BaseCommand):
         del levels
         del forms
         del min_config
-        # del all_administrations
-        # del adm
-        async_task("api.v1.v1_data.functions.refresh_materialized_data")

@@ -87,12 +87,6 @@ The script will prompt you for various actions related to data seeding such as:
 
 Answer each prompt by entering 'y' or 'n' followed by the Enter key.
 
-```bash
-./dc.sh exec backend python manage.py generate_views
-```
-
-This command will generate materialized view for `DataCategory` model
-
 #### Log
 
 ```bash

@@ -4,19 +4,16 @@ import os
 import pathlib
 
 from math import ceil
-from collections import defaultdict
 from wsgiref.util import FileWrapper
 from django.utils import timezone
-from django.db.models import Count, F, Sum, Avg, Max
+from django.db.models import F, Max
 from django.http import HttpResponse
-from django_q.tasks import async_task
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema,
     inline_serializer,
     OpenApiParameter,
     OpenApiResponse,
-    OpenApiExample,
 )
 from rest_framework import serializers, status
 from rest_framework.decorators import api_view, permission_classes
@@ -56,19 +53,11 @@ from api.v1.v1_data.serializers import (
     BatchListRequestSerializer,
     SubmitFormDataAnswerSerializer,
 )
-from api.v1.v1_data.functions import (
-    get_advance_filter_data_ids,
-)
 from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
 from api.v1.v1_forms.models import Forms, Questions
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_categories.functions import (
-    get_category_results,
-    get_jmp_config_by_form,
-)
-from api.v1.v1_categories.models import DataCategory
 
 from iwsims.settings import REST_FRAMEWORK
 from utils.custom_permissions import (
@@ -360,7 +349,6 @@ class FormDataAddListView(APIView):
             data.updated_by = user
             data.save()
             data.save_to_file
-            async_task("api.v1.v1_data.functions.refresh_materialized_data")
             return Response(
                 {"message": "direct update success"}, status=status.HTTP_200_OK
             )
@@ -964,174 +952,3 @@ class PendingFormDataView(APIView):
         return Response(
             {"message": "update success"}, status=status.HTTP_200_OK
         )
-
-
-@extend_schema(
-    responses={
-        (200, "application/json"): inline_serializer(
-            "ListJMPData",
-            fields={
-                "loc": serializers.CharField(),
-                "data": OpenApiTypes.ANY,
-                "total": serializers.IntegerField(),
-            },
-            many=True,
-        )
-    },
-    examples=[
-        OpenApiExample(
-            "ListJMPDataExample",
-            value=[
-                {
-                    "loc": "Baringo",
-                    "data": {
-                        "drinking water service level": {
-                            "basic": 10,
-                            "limited": 20,
-                        }
-                    },
-                    "total": 30,
-                }
-            ],
-        )
-    ],
-    parameters=[
-        OpenApiParameter(
-            name="administration",
-            required=False,
-            type=OpenApiTypes.NUMBER,
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(
-            name="options",
-            required=False,
-            type={"type": "array", "items": {"type": "string"}},
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(
-            name="sum",
-            required=False,
-            type={"type": "array", "items": {"type": "number"}},
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(
-            name="avg",
-            required=False,
-            type={"type": "array", "items": {"type": "number"}},
-            location=OpenApiParameter.QUERY,
-        ),
-    ],
-    tags=["JMP"],
-    summary="To get JMP data by location",
-)
-@api_view(["GET"])
-def get_jmp_data(request, version, form_id):
-    form = get_object_or_404(Forms, pk=form_id)
-    administration = request.GET.get("administration")
-    adm_filter = get_object_or_404(Administration, pk=administration)
-    if not administration:
-        administration = 1
-    # Advance filter
-    options = request.GET.getlist("options")
-    data_ids = None
-    if options:
-        data_ids = get_advance_filter_data_ids(
-            form_id=form_id, administration_id=administration, options=options
-        )
-    # Check administration filter level
-    administration_obj = Administration.objects
-    if adm_filter.level_id < 4:
-        administration = administration_obj.filter(parent_id=administration)
-    else:
-        administration = administration_obj.filter(pk=adm_filter.pk)
-    administration = administration.all()
-    jmp_data = []
-    # JMP Criteria
-    criteria = get_jmp_config_by_form(form=form_id)
-
-    # Custom Criteria (SUM & AVG)
-    sums = []
-    opts = defaultdict(dict)
-    avgs = []
-    if request.GET.getlist("avg"):
-        avgs = Questions.objects.filter(
-            pk__in=request.GET.getlist("avg")
-        ).all()
-    if request.GET.getlist("sum"):
-        sums = Questions.objects.filter(
-            pk__in=request.GET.getlist("sum")
-        ).all()
-        for q in sums:
-            if q.type in [QuestionTypes.option, QuestionTypes.multiple_option]:
-                opts[q.id] = list(
-                    q.options.order_by("order").values_list("name", flat=True)
-                )
-    for adm in administration:
-        temp = defaultdict(dict)
-        adm_path = "{0}{1}.".format(adm.path, adm.id)
-        # if adm last level
-        filter_total = {"form": form}
-        if adm.level_id < 4:
-            filter_total.update({"administration__path__startswith": adm_path})
-        else:
-            filter_total.update({"administration": adm})
-            adm_path = adm.path  # use parent adm path if adm lowest level/ward
-        if data_ids:
-            filter_total.update({"pk__in": data_ids})
-        dataset = FormData.objects.filter(**filter_total)
-        categories = []
-        if dataset.count() and len(categories) == 0:
-            ids = data_ids if data_ids else [d.id for d in dataset.all()]
-            categories = DataCategory.objects.filter(
-                form_id=form_id,
-                data_id__in=ids,
-            )
-            categories = get_category_results(categories)
-        total = 0
-        for crt in criteria:
-            for lb in crt["labels"]:
-                matched = list(
-                    filter(
-                        lambda c: (
-                            c["category"][crt["name"]] == lb["name"]
-                            if crt["name"] in c["category"]
-                            else False
-                        ),
-                        categories,
-                    )
-                )
-                subtotal = len(matched)
-                temp[crt["name"]][lb["name"]] = subtotal
-                total += subtotal
-        for q in avgs:
-            answer = (
-                Answers.objects.filter(
-                    data__administration__path__startswith=adm_path, question=q
-                )
-                .exclude(value__isnull=True)
-                .aggregate(avg=Avg("value"))
-            )
-            temp["average"][q.id] = answer["avg"]
-        for q in sums:
-            if not opts.get(q.id):
-                answer = (
-                    Answers.objects.filter(
-                        data__administration__path__startswith=adm_path,
-                        question=q,
-                    )
-                    .exclude(value__isnull=True)
-                    .aggregate(sum=Sum("value"))
-                )
-                temp["sum"][q.id] = answer["sum"]
-            else:
-                ov = {}
-                for o in opts.get(q.id):
-                    answer = Answers.objects.filter(
-                        data__administration__path__startswith=adm_path,
-                        options__contains=o,
-                        question=q,
-                    ).aggregate(count=Count("id"))
-                    ov.update({o: answer["count"]})
-                temp["sum"][q.id] = ov
-        jmp_data.append({"loc": adm.name, "data": temp, "total": total})
-    return Response(jmp_data, status=status.HTTP_200_OK)
