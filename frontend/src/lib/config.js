@@ -898,6 +898,7 @@ const config = {
     registration: "#2563eb",
     monitoring: "#0891b2",
   },
+  maxLevelApproval: 3,
 };
 
 export default config;

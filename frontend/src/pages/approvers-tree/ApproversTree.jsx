@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from "react";
 import "./style.scss";
 import { Row, Col, Divider, Space, Popover } from "antd";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
-import { api, store, uiText } from "../../lib";
+import { api, config, store, uiText } from "../../lib";
 import ApproverFilters from "../../components/filters/ApproverFilters";
 import { SteppedLineTo } from "react-lineto";
 import { take, takeRight } from "lodash";
@@ -15,14 +15,11 @@ const ApproversTree = () => {
     user: authUser,
     forms,
     selectedForm,
-    levels,
   } = store.useState((s) => s);
-  const maxLevel =
-    levels?.length > 2 ? levels?.slice(-2)[0]?.level : levels[0]?.level;
 
   const administration = useMemo(() => {
-    return filterOption.filter((item) => item.level !== maxLevel);
-  }, [filterOption, maxLevel]);
+    return filterOption.filter((item) => item.level <= config.maxLevelApproval);
+  }, [filterOption]);
 
   const [nodes, setNodes] = useState([]);
   const [dataset, setDataset] = useState([]);
@@ -200,13 +197,17 @@ const ApproversTree = () => {
                   const approverName = approver
                     ? `${approver.first_name} ${approver.last_name}`
                     : text.notAssigned;
+                  const isParent =
+                    administration[k + 1]?.children[0]?.parent === childItem.id;
+                  const selectedAdministration = takeRight(filterOption, 1)[0];
+                  const isSelected =
+                    !isParent && selectedAdministration?.id === childItem?.id;
+                  const isSelectedLine = isSelected || isParent;
                   return (
                     <div
                       className={`tree-block tree-block-${k + 1}-${childItem.id}
                       ${
-                        k >= administration.length - 1 ||
-                        administration[k + 1]?.children[0]?.parent ===
-                          childItem.id
+                        k >= administration.length - 1 || isSelectedLine
                           ? "active"
                           : ""
                       } ${approver ? "assigned" : ""}
@@ -250,6 +251,7 @@ const ApproversTree = () => {
     loading,
     notify,
     text.notAssigned,
+    filterOption,
   ]);
 
   const renderFormLine = useMemo(() => {
@@ -280,6 +282,10 @@ const ApproversTree = () => {
           {adminItem.children.map((childItem, ci) => {
             const isParent =
               administration[m + 1]?.children[0]?.parent === childItem.id;
+            const selectedAdministration = takeRight(filterOption, 1)[0];
+            const isSelected =
+              !isParent && selectedAdministration?.id === childItem?.id;
+            const isSelectedLine = isSelected || isParent;
             return (
               <div key={ci}>
                 <SteppedLineTo
@@ -292,19 +298,21 @@ const ApproversTree = () => {
                   delay={scroll ? 0 : 1}
                   orientation="h"
                   borderColor={
-                    m >= administration.length - 1 || isParent
+                    m >= administration.length - 1 || isSelectedLine
                       ? "#0058ff"
                       : "#dedede"
                   }
                   borderStyle={
-                    m >= administration.length - 1 || isParent
+                    m >= administration.length - 1 || isSelectedLine
                       ? "solid"
                       : "dotted"
                   }
                   borderWidth={
-                    m >= administration.length - 1 || isParent ? 1 : 1.5
+                    m >= administration.length - 1 || isSelectedLine ? 1 : 1.5
                   }
-                  zIndex={m >= administration.length - 1 || isParent ? 100 : 1}
+                  zIndex={
+                    m >= administration.length - 1 || isSelectedLine ? 100 : 1
+                  }
                 />
                 {isParent && (
                   <SteppedLineTo
@@ -327,7 +335,7 @@ const ApproversTree = () => {
         </div>
       ))
     );
-  }, [administration, selectedForm, scroll]);
+  }, [administration, selectedForm, scroll, filterOption]);
 
   return (
     <div id="approversTree">
@@ -348,7 +356,6 @@ const ApproversTree = () => {
             loading={false}
             disabled={isPristine || loading}
             visible={false}
-            maxLevel={maxLevel}
           />
           <Divider />
           <div style={{ padding: 0, minHeight: "40vh" }}>
