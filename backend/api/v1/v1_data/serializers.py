@@ -949,9 +949,12 @@ class CreateBatchSerializer(serializers.Serializer):
             )
         for pending in attrs.get("data"):
             if pending.form_id != form.id:
-                raise ValidationError(
-                    {"data": "No approvers found for this batch"}
-                )
+                raise ValidationError({
+                    "data": (
+                        "Mismatched form ID for one or more"
+                        " pending data items."
+                    )
+                })
         return attrs
 
     def create(self, validated_data):
