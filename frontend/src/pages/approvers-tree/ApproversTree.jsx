@@ -69,7 +69,7 @@ const ApproversTree = () => {
       setLoading(true);
       api
         .get(
-          `form/approver/?administration_id=${selectedAdministration.id}&form_id=${selectedForm}`
+          `form/approver/?administration_id=${selectedAdministration?.id}&form_id=${selectedForm}`
         )
         .then((res) => {
           setDataset((prev) => {
@@ -78,9 +78,9 @@ const ApproversTree = () => {
             adminClone = [
               ...adminClone,
               {
-                id: selectedAdministration.id,
+                id: selectedAdministration?.id,
                 childLevelName:
-                  selectedAdministration.childLevelName ||
+                  selectedAdministration?.childLevelName ||
                   selectedAdministration?.children_level_name,
                 children: res.data.map((cI) => ({
                   ...cI,
@@ -199,7 +199,7 @@ const ApproversTree = () => {
                     : text.notAssigned;
                   const isParent =
                     administration[k + 1]?.children[0]?.parent === childItem.id;
-                  const selectedAdministration = takeRight(filterOption, 1)[0];
+                  const selectedAdministration = filterOption?.slice(-1)?.[0];
                   const isSelected =
                     !isParent && selectedAdministration?.id === childItem?.id;
                   const isSelectedLine = isSelected || isParent;
@@ -282,7 +282,7 @@ const ApproversTree = () => {
           {adminItem.children.map((childItem, ci) => {
             const isParent =
               administration[m + 1]?.children[0]?.parent === childItem.id;
-            const selectedAdministration = takeRight(filterOption, 1)[0];
+            const selectedAdministration = filterOption?.slice(-1)?.[0];
             const isSelected =
               !isParent && selectedAdministration?.id === childItem?.id;
             const isSelectedLine = isSelected || isParent;
