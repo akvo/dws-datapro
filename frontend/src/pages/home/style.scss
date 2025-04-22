@@ -22,7 +22,7 @@
 
   .block {
     position: relative;
-    min-height: calc(100vh - 480px);
+    min-height: calc(100vh - 86px);
 
     // Initial state for fade-up effect
     .item-parallax-content {
@@ -78,19 +78,11 @@
       .item-parallax-content {
         transform: translateY(calc(var(--yBlock-1) * 0.5px));
       }
-
-      .item-parallax-media img {
-        transform: translateY(calc(var(--yBlock-1) * 0.1px));
-      }
     }
 
     &:nth-child(2) {
       .item-parallax-content {
         transform: translateY(calc(var(--yBlock-2) * 0.5px));
-      }
-
-      .item-parallax-media img {
-        transform: translateY(calc(var(--yBlock-2) * 0.1px));
       }
     }
 
@@ -98,29 +90,11 @@
       .item-parallax-content {
         transform: translateY(calc(var(--yBlock-3) * 0.5px));
       }
-
-      .item-parallax-media img {
-        transform: translateY(calc(var(--yBlock-3) * 0.1px));
-      }
     }
 
     &:nth-child(4) {
       .item-parallax-content {
         transform: translateY(calc(var(--yBlock-4) * 0.5px));
-      }
-
-      .item-parallax-media img {
-        transform: translateY(calc(var(--yBlock-4) * 0.1px));
-      }
-    }
-
-    &:nth-child(5) {
-      .item-parallax-content {
-        transform: translateY(calc(var(--yBlock-5) * 0.5px));
-      }
-
-      .item-parallax-media img {
-        transform: translateY(calc(var(--yBlock-5) * 0.1px));
       }
     }
   }
@@ -232,6 +206,7 @@
 
   .landing-content {
     padding-left: 10%;
+    padding-top: 128px;
   }
 
   .section-container {
@@ -337,9 +312,10 @@
 
   // Footer Styles
   .footer-section {
-    background-color: #00171f;
+    background-color: #f9f9f9; // Light background color
     padding: 64px 0 0; // Adjust padding, remove bottom padding as copyright handles it
     margin-top: auto; // Push footer to the bottom
+    min-height: 0;
 
     .flex-container {
       align-items: flex-start; // Align items to the top
@@ -361,6 +337,7 @@
           padding-left: 0;
           padding-right: 0;
           max-width: none;
+          color: #333; // Dark text color
         }
       }
 
@@ -371,13 +348,13 @@
 
         /* Style links specifically in this column */
         a {
-          color: rgba(255, 255, 255, 0.6); /* Match text-white/60 */
+          color: rgba(0, 0, 0, 0.6); /* Match text-dark/60 */
           text-decoration: none; /* Remove underline */
           font-size: 13px; /* Make links slightly smaller */
           line-height: 1.5; /* Adjust line height */
           display: block; /* Ensure they take block space */
           &:hover {
-            color: rgba(255, 255, 255, 0.8); /* Slightly brighter on hover */
+            color: rgba(0, 0, 0, 0.8); /* Slightly darker on hover */
             text-decoration: underline; /* Add underline on hover */
           }
         }
@@ -386,6 +363,7 @@
         .head-sm {
           font-size: 20px; /* Slightly smaller than default head-sm */
           margin-bottom: 16px; /* Adjust spacing */
+          color: #333; // Dark text color
         }
 
         /* Style the new quick links list */
@@ -405,9 +383,10 @@
     .text-sm {
       font-size: 14px; /* 14px */
       line-height: 20px; /* 20px */
+      color: #333; // Dark text color
     }
     .text-white\/60 {
-      color: rgba(255, 255, 255, 0.6);
+      color: rgba(0, 0, 0, 0.6); // Adjust for light theme
     }
     .mb-2 {
       margin-bottom: 8px; /* 8px */
@@ -425,11 +404,12 @@
       justify-content: space-between;
       align-items: center;
       padding: 16px 32px; // Add some padding for spacing
-      border-top: 1px solid rgba(255, 255, 255, 0.1); // Optional: add a top border
+      border-top: 1px solid rgba(0, 0, 0, 0.1); // Optional: add a top border
       margin-top: 32px; // Add margin to separate from content above
       .copy {
         font-size: 14px; // Adjust font size
         line-height: 20px; // Adjust line height
+        color: #333; // Dark text color
       }
       .powered-by-container {
         width: fit-content;
@@ -443,6 +423,7 @@
           justify-content: center;
           align-items: center;
           padding-top: 8px;
+          color: #333; // Dark text color
         }
       }
     }
@@ -450,7 +431,6 @@
     .footer-logo-container {
       width: fit-content;
       height: auto;
-      background-color: #fff;
       padding: 8px;
       margin-bottom: 32px;
       .footer-logo {

@@ -30,7 +30,7 @@ const Home = () => {
 
   return (
     <main className="content js-content">
-      <section className="block section-jumbotron" style={{ height: "100vh" }}>
+      <section className="block section-jumbotron">
         <figure className="item-parallax-media ">
           <img
             src={jumbotron.image.src}
@@ -56,43 +56,29 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="block section-container">
-        <div className="item-parallax-content flex-container">
-          <div className="centered-content">
-            <h2 className="head-md head-centered">{mandate.title}</h2>
-            <p className="section-caption-text">{mandate.text}</p>
-          </div>
+      <section className="block">
+        <div
+          className="item-parallax-content centered-content section-container"
+          style={{ paddingTop: 128, paddingBottom: 128 }}
+        >
+          <h1 className="head-md head-centered">{mandate.title}</h1>
+          <p className="section-caption-text">{mandate.text}</p>
         </div>
-      </section>
-
-      <section className="block" style={{ height: "480px" }}>
-        <figure className="item-parallax-media">
-          <img
-            src={structure.image.src}
-            alt={structure.image.alt}
-            style={{
-              width: "100%",
-              objectFit: "cover",
-              filter: "brightness(0.4)",
-              position: "absolute",
-              top: 0,
-              left: 0,
-              zIndex: -1,
-            }}
-          />
-        </figure>
-        <div className="item-parallax-content flex-container flex-center">
-          <div className="centered-content section-container">
-            <h1 className="head-md head-centered">{structure.title}</h1>
-            <p className="section-caption-text">{structure.text}</p>
-          </div>
+        <div className="item-parallax-content flex-container img-grid">
+          <figure className="img-gridItem type-left">
+            <img src="/assets/department-structure.jpg" alt="Department" />
+            <figcaption className="img-caption">
+              <h2 className="head-title">{structure.title}</h2>
+              <p className="copy copy-white">{structure.text}</p>
+            </figcaption>
+          </figure>
         </div>
       </section>
 
       <section className="block">
         <div
           className="centered-content section-container"
-          style={{ paddingTop: 128 }}
+          style={{ paddingTop: 128, paddingBottom: 128 }}
         >
           <h1 className="head-md head-centered">{keyRoles.title}</h1>
           <p className="section-caption-text">{keyRoles.text}</p>
@@ -112,7 +98,7 @@ const Home = () => {
 
       <section className="block footer-section ">
         <div className="flex-container section-container">
-          <div className="footer-column footer-column-1">
+          <div className="footer-co</div>lumn footer-column-1">
             <div className="footer-logo-container">
               <Link to="/">
                 <div className="footer-logo">
