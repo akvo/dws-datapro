@@ -362,8 +362,9 @@
         /* Optionally make the heading slightly smaller too */
         .head-sm {
           font-size: 20px; /* Slightly smaller than default head-sm */
+          font-weight: 600; /* Semi-bold */
           margin-bottom: 16px; /* Adjust spacing */
-          color: #333; // Dark text color
+          color: #01137c; // Dark text color
         }
 
         /* Style the new quick links list */
@@ -439,6 +440,18 @@
           width: 100%;
         }
       }
+    }
+  }
+
+  .section-mandate {
+    background-color: #f9f9f9;
+    .section-caption-text {
+      color: #212121;
+    }
+    .head-md,
+    .head-title {
+      color: #01137c;
+      font-weight: 700;
     }
   }
 }

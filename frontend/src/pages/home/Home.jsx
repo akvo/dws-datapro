@@ -56,7 +56,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="block">
+      <section className="block section-mandate">
         <div
           className="item-parallax-content centered-content section-container"
           style={{ paddingTop: 128, paddingBottom: 128 }}
@@ -69,7 +69,7 @@ const Home = () => {
             <img src="/assets/department-structure.jpg" alt="Department" />
             <figcaption className="img-caption">
               <h2 className="head-title">{structure.title}</h2>
-              <p className="copy copy-white">{structure.text}</p>
+              <p className="copy">{structure.text}</p>
             </figcaption>
           </figure>
         </div>
