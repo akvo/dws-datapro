@@ -30,7 +30,7 @@ const Home = () => {
 
   return (
     <main className="content js-content">
-      <section className="block section-jumbotron">
+      <section className="block">
         <figure className="item-parallax-media ">
           <img
             src={jumbotron.image.src}
@@ -49,9 +49,9 @@ const Home = () => {
           />
         </figure>
         <div className="item-parallax-content flex-container">
-          <div className="landing-content centered-content">
+          <div className="landing-content">
             <span className="head-title">{jumbotron.subtitle}</span>
-            <h1 className="head-2xl">{jumbotron.title}</h1>
+            <h1 className="head-lg">{jumbotron.title}</h1>
           </div>
         </div>
       </section>

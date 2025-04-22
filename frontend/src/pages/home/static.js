@@ -5,8 +5,8 @@ export const quickLinks = [
 ];
 
 export const jumbotron = {
-  title: "Water & Sewerage",
-  subtitle: "Department of",
+  title: "Integrated Water and\nSewerage Information Management System",
+  subtitle: "Department of Water & Sewerage",
   image: {
     src: "https://images.unsplash.com/photo-1642450909999-7106494ef779?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     alt: "Water landscape",

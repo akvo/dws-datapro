@@ -186,27 +186,15 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
-  .section-jumbotron {
-    &:before {
-      content: "";
-      position: absolute;
-      top: 50%;
-      left: 6%;
-      width: 10px;
-      height: 60%;
-      background-color: white;
-      z-index: 3;
-      transform: translateY(-13vw);
-    }
-
-    .item-parallax-media {
-      opacity: calc(1 - (var(--y) * 0.0009));
-    }
-  }
-
   .landing-content {
-    padding-left: 10%;
-    padding-top: 128px;
+    max-width: 768px;
+    margin-left: 5%;
+    padding-left: 48px;
+    padding-bottom: 0;
+    padding-top: 25vh;
+    border-left-width: 10px;
+    border-left-color: #f9f9f9;
+    border-left-style: solid;
   }
 
   .section-container {
