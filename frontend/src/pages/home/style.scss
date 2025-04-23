@@ -24,18 +24,18 @@
     position: relative;
     min-height: calc(100vh - 86px);
 
-    // Initial state for fade-up effect
+    // Initial state for fade-up & scale effect
     .item-parallax-content {
       opacity: 0;
-      transform: translateY(50px); // Start slightly lower
-      transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+      transform: translateY(50px) scale(0.95); // Start lower and slightly smaller
+      transition: opacity 0.6s ease-out, transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94); // Adjusted transition
       will-change: opacity, transform;
     }
 
     // State when visible
     &.is-visible .item-parallax-content {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(0) scale(1); // End at normal position and size
     }
   }
 
@@ -169,15 +169,15 @@
   .copy {
     display: block;
     max-width: 500px;
-    margin-right: auto;
+    margin-right: auto; // Keep default auto margins for other uses
     margin-bottom: 24px;
-    margin-left: auto;
+    margin-left: auto; // Keep default auto margins for other uses
     padding-right: 24px;
     padding-left: 24px;
     font-family: "Roboto", sans-serif;
     font-size: 16px;
     line-height: 28.8px;
-    text-align: center;
+    text-align: center; // Keep default center alignment for other uses
   }
 
   .copy-white {
@@ -213,56 +213,65 @@
   }
 
   .img-gridItem {
-    position: relative;
+    position: relative; // Keep relative if needed for other purposes, but not caption positioning
     width: 100%;
-    margin-right: auto;
-    margin-left: auto;
-    margin-bottom: 32px;
+    margin-bottom: 64px;
+    display: flex; // Use flexbox for layout
+    align-items: self-start; // Vertically center items
+    justify-content: space-between; // Add space-between justification
 
-    // Initial state for fade-in
+    // Initial state for fade-in & scale
     opacity: 0;
-    transition: opacity 0.8s ease-out; // Add transition for opacity
-    will-change: opacity;
+    transform: scale(0.9);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    will-change: opacity, transform;
 
     // State when visible
     &.is-visible {
       opacity: 1;
+      transform: scale(1);
+    }
+
+    &.type-right {
+      flex-direction: row-reverse; // Reverse order for type-right
+      .img-caption {
+        max-width: 500px; // Apply max-width only for type-right
+        h2, p {
+          text-align: left; // Flip to left for type-right
+        }
+      }
+    }
+
+    // Specific styles for type-left caption
+    &.type-left {
+      .img-caption {
+        max-width: 500px; // Apply max-width only for type-left
+        // Text alignment is handled by the default .img-caption h2, p rule (text-align: right)
+      }
     }
 
     img {
+      width: 45%; // Set a fixed width percentage within the flex item
+      height: 320px; // Set a fixed height for uniformity
+      object-fit: cover; // Cover the area, clipping to maintain aspect ratio
       display: block;
-      width: 50%;
-      height: 40vh;
-      object-fit: cover;
-    }
-
-    &.type-left img {
-      margin-right: auto;
-    }
-
-    &.type-right img {
-      margin-left: auto;
+      flex-shrink: 0; // Prevent image from shrinking
     }
   }
 
   .img-caption {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
+    padding-left: 24px; // Apply padding to the container
+    padding-right: 24px;
 
-    * {
+    // Override default copy styles for this context
+    .copy {
+      max-width: none; // Remove max-width constraint
+      margin-left: 0; // Remove auto margins
+      margin-right: 0;
+      padding-left: 0; // Remove padding here, handled by parent
+      padding-right: 0;
       text-align: left;
-      padding-right: 24px;
-      padding-left: 24px;
     }
-  }
-
-  .type-left .img-caption {
-    right: 0;
-  }
-
-  .type-right .img-caption {
-    left: 0;
   }
 
   .section-end {
