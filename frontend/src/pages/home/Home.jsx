@@ -75,7 +75,7 @@ const Home = () => {
         </div>
       </section>
 
-      <section className="block">
+      <section className="block" id="key-roles">
         <div
           className="centered-content section-container"
           style={{ paddingTop: 128, paddingBottom: 128 }}
