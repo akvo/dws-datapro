@@ -8,6 +8,7 @@ from api.v1.v1_forms.constants import (
     FormTypes,
     AttributeTypes,
     SubmissionTypes,
+    UserFormAccessTypes,
 )
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
@@ -56,39 +57,6 @@ class FormApprovalAssignment(models.Model):
 
     class Meta:
         db_table = "form_approval_assignment"
-
-
-class FormCertificationAssignment(models.Model):
-    assignee = models.ForeignKey(
-        to=Administration,
-        on_delete=models.PROTECT,
-        related_name="certification_assignee",
-    )
-    administrations = models.ManyToManyField(
-        to=Administration,
-        through="FormCertificationAdministration",
-        related_name="certification_administrations",
-    )
-    updated = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.assignee.name
-
-    class Meta:
-        db_table = "form_certification_assignment"
-
-
-class FormCertificationAdministration(models.Model):
-    assignment = models.ForeignKey(
-        to=FormCertificationAssignment, on_delete=models.CASCADE
-    )
-    administration = models.ForeignKey(
-        to=Administration, on_delete=models.CASCADE
-    )
-
-    class Meta:
-        unique_together = ("assignment", "administration")
-        db_table = "form_certification_administration"
 
 
 class QuestionGroup(models.Model):
@@ -216,6 +184,23 @@ class UserForms(models.Model):
     class Meta:
         unique_together = ("user", "form")
         db_table = "user_form"
+
+
+class UserFormAccess(models.Model):
+    user_form = models.ForeignKey(
+        to=UserForms,
+        on_delete=models.CASCADE,
+        related_name="user_form_access",
+    )
+    access_type = models.IntegerField(
+        choices=UserFormAccessTypes.FieldStr.items()
+    )
+
+    def __str__(self):
+        return self.user.email
+
+    class Meta:
+        db_table = "user_form_access"
 
 
 class QuestionAttribute(models.Model):
