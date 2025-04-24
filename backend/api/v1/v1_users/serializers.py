@@ -324,14 +324,6 @@ class AddEditUserSerializer(serializers.ModelSerializer):
             ):
                 raise ValidationError(
                     'You do not have permission to edit this user')
-        if (
-            attrs.get('role') != UserRoleTypes.super_admin and
-            attrs.get('administration').level.level == 0
-        ):
-            raise ValidationError({
-                'administration':
-                'administration level is not valid with selected role'
-            })
         return attrs
 
     def create(self, validated_data):
@@ -386,24 +378,36 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         self._create_user_forms_and_access(instance, access_form_data)
         return instance
 
-    def _create_user_forms_and_access(self, user, access_form_data):
-        """Helper method to create UserForms and UserFormAccess records"""
-        if not access_form_data:
-            return
-
-        for item in access_form_data:
-            access_type = item['access_type']
-
-            # Create UserForms record
-            user_form, _ = UserForms.objects.get_or_create(
-                user=user,
-                form=item["form_id"],
-            )
-
-            # Create UserFormAccess record
+    def _create_form_access(self, user, form, access_types):
+        user_form, _ = UserForms.objects.get_or_create(
+            user=user,
+            form=form
+        )
+        for access in access_types:
             UserFormAccess.objects.create(
                 user_form=user_form,
-                access_type=access_type
+                access_type=access
+            )
+
+    def _create_user_forms_and_access(self, user, access_form_data):
+        # If no access data is provided,
+        # assign defaults for super_admin and nothing for admin
+        if not access_form_data:
+            if user.user_access.role == UserRoleTypes.super_admin:
+                default_access = [
+                    UserFormAccessTypes.read,
+                    UserFormAccessTypes.editor
+                ]
+                for form in Forms.objects.all():
+                    self._create_form_access(user, form, default_access)
+            return
+
+        # Process provided access form data
+        for item in access_form_data:
+            self._create_form_access(
+                user=user,
+                form=item["form_id"],
+                access_types=[item["access_type"]]
             )
 
     class Meta:
@@ -427,13 +431,36 @@ class UserAdministrationSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'level', 'full_name']
 
 
+class UserFormAccessSerializer(serializers.ModelSerializer):
+    label = serializers.SerializerMethodField()
+    value = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_label(self, instance: UserFormAccess):
+        return UserFormAccessTypes.FieldStr.get(instance.access_type)
+
+    @extend_schema_field(OpenApiTypes.NUMBER)
+    def get_value(self, instance: UserFormAccess):
+        return instance.access_type
+
+    class Meta:
+        model = UserFormAccess
+        fields = ["label", "value"]
+
+
 class UserFormSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='form.id')
     name = serializers.ReadOnlyField(source='form.name')
+    access = serializers.SerializerMethodField()
+
+    @extend_schema_field(UserFormAccessSerializer(many=True))
+    def get_access(self, instance: UserForms):
+        access = instance.user_form_access.all()
+        return UserFormAccessSerializer(instance=access, many=True).data
 
     class Meta:
         model = UserForms
-        fields = ['id', 'name']
+        fields = ["id", "name", "access"]
 
 
 class ListUserSerializer(serializers.ModelSerializer):
