@@ -132,7 +132,7 @@ const AddUser = () => {
       : values.nationalApprover
       ? setApproverForms(forms)
       : [];
-    const access_form = formsPayload
+    const access_forms = formsPayload
       .map((f) =>
         f.access
           .filter((f_access) => f_access.value)
@@ -153,7 +153,7 @@ const AddUser = () => {
       inform_user: values.inform_user,
       organisation: values.organisation,
       trained: values.trained,
-      access_form: access_form,
+      access_forms: access_forms,
     };
     api[id ? "put" : "post"](id ? `user/${id}` : "user", payload)
       .then(() => {
