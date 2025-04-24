@@ -383,15 +383,9 @@ def add_user(request, version):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    forms = [
-        item["form_id"]
-        for item in serializer.validated_data.get("access_form")
-    ]
-
     # Check if form approval is already assigned
     is_approver_assigned = check_form_approval_assigned(
         role=serializer.validated_data.get("role"),
-        forms=forms,
         administration=serializer.validated_data.get("administration"),
         access_form=serializer.validated_data.get("access_form"),
     )
@@ -421,7 +415,10 @@ def add_user(request, version):
         )
 
     if serializer.validated_data.get("inform_user"):
-        request.data["forms"] = [f.id for f in forms]
+        request.data["forms"] = [
+            item["form_id"].id
+            for item in serializer.validated_data.get("access_form", [])
+        ]
         send_email_to_user(
             type=EmailTypes.user_invite, user=user, request=request
         )
@@ -687,16 +684,9 @@ class UserEditDeleteView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Get forms from access_form for compatibility
-        # with check_form_approval_assigned
-        forms = [
-            item["form_id"]
-            for item in serializer.validated_data.get("access_form")
-        ]
         # when add new user as approver or admin
         is_approver_assigned = check_form_approval_assigned(
             role=serializer.validated_data.get("role"),
-            forms=forms,
             administration=serializer.validated_data.get("administration"),
             user=instance,
             access_form=serializer.validated_data.get("access_form"),
@@ -726,7 +716,10 @@ class UserEditDeleteView(APIView):
 
         # inform user by inform_user payload
         if serializer.validated_data.get("inform_user"):
-            request.data["forms"] = [f.id for f in forms]
+            request.data["forms"] = [
+                item["form_id"].id
+                for item in serializer.validated_data.get("access_form", [])
+            ]
             send_email_to_user(
                 type=EmailTypes.user_update, user=user, request=request
             )

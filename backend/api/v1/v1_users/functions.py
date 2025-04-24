@@ -14,7 +14,7 @@ from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
 
 
-def check_is_approver(role: int, access_form: list = None):
+def is_has_approver(role: int, access_form: list = None):
     # Check if user has approver access through access_form
     has_approver_access = False
     if access_form:
@@ -29,15 +29,20 @@ def check_is_approver(role: int, access_form: list = None):
 
 def check_form_approval_assigned(
     role: int,
-    forms: List[Forms],
     administration: Administration,
     user: SystemUser = None,
     access_form: list = None
 ):
-    # if user is None that for add new user (user var is edited user)
-    # else that for update/edit user
-    unique_user = check_is_approver(role, access_form)
-    if not unique_user:
+    forms = [
+        item["form_id"]
+        for item in access_form
+    ]
+    # Check if user is super admin
+    # Check if user is admin and has approver access
+    unique_user = is_has_approver(role, access_form)
+    # Check if user is not super admin and has no approver access
+    # and is editing user
+    if not unique_user and not user:
         return False
     # Check if form id x in y administration has approver assignment
     # send a message to FE 403
@@ -96,7 +101,11 @@ def check_form_approval_assigned(
             .values_list("form_id", flat=True)
         )
         form_assigned_to_delete = []
-        form_to_assign = [fr.id for fr in forms]
+        form_to_assign = [
+            item["form_id"].id
+            for item in access_form
+            if item["access_type"] == UserFormAccessTypes.approver
+        ]
         for fa in form_assigned:
             if fa not in form_to_assign:
                 form_assigned_to_delete.append(fa)
@@ -133,7 +142,7 @@ def assign_form_approval(
     user: SystemUser,
     access_form: List = None
 ):
-    unique_user = check_is_approver(role, access_form)
+    unique_user = is_has_approver(role, access_form)
     if not unique_user:
         return False
 
