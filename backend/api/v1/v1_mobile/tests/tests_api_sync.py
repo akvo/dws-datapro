@@ -30,7 +30,7 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
         self.administration2 = adm2
         self.form = Forms.objects.first()
 
-        role = UserRoleTypes.user
+        role = UserRoleTypes.admin
         self.user_access = Access.objects.create(
             user=self.user, role=role, administration=self.administration
         )

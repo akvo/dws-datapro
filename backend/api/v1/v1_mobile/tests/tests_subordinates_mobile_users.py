@@ -4,7 +4,7 @@ from django.http import HttpResponse
 from django.test import TestCase, override_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.v1.v1_forms.models import Forms, UserForms
+from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.models import SystemUser, Administration, Levels
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_mobile.models import MobileAssignment
@@ -22,24 +22,26 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
         administration = Administration.objects.filter(
             level=last_level
         ).first()
+        form = Forms.objects.get(pk=1)
+        self.form = form
+
         self.user = self.create_user(
             email='user@akvo.org',
-            role_level=self.ROLE_USER,
+            role_level=self.ROLE_ADMIN,
             password='password',
-            administration=administration
+            administration=administration,
+            form=form,
         )
         self.approver = self.create_user(
             email='approver@akvo.org',
             role_level=self.ROLE_APPROVER,
             password='password',
-            administration=administration.parent
+            administration=administration.parent,
+            form=form,
         )
         self.token = self.get_auth_token(self.user.email)
-        form = Forms.objects.get(pk=1)
-        self.form = form
+
         self.form2 = Forms.objects.get(pk=2)
-        UserForms.objects.get_or_create(form=form, user=self.user)
-        UserForms.objects.get_or_create(form=form, user=self.approver)
 
     def test_subordinates_mobile_users_list(self):
         payload = {
@@ -91,7 +93,7 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
 
         # login with other users of the same level
         same_level_user = SystemUser.objects.filter(
-            user_access__role=UserRoleTypes.user
+            user_access__role=UserRoleTypes.admin
         ).first()
         [self.user.user_access.administration.id],
         t = RefreshToken.for_user(same_level_user)
