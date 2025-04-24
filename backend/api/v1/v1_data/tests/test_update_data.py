@@ -198,7 +198,7 @@ class FormDataUpdateTestCase(TestCase):
             "last_name": "Wayan",
             "email": "wayan@example.com",
             "administration": self.adm.id,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
