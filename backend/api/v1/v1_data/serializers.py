@@ -19,7 +19,7 @@ from api.v1.v1_data.models import (
     AnswerHistory,
     PendingAnswerHistory,
 )
-from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import QuestionTypes, SubmissionTypes
 from api.v1.v1_forms.models import (
     Questions,
     Forms,
@@ -1117,26 +1117,6 @@ class SubmitPendingFormSerializer(serializers.Serializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def validate(self, attrs):
-        form: Forms = self.context.get("form")
-        user: SystemUser = self.context.get("user")
-        # county admin with county form type directly saved to form-data
-        # if form.type == FormTypes.county and \
-        #         user.user_access.role == UserRoleTypes.admin:
-        #     raise ValidationError(
-        #         {'data': 'You do not permission to submit the data'})
-        if (
-            form.type == FormTypes.national
-            and user.user_access.role == UserRoleTypes.user
-        ):
-            raise ValidationError(
-                {"data": "You do not permission to submit the data"}
-            )
-        return attrs
-
-    def update(self, instance, validated_data):
-        pass
-
     def create(self, validated_data):
         data = validated_data.get("data")
         data["form"] = self.context.get("form")
@@ -1145,13 +1125,8 @@ class SubmitPendingFormSerializer(serializers.Serializer):
         # check user role and form type
         user = self.context.get("user")
         is_super_admin = user.user_access.role == UserRoleTypes.super_admin
-        is_county_admin = (
-            user.user_access.role == UserRoleTypes.admin
-            and data["form"].type == FormTypes.county
-        )
 
-        is_national_user = user.user_access.administration.parent is None
-        direct_to_data = is_super_admin or is_county_admin or is_national_user
+        direct_to_data = is_super_admin
         # check if the form has any approvers in the user's administration
         # if no approvers found, save directly to form data
         if not direct_to_data:
