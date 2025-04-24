@@ -245,6 +245,38 @@ const AddUser = () => {
       setLoading(true);
       try {
         api.get(`user/${id}`).then((res) => {
+          /**
+           * Get the forms that are assigned to the user
+           * and map the access to the form access types
+           * and set the value to true if the user has access
+           * to the form.
+           */
+          const userForms = res.data?.forms?.map((f) => ({
+            ...f,
+            access: config.accessFormTypes.map((a) => ({
+              ...a,
+              value: f.access.some((af) => af.value === a.id),
+            })),
+          }));
+          /**
+           * Get the forms that are not in the user forms
+           */
+          const editForms = forms.map((f) => {
+            const editForm = userForms.find((ef) => ef.id === f.id);
+            if (editForm) {
+              return {
+                ...f,
+                access: editForm.access,
+              };
+            }
+            return f;
+          });
+          /**
+           * Check if all forms have the approver access
+           */
+          const isNationalApprover = editForms.every((f) =>
+            f.access.some((a) => a.id === FORM_ACCESS_ID_APPROVER && a.value)
+          );
           form.setFieldsValue({
             administration: res.data?.administration,
             designation: parseInt(res.data?.designation) || null,
@@ -253,12 +285,10 @@ const AddUser = () => {
             last_name: res.data?.last_name,
             phone_number: res.data?.phone_number,
             role: res.data?.role,
-            forms: res.data?.forms.map((f) => parseInt(f.id)),
+            forms: editForms,
             organisation: res.data?.organisation?.id || [],
             trained: res?.data?.trained,
-            // nationalApprover:
-            //   res.data?.role === ROLE_ID_SUPERADMIN &&
-            //   !!res.data?.forms?.length,
+            nationalApprover: isNationalApprover,
             inform_user: !id
               ? true
               : authUser?.email === res.data?.email
@@ -274,6 +304,12 @@ const AddUser = () => {
         setLoading(false);
       }
     }
+    if (isUserFetched && administration?.length > 1 && !selectedLevel) {
+      // get the last administration level
+      const lastAdmin = administration.slice(-1)?.[0];
+      const lastAdminLevel = lastAdmin?.level + 1;
+      setSelectedLevel(lastAdminLevel);
+    }
   }, [
     id,
     form,
@@ -282,6 +318,8 @@ const AddUser = () => {
     text.errorUserLoad,
     authUser?.email,
     isUserFetched,
+    selectedLevel,
+    administration,
   ]);
 
   return (
