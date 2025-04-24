@@ -63,9 +63,7 @@ from api.v1.v1_users.functions import (
 )
 
 from api.v1.v1_forms.models import Forms
-
-# from api.v1.v1_data.models import PendingDataBatch, \
-#     PendingDataApproval, FormData
+from api.v1.v1_forms.constants import UserFormAccessTypes
 from iwsims.settings import REST_FRAMEWORK, WEBDOMAIN
 from utils.custom_permissions import IsSuperAdmin, IsAdmin
 from utils.custom_serializer_fields import validate_serializers_message
@@ -361,8 +359,7 @@ def list_levels(request, version):
     request=AddEditUserSerializer,
     responses={200: DefaultResponseSerializer},
     tags=["User"],
-    description="Role Choice are SuperAdmin:1,Admin:2,Approver:3,"
-    "User:4,ReadOnly:5",
+    description="Role Choice are SuperAdmin:1,Admin:2",
     summary="To add user",
 )
 @api_view(["POST"])
@@ -376,8 +373,7 @@ def add_user(request, version):
                 .id
             }
         )
-        if not request.data.get("forms"):
-            request.data.update({"forms": []})
+
     serializer = AddEditUserSerializer(
         data=request.data, context={"user": request.user}
     )
@@ -387,11 +383,17 @@ def add_user(request, version):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    # when add new user as approver or county admin
+    forms = [
+        item["form_id"]
+        for item in serializer.validated_data.get("access_form")
+    ]
+
+    # Check if form approval is already assigned
     is_approver_assigned = check_form_approval_assigned(
         role=serializer.validated_data.get("role"),
-        forms=serializer.validated_data.get("forms"),
+        forms=forms,
         administration=serializer.validated_data.get("administration"),
+        access_form=serializer.validated_data.get("access_form"),
     )
     if is_approver_assigned:
         return Response(
@@ -399,15 +401,27 @@ def add_user(request, version):
         )
 
     user = serializer.save()
-    # when add new user as approver or county admin
-    assign_form_approval(
-        role=serializer.validated_data.get("role"),
-        forms=serializer.validated_data.get("forms"),
-        administration=serializer.validated_data.get("administration"),
-        user=user,
-    )
+
+    # For compatibility with existing assign_form_approval function
+    # Only pass forms with approver access type to the function
+    approver_forms = [
+        item["form_id"]
+        for item in serializer.validated_data.get("access_form", [])
+        if item["access_type"] == UserFormAccessTypes.approver
+    ]
+
+    # when add new user as approver or admin with approver forms
+    if approver_forms:
+        assign_form_approval(
+            role=serializer.validated_data.get("role"),
+            forms=approver_forms,
+            administration=serializer.validated_data.get("administration"),
+            user=user,
+            access_form=serializer.validated_data.get("access_form"),
+        )
 
     if serializer.validated_data.get("inform_user"):
+        request.data["forms"] = [f.id for f in forms]
         send_email_to_user(
             type=EmailTypes.user_invite, user=user, request=request
         )
@@ -644,8 +658,7 @@ class UserEditDeleteView(APIView):
         request=AddEditUserSerializer,
         responses={200: DefaultResponseSerializer},
         tags=["User"],
-        description="Role Choice are SuperAdmin:1,Admin:2,Approver:3,"
-        "User:4,ReadOnly:5",
+        description="Role Choice are SuperAdmin:1,Admin:2,User:4",
         summary="To update user",
     )
     def put(self, request, user_id, version):
@@ -661,8 +674,7 @@ class UserEditDeleteView(APIView):
                     .id
                 }
             )
-            if not request.data.get("forms"):
-                request.data.update({"forms": []})
+
         instance = get_object_or_404(SystemUser, pk=user_id, deleted_at=None)
         serializer = AddEditUserSerializer(
             data=request.data,
@@ -675,12 +687,19 @@ class UserEditDeleteView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # when add new user as approver or county admin
+        # Get forms from access_form for compatibility
+        # with check_form_approval_assigned
+        forms = [
+            item["form_id"]
+            for item in serializer.validated_data.get("access_form")
+        ]
+        # when add new user as approver or admin
         is_approver_assigned = check_form_approval_assigned(
             role=serializer.validated_data.get("role"),
-            forms=serializer.validated_data.get("forms"),
+            forms=forms,
             administration=serializer.validated_data.get("administration"),
             user=instance,
+            access_form=serializer.validated_data.get("access_form"),
         )
         if is_approver_assigned:
             return Response(
@@ -688,16 +707,26 @@ class UserEditDeleteView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
         user = serializer.save()
-        # when add new user as approver or county admin
-        assign_form_approval(
-            role=serializer.validated_data.get("role"),
-            forms=serializer.validated_data.get("forms"),
-            administration=serializer.validated_data.get("administration"),
-            user=user,
-        )
+
+        # For compatibility with existing assign_form_approval function
+        # Only pass forms with approver access type to the function
+        approver_forms = [
+            item["form_id"]
+            for item in serializer.validated_data.get("access_form")
+            if item["access_type"] == UserFormAccessTypes.approver
+        ]
+        if approver_forms:
+            assign_form_approval(
+                role=serializer.validated_data.get("role"),
+                forms=approver_forms,
+                administration=serializer.validated_data.get("administration"),
+                user=user,
+                access_form=serializer.validated_data.get("access_form"),
+            )
 
         # inform user by inform_user payload
         if serializer.validated_data.get("inform_user"):
+            request.data["forms"] = [f.id for f in forms]
             send_email_to_user(
                 type=EmailTypes.user_update, user=user, request=request
             )

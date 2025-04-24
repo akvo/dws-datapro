@@ -7,8 +7,13 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from api.v1.v1_data.constants import DataApprovalStatus
-from api.v1.v1_forms.models import FormApprovalAssignment, UserForms, Forms
-from api.v1.v1_forms.constants import FormTypes
+from api.v1.v1_forms.models import (
+    FormApprovalAssignment,
+    UserForms,
+    Forms,
+    UserFormAccess,
+)
+from api.v1.v1_forms.constants import UserFormAccessTypes
 from api.v1.v1_profile.constants import UserRoleTypes, OrganisationTypes
 from api.v1.v1_profile.models import Administration, Access, Levels
 from api.v1.v1_users.models import SystemUser, \
@@ -245,6 +250,24 @@ class ListAdministrationSerializer(serializers.ModelSerializer):
         ]
 
 
+class FormAccessSerializer(serializers.Serializer):
+    form_id = CustomPrimaryKeyRelatedField(
+        queryset=Forms.objects.none()
+    )
+    access_type = CustomChoiceField(
+        choices=list(UserFormAccessTypes.FieldStr.keys())
+    )
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fields.get(
+            'form_id'
+        ).queryset = Forms.objects.all()
+
+    class Meta:
+        fields = ["form_id", "access_type"]
+
+
 class AddEditUserSerializer(serializers.ModelSerializer):
     administration = CustomPrimaryKeyRelatedField(
         queryset=Administration.objects.none())
@@ -252,8 +275,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         queryset=Organisation.objects.none(), required=False)
     trained = CustomBooleanField(default=False)
     role = CustomChoiceField(choices=list(UserRoleTypes.FieldStr.keys()))
-    forms = CustomPrimaryKeyRelatedField(queryset=Forms.objects.all(),
-                                         many=True)
+    access_form = FormAccessSerializer(many=True)
     inform_user = CustomBooleanField(default=True)
 
     def __init__(self, **kwargs):
@@ -263,9 +285,10 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         self.fields.get('organisation').queryset = Organisation.objects.all()
 
     def validate_role(self, role):
-        if self.context.get(
-                'user').user_access.role == UserRoleTypes.admin and \
-                role not in [UserRoleTypes.approver, UserRoleTypes.user]:
+        if (
+            self.context.get('user').user_access.role == UserRoleTypes.admin
+            and role not in [UserRoleTypes.admin]
+        ):
             raise ValidationError({
                 'You do not have permission to create/edit '
                 'user with selected role.'
@@ -283,20 +306,22 @@ class AddEditUserSerializer(serializers.ModelSerializer):
             })
         return administration
 
-    def validate_forms(self, forms):
-        return forms
-
     def validate(self, attrs):
         if self.instance:
-            if self.context.get(
-                    'user').user_access.role != UserRoleTypes.super_admin \
-                    and self.instance == self.context.get('user'):
+            if (
+                self.context.get(
+                    'user'
+                ).user_access.role != UserRoleTypes.super_admin
+                and self.instance == self.context.get('user')
+            ):
                 raise ValidationError(
                     'You do not have permission to edit this user')
-            if self.context.get(
-                    'user').user_access.role == UserRoleTypes.admin \
-                    and self.instance.user_access.role not in \
-                    [UserRoleTypes.approver, UserRoleTypes.user]:
+            if (
+                self.context.get(
+                    'user'
+                ).user_access.role == UserRoleTypes.admin
+                and self.instance.user_access.role not in [UserRoleTypes.admin]
+            ):
                 raise ValidationError(
                     'You do not have permission to edit this user')
         if (
@@ -307,18 +332,6 @@ class AddEditUserSerializer(serializers.ModelSerializer):
                 'administration':
                 'administration level is not valid with selected role'
             })
-        form_types = [f.type for f in attrs.get('forms')]
-        if attrs.get('role') == UserRoleTypes.user \
-                and FormTypes.national in form_types:
-            raise ValidationError(
-                'User with role User only allow to '
-                'access County forms type'
-            )
-        if attrs.get('role') == UserRoleTypes.super_admin \
-                and FormTypes.county in form_types:
-            raise ValidationError(
-                'Super Admin can only approve National Type of form'
-            )
         return attrs
 
     def create(self, validated_data):
@@ -335,28 +348,27 @@ class AddEditUserSerializer(serializers.ModelSerializer):
                 return user_deleted
         except SystemUser.DoesNotExist:
             # delete inform_user payload
-            validated_data.pop('inform_user')
+            validated_data.pop('inform_user', None)
             administration = validated_data.pop('administration')
             role = validated_data.pop('role')
-            forms = validated_data.pop('forms')
+            access_form_data = validated_data.pop('access_form', [])
             user = super(AddEditUserSerializer, self).create(validated_data)
             Access.objects.create(
                 user=user,
                 administration=administration,
                 role=role
             )
-            # add new user forms
-            if forms:
-                for form in forms:
-                    UserForms.objects.create(user=user, form=form)
+            # Create user forms and access permissions
+            self._create_user_forms_and_access(user, access_form_data)
             return user
 
     def update(self, instance, validated_data):
         # delete inform_user payload
-        validated_data.pop('inform_user')
+        validated_data.pop('inform_user', None)
         administration = validated_data.pop('administration')
         role = validated_data.pop('role')
-        forms = validated_data.pop('forms')
+        access_form_data = validated_data.pop('access_form', [])
+
         instance: SystemUser = super(AddEditUserSerializer,
                                      self).update(instance, validated_data)
         instance.updated = timezone.now()
@@ -364,22 +376,42 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         instance.user_access.role = role
         instance.user_access.administration = administration
         instance.user_access.save()
-        # delete old user forms
+
+        # Delete old user forms
         user_forms = UserForms.objects.filter(user=instance).all()
         if user_forms:
             user_forms.delete()
-        # add new user forms
-        if forms:
-            for form in forms:
-                UserForms.objects.create(user=instance, form=form)
+
+        # Create new user forms and access permissions
+        self._create_user_forms_and_access(instance, access_form_data)
         return instance
+
+    def _create_user_forms_and_access(self, user, access_form_data):
+        """Helper method to create UserForms and UserFormAccess records"""
+        if not access_form_data:
+            return
+
+        for item in access_form_data:
+            access_type = item['access_type']
+
+            # Create UserForms record
+            user_form, _ = UserForms.objects.get_or_create(
+                user=user,
+                form=item["form_id"],
+            )
+
+            # Create UserFormAccess record
+            UserFormAccess.objects.create(
+                user_form=user_form,
+                access_type=access_type
+            )
 
     class Meta:
         model = SystemUser
         fields = [
             'first_name', 'last_name', 'email', 'administration',
             'organisation', 'trained', 'role', 'phone_number', 'designation',
-            'forms', 'inform_user'
+            'access_form', 'inform_user'
         ]
 
 
