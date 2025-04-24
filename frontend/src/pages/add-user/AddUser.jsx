@@ -125,6 +125,19 @@ const AddUser = () => {
   };
 
   const onFinish = (values) => {
+    if (selectedLevel === null) {
+      setLevelError(true);
+      return;
+    }
+    const admLevel = administration.length;
+    if (admLevel !== selectedLevel) {
+      setAdminError(
+        `Please select a ${
+          window.levels.find((l) => l.id === selectedLevel)?.name
+        }`
+      );
+      return;
+    }
     setSubmitting(true);
     const admin = takeRight(administration, 1)?.[0];
     const formsPayload = values?.forms?.length
@@ -200,6 +213,7 @@ const AddUser = () => {
   };
 
   const onLevelChange = (l) => {
+    form.setFieldValue("level", l);
     setSelectedLevel(l);
     setLevelError(false);
     setAdminError(null);
@@ -504,7 +518,16 @@ const AddUser = () => {
                     </Col>
                   </Row>
                   {role === ROLE_ID_ADMIN && (
-                    <Form.Item label={text.admLevel}>
+                    <Form.Item
+                      label={text.admLevel}
+                      name="level"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.levelFieldRequired,
+                        },
+                      ]}
+                    >
                       <Select
                         value={selectedLevel}
                         getPopupContainer={(trigger) => trigger.parentNode}
