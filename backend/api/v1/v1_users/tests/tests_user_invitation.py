@@ -122,7 +122,7 @@ class UserInvitationTestCase(TestCase):
             "email": "john@example.com",
             "administration": adm1.id,
             "organisation": self.org.id,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -158,7 +158,7 @@ class UserInvitationTestCase(TestCase):
             "organisation": self.org.id,
             "trained": False,
             "role": 6,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -191,7 +191,7 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(add_response.json(),
                          {'message': 'User updated successfully'})
         edit_payload["role"] = UserRoleTypes.admin
-        edit_payload["access_form"] = [
+        edit_payload["access_forms"] = [
             {
                 "form_id": 2,
                 "access_type": UserFormAccessTypes.read
@@ -240,7 +240,7 @@ class UserInvitationTestCase(TestCase):
                 }
             ]
         )
-        edit_payload["access_form"] = [
+        edit_payload["access_forms"] = [
             {
                 "form_id": 1,
                 "access_type": UserFormAccessTypes.read
@@ -306,7 +306,7 @@ class UserInvitationTestCase(TestCase):
             "organisation": self.org.id,
             "trained": False,
             "role": find_user.user_access.role,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": form.id,
                     "access_type": UserFormAccessTypes.read
@@ -329,7 +329,7 @@ class UserInvitationTestCase(TestCase):
             "administration": adm1.id,
             "organisation": self.org.id,
             "role": 2,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -365,7 +365,7 @@ class UserInvitationTestCase(TestCase):
             "administration": adm1.id,
             "organisation": self.org.id,
             "role": 2,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -394,7 +394,7 @@ class UserInvitationTestCase(TestCase):
             "administration": adm2.id,
             "organisation": self.org.id,
             "role": 2,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -425,7 +425,7 @@ class UserInvitationTestCase(TestCase):
             "administration": adm1.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -457,7 +457,7 @@ class UserInvitationTestCase(TestCase):
             "administration": adm1.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -482,7 +482,7 @@ class UserInvitationTestCase(TestCase):
             "administration": adm2.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -507,7 +507,7 @@ class UserInvitationTestCase(TestCase):
             "administration": adm2.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -531,7 +531,7 @@ class UserInvitationTestCase(TestCase):
             "email": "national_approver@example.com",
             "organisation": self.org.id,
             "role": UserRoleTypes.super_admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1
                 }
@@ -547,7 +547,7 @@ class UserInvitationTestCase(TestCase):
             add_response.json(),
             {"message": "access_type is required."}
         )
-        payload["access_form"] = [
+        payload["access_forms"] = [
             {
                 "form_id": 2,
                 "access_type": UserFormAccessTypes.read
@@ -755,7 +755,7 @@ class UserInvitationTestCase(TestCase):
             "email": user.email,
             "organisation": org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read

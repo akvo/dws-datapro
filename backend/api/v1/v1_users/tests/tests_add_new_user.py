@@ -31,7 +31,7 @@ class AddNewUserTestCase(TestCase):
             "email": "super.admin1@mail.com",
             "organisation": self.org.id,
             "role": UserRoleTypes.super_admin,
-            "access_form": [],
+            "access_forms": [],
             "trained": True,
         }
         add_response = self.client.post(
@@ -69,7 +69,7 @@ class AddNewUserTestCase(TestCase):
             "administration": national_adm.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read

@@ -37,7 +37,7 @@ class UpdateUserTestCase(TestCase):
             "administration": adm.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
@@ -90,7 +90,7 @@ class UpdateUserTestCase(TestCase):
             "administration": adm.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": 1,
                     "access_type": UserFormAccessTypes.read
