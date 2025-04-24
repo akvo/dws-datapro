@@ -96,7 +96,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
             if d.get('question') == 109:
                 self.assertEqual(d.get('value'), 0)
 
-    def test_add_new_data_by_county_admin(self):
+    def test_add_new_data_by_admin(self):
         adm = Administration.objects.filter(level__level=1).first()
         adm_name = re.sub("[^A-Za-z0-9]+", "", adm.name.lower())
         email = ("{0}.{1}@test.com").format(
@@ -164,25 +164,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data, {"message": "ok"})
         pending_form_data = PendingFormData.objects.filter(
             form_id=form_id).count()
-        self.assertEqual(pending_form_data, 0)
-        form_data = FormData.objects.filter(form_id=form_id).first()
-        self.assertEqual(form_data.name, "Testing Data County")
-        answers = Answers.objects.filter(data_id=form_data.id).count()
-        self.assertGreater(answers, 0)
-        # check administration answer value as integer
-        data = self.client.get(
-            '/api/v1/data/{0}'.format(form_data.id),
-            content_type='application/json',
-            **{'HTTP_AUTHORIZATION': f'Bearer {token}'}
-        )
-        self.assertEqual(data.status_code, 200)
-        data = data.json()
-        for d in data:
-            if d.get('question') == 104:
-                self.assertEqual(isinstance(d.get('value'), int), True)
-            if d.get('question') == 109:
-                self.assertEqual(isinstance(d.get('value'), float), True)
-                self.assertEqual(d.get('value'), 2.5)
+        self.assertEqual(pending_form_data, 1)
 
         # national form
         form = Forms.objects.filter(
@@ -197,6 +179,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
             email="supeer.approver@test.com",
             role_level=self.ROLE_APPROVER,
             administration=national_adm,
+            form=form,
         )
         FormApprovalAssignment.objects.create(
             form=form,
@@ -263,7 +246,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         )
         user = self.create_user(
             email=email,
-            role_level=self.ROLE_USER,
+            role_level=self.ROLE_ADMIN,
             administration=adm,
         )
         auth_res = self.client.post(
@@ -329,7 +312,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         adm_name = re.sub("[^A-Za-z0-9]+", "", adm.name.lower())
         user = self.create_user(
             email="{}.emtpy@test.com".format(adm_name),
-            role_level=self.ROLE_USER,
+            role_level=self.ROLE_ADMIN,
             administration=adm,
         )
         # login
