@@ -12,12 +12,22 @@ import {
   Table,
   Collapse,
   Space,
+  Spin,
 } from "antd";
 import { AdministrationDropdown } from "../../components";
 import { useNavigate, useParams } from "react-router-dom";
-import { api, store, config, uiText } from "../../lib";
+import {
+  api,
+  store,
+  config,
+  uiText,
+  ROLE_ID_ADMIN,
+  ROLE_ID_SUPERADMIN,
+  FORM_ACCESS_ID_READ,
+  FORM_ACCESS_ID_APPROVER,
+} from "../../lib";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
-import { takeRight, take, max } from "lodash";
+import { takeRight, take } from "lodash";
 import { useNotification } from "../../util/hooks";
 
 const { Option } = Select;
@@ -38,30 +48,14 @@ const AddUser = () => {
     user: authUser,
     administration,
     forms: allForms,
-    loadingForm,
     language,
     levels,
   } = store.useState((s) => s);
+  const NATIONAL_LEVEL = levels?.find((l) => l.level === 0)?.id;
   const { active: activeLang } = language;
   const forms = allForms.map((f) => ({
     ...f,
-    access: [
-      {
-        id: 111,
-        label: "Read Only",
-        value: false,
-      },
-      {
-        id: 112,
-        label: "Editor",
-        value: false,
-      },
-      {
-        id: 113,
-        label: "Approver",
-        value: false,
-      },
-    ],
+    access: config.accessFormTypes,
   }));
 
   const [submitting, setSubmitting] = useState(false);
@@ -75,9 +69,9 @@ const AddUser = () => {
   const { notify } = useNotification();
   const { id } = useParams();
   const [organisations, setOrganisations] = useState([]);
-  const [nationalApprover, setNationalApprover] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState([]);
+  const [isUserFetched, setIsUserFetched] = useState(false);
 
   const text = useMemo(() => {
     return uiText[activeLang];
@@ -113,50 +107,77 @@ const AddUser = () => {
   };
 
   const allowedRoles = useMemo(() => {
-    const lookUp = authUser.role?.id === 2 ? 3 : authUser.role?.id || 4;
+    const lookUp =
+      authUser?.role?.id === ROLE_ID_SUPERADMIN
+        ? ROLE_ID_SUPERADMIN
+        : ROLE_ID_ADMIN;
     return config.roles.filter((r) => r.id >= lookUp);
   }, [authUser]);
 
+  const setApproverForms = (data = []) => {
+    return data.map((d) => ({
+      ...d,
+      access: d.access.map((a) => ({
+        ...a,
+        value: a.id === FORM_ACCESS_ID_APPROVER || a.id === FORM_ACCESS_ID_READ,
+      })),
+    }));
+  };
+
   const onFinish = (values) => {
-    console.log("values", values);
-    // setSubmitting(true);
-    // const admin = takeRight(administration, 1)?.[0];
-    // const payload = {
-    //   first_name: values.first_name,
-    //   last_name: values.last_name,
-    //   email: values.email,
-    //   administration: admin.id,
-    //   phone_number: values.phone_number,
-    //   designation: values.designation,
-    //   role: values.role,
-    //   forms: values.forms,
-    //   inform_user: values.inform_user,
-    //   organisation: values.organisation,
-    //   trained: values.trained,
-    // };
-    // api[id ? "put" : "post"](id ? `user/${id}` : "user", payload)
-    //   .then(() => {
-    //     notify({
-    //       type: "success",
-    //       message: `User ${id ? "updated" : "added"}`,
-    //     });
-    //     setSubmitting(false);
-    //     navigate("/control-center/users");
-    //   })
-    //   .catch((err) => {
-    //     if (err?.response?.status === 403) {
-    //       setIsModalVisible(true);
-    //       setModalContent(err?.response?.data?.message);
-    //     } else {
-    //       notify({
-    //         type: "error",
-    //         message:
-    //           err?.response?.data?.message ||
-    //           `User could not be ${id ? "updated" : "added"}`,
-    //       });
-    //     }
-    //     setSubmitting(false);
-    //   });
+    setSubmitting(true);
+    const admin = takeRight(administration, 1)?.[0];
+    const formsPayload = values?.forms?.length
+      ? values.forms
+      : values.nationalApprover
+      ? setApproverForms(forms)
+      : [];
+    const access_form = formsPayload
+      .map((f) =>
+        f.access
+          .filter((f_access) => f_access.value)
+          .map((f_access) => ({
+            form_id: f.id,
+            access_type: f_access.id,
+          }))
+      )
+      .flat();
+    const payload = {
+      first_name: values.first_name,
+      last_name: values.last_name,
+      email: values.email,
+      administration: admin.id,
+      phone_number: values.phone_number,
+      designation: values.designation,
+      role: values.role,
+      inform_user: values.inform_user,
+      organisation: values.organisation,
+      trained: values.trained,
+      access_form: access_form,
+    };
+    api[id ? "put" : "post"](id ? `user/${id}` : "user", payload)
+      .then(() => {
+        notify({
+          type: "success",
+          message: `User ${id ? "updated" : "added"}`,
+        });
+        setSubmitting(false);
+        navigate("/control-center/users");
+      })
+      .catch((err) => {
+        if (err?.response?.status === 403) {
+          setIsModalVisible(true);
+          setModalContent(err?.response?.data?.message);
+        } else {
+          notify({
+            type: "error",
+            message:
+              err?.response?.data?.message ||
+              `User could not be ${id ? "updated" : "added"}`,
+          });
+        }
+        setSubmitting(false);
+      });
   };
 
   const onRoleChange = (r) => {
@@ -164,9 +185,13 @@ const AddUser = () => {
     setSelectedLevel(null);
     setLevelError(false);
     setAdminError(null);
-    // form.setFieldsValue({
-    //   forms: [],
-    // });
+    form.setFieldsValue({
+      nationalApprover: false,
+      forms: allForms.map((f) => ({
+        ...f,
+        access: config.accessFormTypes,
+      })),
+    });
     if (r > 1) {
       store.update((s) => {
         s.administration = take(s.administration, 1);
@@ -190,6 +215,19 @@ const AddUser = () => {
     setAdminError(null);
   };
 
+  const onNationalApproverChange = (e) => {
+    const isChecked = e.target.checked;
+    if (isChecked) {
+      const forms = form.getFieldValue("forms");
+      const updatedForms = setApproverForms(forms);
+      form.setFieldsValue({ forms: updatedForms });
+    } else {
+      form.setFieldsValue({
+        forms,
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchData = async (adminId, acc, roleRes) => {
       const adm = await config.fn.administration(adminId);
@@ -200,18 +238,12 @@ const AddUser = () => {
         store.update((s) => {
           s.administration = acc;
         });
-        if ([3, 5].includes(roleRes)) {
-          setSelectedLevel(
-            window.levels.find(
-              (l) => l.name === takeRight(acc, 1)[0].level_name
-            ).level + 1
-          );
-        }
       }
     };
-    if (id) {
+    if (id && !isUserFetched) {
+      setIsUserFetched(true);
+      setLoading(true);
       try {
-        setLoading(true);
         api.get(`user/${id}`).then((res) => {
           form.setFieldsValue({
             administration: res.data?.administration,
@@ -224,7 +256,9 @@ const AddUser = () => {
             forms: res.data?.forms.map((f) => parseInt(f.id)),
             organisation: res.data?.organisation?.id || [],
             trained: res?.data?.trained,
-            nationalApprover: res.data?.role === 1 && !!res.data?.forms?.length,
+            // nationalApprover:
+            //   res.data?.role === ROLE_ID_SUPERADMIN &&
+            //   !!res.data?.forms?.length,
             inform_user: !id
               ? true
               : authUser?.email === res.data?.email
@@ -233,9 +267,6 @@ const AddUser = () => {
           });
           setRole(res.data?.role);
           setLoading(false);
-          setNationalApprover(
-            res.data?.role === 1 && !!res.data?.forms?.length
-          );
           fetchData(res.data.administration, [], res.data?.role);
         });
       } catch (error) {
@@ -243,7 +274,15 @@ const AddUser = () => {
         setLoading(false);
       }
     }
-  }, [id, form, forms, notify, text.errorUserLoad, authUser?.email]);
+  }, [
+    id,
+    form,
+    forms,
+    notify,
+    text.errorUserLoad,
+    authUser?.email,
+    isUserFetched,
+  ]);
 
   return (
     <div id="add-user">
@@ -260,342 +299,372 @@ const AddUser = () => {
       </div>
       <div className="table-section">
         <div className="table-wrapper">
-          <Form
-            name="adm-form"
-            form={form}
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 18 }}
-            initialValues={{
-              first_name: "",
-              last_name: "",
-              phone_number: "",
-              designation: null,
-              email: "",
-              role: null,
-              county: null,
-              inform_user: true,
-              organisation: [],
-              forms,
-            }}
-            onFinish={onFinish}
-          >
-            {(_, formInstance) => (
-              <>
-                <div className="form-row">
-                  <Form.Item
-                    label={text.userFirstName}
-                    name="first_name"
-                    rules={[
-                      {
-                        required: true,
-                        message: text.valFirstName,
-                      },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </div>
-                <div className="form-row">
-                  <Form.Item
-                    label={text.userLastName}
-                    name="last_name"
-                    rules={[
-                      {
-                        required: true,
-                        message: text.valLastName,
-                      },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </div>
-                <div className="form-row">
-                  <Form.Item
-                    label={text.userEmail}
-                    name="email"
-                    rules={[
-                      {
-                        required: true,
-                        message: text.valEmail,
-                        type: "email",
-                      },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </div>
-                <div className="form-row">
-                  <Form.Item
-                    label={text.userPhoneNumber}
-                    name="phone_number"
-                    rules={[
-                      {
-                        required: true,
-                        message: text.valPhone,
-                      },
-                    ]}
-                  >
-                    <Input />
-                  </Form.Item>
-                </div>
-                <div className="form-row">
-                  <Form.Item
-                    name="organisation"
-                    label={text.userOrganisation}
-                    rules={[{ required: true, message: text.valOrganization }]}
-                  >
-                    <Select
-                      getPopupContainer={(trigger) => trigger.parentNode}
-                      placeholder={text.selectOne}
-                      allowClear
-                      showSearch
-                      optionFilterProp="children"
-                      filterOption={(input, option) =>
-                        option.children
-                          .toLowerCase()
-                          .indexOf(input.toLowerCase()) >= 0
-                      }
+          <Spin tip={text.loadingText} spinning={loading}>
+            <Form
+              name="adm-form"
+              form={form}
+              labelCol={{ span: 6 }}
+              wrapperCol={{ span: 18 }}
+              initialValues={{
+                first_name: "",
+                last_name: "",
+                phone_number: "",
+                designation: null,
+                email: "",
+                role: null,
+                inform_user: true,
+                organisation: [],
+                forms,
+              }}
+              onFinish={onFinish}
+            >
+              {(_, formInstance) => (
+                <>
+                  <div className="form-row">
+                    <Form.Item
+                      label={text.userFirstName}
+                      name="first_name"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valFirstName,
+                        },
+                      ]}
                     >
-                      {organisations?.map((o, oi) => (
-                        <Option key={`org-${oi}`} value={o.id}>
-                          {o.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </div>
-                <div className="form-row">
-                  <Form.Item
-                    name="designation"
-                    label={text.userDesignation}
-                    rules={[{ required: true, message: text.valDesignation }]}
-                  >
-                    <Select
-                      placeholder={text.selectOne}
-                      getPopupContainer={(trigger) => trigger.parentNode}
-                      showSearch
-                      optionFilterProp="children"
-                      filterOption={(input, option) =>
-                        option.children
-                          .toLowerCase()
-                          .indexOf(input.toLowerCase()) >= 0
-                      }
-                    >
-                      {config?.designations?.map((d, di) => (
-                        <Option key={di} value={d.id}>
-                          {d.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </div>
-                <Row className="form-row">
-                  <Col span={18} offset={6}>
-                    <Form.Item name="trained" valuePropName="checked">
-                      <Checkbox>{text.userTrained}</Checkbox>
+                      <Input />
                     </Form.Item>
-                  </Col>
-                </Row>
-                <div className="form-row">
-                  <Form.Item
-                    name="role"
-                    label="Role"
-                    rules={[{ required: true, message: text.valRole }]}
-                  >
-                    <Select
-                      getPopupContainer={(trigger) => trigger.parentNode}
-                      placeholder={text.selectOne}
-                      onChange={onRoleChange}
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      label={text.userLastName}
+                      name="last_name"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valLastName,
+                        },
+                      ]}
                     >
-                      {allowedRoles.map((r, ri) => (
-                        <Option key={ri} value={r.id}>
-                          {r.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                </div>
-                <Row justify="center" align="middle">
-                  <Col span={18} offset={6}>
-                    {role && (
-                      <span className="role-description">
-                        {config.roles.find((r) => r.id === role)?.description}
-                      </span>
-                    )}
-                  </Col>
-                </Row>
-                <Form.Item label={text.admLevel}>
-                  <Select
-                    value={selectedLevel}
-                    getPopupContainer={(trigger) => trigger.parentNode}
-                    placeholder={text.selectOne}
-                    onChange={onLevelChange}
-                  >
-                    {levels.map((l, li) => (
-                      <Option key={li} value={l.level + 1}>
-                        {l.name}
-                      </Option>
-                    ))}
-                  </Select>
-                  {levelError && (
-                    <div className="text-error">
-                      {text.userSelectLevelRequired}
-                    </div>
-                  )}
-                </Form.Item>
-                {([2, 4].includes(role) ||
-                  ([3, 5].includes(role) && selectedLevel > 1)) && (
-                  <Row className="form-row">
-                    <Col span={6} className=" ant-form-item-label">
-                      <label htmlFor="administration">
-                        {text.administrationLabel}
-                      </label>
-                    </Col>
-                    <Col span={18}>
-                      <AdministrationDropdown
-                        withLabel={true}
-                        persist={true}
-                        size="large"
-                        width="100%"
-                        onChange={onAdminChange}
-                        maxLevel={
-                          [3, 5].includes(role)
-                            ? selectedLevel
-                            : max(
-                                allowedRoles?.find((r) => r.id === role)
-                                  ?.administration_level
-                              ) || null
+                      <Input />
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      label={text.userEmail}
+                      name="email"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valEmail,
+                          type: "email",
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      label={text.userPhoneNumber}
+                      name="phone_number"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valPhone,
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      name="organisation"
+                      label={text.userOrganisation}
+                      rules={[
+                        { required: true, message: text.valOrganization },
+                      ]}
+                    >
+                      <Select
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        placeholder={text.selectOne}
+                        allowClear
+                        showSearch
+                        optionFilterProp="children"
+                        filterOption={(input, option) =>
+                          option.children
+                            .toLowerCase()
+                            .indexOf(input.toLowerCase()) >= 0
                         }
-                      />
-                      {!!adminError && (
-                        <div className="text-error">{adminError}</div>
+                      >
+                        {organisations?.map((o, oi) => (
+                          <Option key={`org-${oi}`} value={o.id}>
+                            {o.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      name="designation"
+                      label={text.userDesignation}
+                      rules={[{ required: true, message: text.valDesignation }]}
+                    >
+                      <Select
+                        placeholder={text.selectOne}
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        showSearch
+                        optionFilterProp="children"
+                        filterOption={(input, option) =>
+                          option.children
+                            .toLowerCase()
+                            .indexOf(input.toLowerCase()) >= 0
+                        }
+                      >
+                        {config?.designations?.map((d, di) => (
+                          <Option key={di} value={d.id}>
+                            {d.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <Row className="form-row">
+                    <Col span={18} offset={6}>
+                      <Form.Item name="trained" valuePropName="checked">
+                        <Checkbox>{text.userTrained}</Checkbox>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <div className="form-row">
+                    <Form.Item
+                      name="role"
+                      label="Role"
+                      rules={[{ required: true, message: text.valRole }]}
+                    >
+                      <Select
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        placeholder={text.selectOne}
+                        onChange={onRoleChange}
+                      >
+                        {allowedRoles.map((r, ri) => (
+                          <Option key={ri} value={r.id}>
+                            {r.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <Row justify="center" align="middle">
+                    <Col span={18} offset={6}>
+                      {role && (
+                        <span className="role-description">
+                          {config.roles.find((r) => r.id === role)?.description}
+                        </span>
                       )}
                     </Col>
                   </Row>
-                )}
-                <Row justify="center" align="middle">
-                  <Col span={18} offset={6}>
-                    {role === 1 && (
-                      <div className="form-row">
-                        <Form.Item
-                          name="nationalApprover"
-                          valuePropName="checked"
-                          onChange={(e) =>
-                            setNationalApprover(e.target.checked)
+                  {role === ROLE_ID_ADMIN && (
+                    <Form.Item label={text.admLevel}>
+                      <Select
+                        value={selectedLevel}
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        placeholder={text.selectOne}
+                        onChange={onLevelChange}
+                      >
+                        {levels.map((l, li) => (
+                          <Option key={li} value={l.id}>
+                            {l.name}
+                          </Option>
+                        ))}
+                      </Select>
+                      {levelError && (
+                        <div className="text-error">
+                          {text.userSelectLevelRequired}
+                        </div>
+                      )}
+                    </Form.Item>
+                  )}
+                  {role === ROLE_ID_ADMIN &&
+                    selectedLevel &&
+                    selectedLevel !== NATIONAL_LEVEL && (
+                      <Row className="form-row">
+                        <Col span={6} className=" ant-form-item-label">
+                          <label htmlFor="administration">
+                            {text.administrationLabel}
+                          </label>
+                        </Col>
+                        <Col span={18}>
+                          <AdministrationDropdown
+                            withLabel={true}
+                            persist={true}
+                            size="large"
+                            width="100%"
+                            onChange={onAdminChange}
+                            maxLevel={selectedLevel}
+                          />
+                          {!!adminError && (
+                            <div className="text-error">{adminError}</div>
+                          )}
+                        </Col>
+                      </Row>
+                    )}
+                  {(selectedLevel === NATIONAL_LEVEL ||
+                    role === ROLE_ID_SUPERADMIN) && (
+                    <Row justify="center" align="middle">
+                      <Col span={18} offset={6}>
+                        <div className="form-row">
+                          <Form.Item
+                            name="nationalApprover"
+                            valuePropName="checked"
+                            onChange={onNationalApproverChange}
+                          >
+                            <Checkbox>{text.userNationalApprover}</Checkbox>
+                          </Form.Item>
+                        </div>
+                      </Col>
+                    </Row>
+                  )}
+
+                  {(role === ROLE_ID_ADMIN ||
+                    formInstance.getFieldValue("nationalApprover") ===
+                      true) && (
+                    <Row
+                      justify="start"
+                      align="stretch"
+                      className="form-row"
+                      style={{ marginTop: "24px" }}
+                    >
+                      <Col span={6} className=" ant-form-item-label">
+                        <label htmlFor="forms">
+                          {text.questionnairesLabel}
+                        </label>
+                      </Col>
+                      <Col span={18}>
+                        <Form.List name="forms">
+                          {(fields) => (
+                            <Collapse defaultActiveKey={["0"]}>
+                              {fields.map(({ key, name, ...restField }) => (
+                                <Panel
+                                  key={key}
+                                  header={form.getFieldValue([
+                                    "forms",
+                                    name,
+                                    "name",
+                                  ])}
+                                  extra={
+                                    <Space className="extra-access-label">
+                                      {formInstance
+                                        .getFieldValue([
+                                          "forms",
+                                          name,
+                                          "access",
+                                        ])
+                                        .filter((a) => a?.value)
+                                        .map((a) => (
+                                          <span
+                                            key={a.id}
+                                            className="access-label"
+                                          >
+                                            {a.label}
+                                          </span>
+                                        ))}
+                                    </Space>
+                                  }
+                                >
+                                  <Form.Item
+                                    {...restField}
+                                    name={[name, "id"]}
+                                    hidden
+                                  >
+                                    <Input />
+                                  </Form.Item>
+                                  <Form.List name={[name, "access"]}>
+                                    {(accessFields) => (
+                                      <ul
+                                        style={{
+                                          listStyle: "none",
+                                          paddingLeft: 0,
+                                        }}
+                                      >
+                                        {accessFields.map(
+                                          ({
+                                            key: accessKey,
+                                            name: accessName,
+                                            ...accessRestField
+                                          }) => (
+                                            <li key={accessKey}>
+                                              <Form.Item
+                                                {...accessRestField}
+                                                name={[accessName, "value"]}
+                                                valuePropName="checked"
+                                                noStyle
+                                              >
+                                                <Checkbox>
+                                                  {form.getFieldValue([
+                                                    "forms",
+                                                    name,
+                                                    "access",
+                                                    accessName,
+                                                    "label",
+                                                  ])}
+                                                </Checkbox>
+                                              </Form.Item>
+                                            </li>
+                                          )
+                                        )}
+                                      </ul>
+                                    )}
+                                  </Form.List>
+                                </Panel>
+                              ))}
+                            </Collapse>
+                          )}
+                        </Form.List>
+                      </Col>
+                    </Row>
+                  )}
+
+                  <Row justify="center" align="middle">
+                    <Col span={18} offset={6}>
+                      <Form.Item
+                        id="informUser"
+                        label=""
+                        valuePropName="checked"
+                        name="inform_user"
+                        rules={[{ required: false }]}
+                      >
+                        <Checkbox
+                          disabled={
+                            !id
+                              ? true
+                              : authUser?.email === form.getFieldValue("email")
+                              ? true
+                              : false
                           }
                         >
-                          <Checkbox>{text.userNationalApprover}</Checkbox>
-                        </Form.Item>
-                      </div>
-                    )}
-                  </Col>
-                </Row>
-                <Form.Item label={text.questionnairesLabel}>
-                  <Form.List name="forms">
-                    {(fields) => (
-                      <Collapse defaultActiveKey={["0"]}>
-                        {fields.map(({ key, name, ...restField }) => (
-                          <Panel
-                            key={key}
-                            header={form.getFieldValue(["forms", name, "name"])}
-                            extra={
-                              <Space className="extra-access-label">
-                                {formInstance
-                                  .getFieldValue(["forms", name, "access"])
-                                  .filter((a) => a?.value)
-                                  .map((a) => (
-                                    <span key={a.id} className="access-label">
-                                      {a.label}
-                                    </span>
-                                  ))}
-                              </Space>
-                            }
-                          >
-                            <Form.Item
-                              {...restField}
-                              name={[name, "id"]}
-                              hidden
-                            >
-                              <Input />
-                            </Form.Item>
-                            <Form.List name={[name, "access"]}>
-                              {(accessFields) => (
-                                <ul
-                                  style={{ listStyle: "none", paddingLeft: 0 }}
-                                >
-                                  {accessFields.map(
-                                    ({
-                                      key: accessKey,
-                                      name: accessName,
-                                      ...accessRestField
-                                    }) => (
-                                      <li key={accessKey}>
-                                        <Form.Item
-                                          {...accessRestField}
-                                          name={[accessName, "value"]}
-                                          valuePropName="checked"
-                                          noStyle
-                                        >
-                                          <Checkbox>
-                                            {form.getFieldValue([
-                                              "forms",
-                                              name,
-                                              "access",
-                                              accessName,
-                                              "label",
-                                            ])}
-                                          </Checkbox>
-                                        </Form.Item>
-                                      </li>
-                                    )
-                                  )}
-                                </ul>
-                              )}
-                            </Form.List>
-                          </Panel>
-                        ))}
-                      </Collapse>
-                    )}
-                  </Form.List>
-                </Form.Item>
-                <Row justify="center" align="middle">
-                  <Col span={18} offset={6}>
-                    <Form.Item
-                      id="informUser"
-                      label=""
-                      valuePropName="checked"
-                      name="inform_user"
-                      rules={[{ required: false }]}
-                    >
-                      <Checkbox
-                        disabled={
-                          !id
-                            ? true
-                            : authUser?.email === form.getFieldValue("email")
-                            ? true
-                            : false
-                        }
+                          {text.informUser}
+                        </Checkbox>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Row justify="center" align="middle">
+                    <Col span={18} offset={6}>
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        shape="round"
+                        loading={submitting}
                       >
-                        {text.informUser}
-                      </Checkbox>
-                    </Form.Item>
-                  </Col>
-                </Row>
-                <Row justify="center" align="middle">
-                  <Col span={18} offset={6}>
-                    <Button
-                      type="primary"
-                      htmlType="submit"
-                      shape="round"
-                      loading={submitting}
-                    >
-                      {id ? text.updateUser : text.addUser}
-                    </Button>
-                  </Col>
-                </Row>
-              </>
-            )}
-          </Form>
+                        {id ? text.updateUser : text.addUser}
+                      </Button>
+                    </Col>
+                  </Row>
+                </>
+              )}
+            </Form>
+          </Spin>
         </div>
       </div>
 
