@@ -37,7 +37,7 @@ class FormApprovalTestCase(TestCase):
             "administration": admin.id,
             "organisation": self.org.id,
             "role": UserRoleTypes.admin,
-            "access_form": [
+            "access_forms": [
                 {
                     "form_id": self.form.id,
                     "access_type": UserFormAccessTypes.read
