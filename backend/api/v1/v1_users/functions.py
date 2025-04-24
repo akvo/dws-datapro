@@ -1,24 +1,42 @@
 from django.utils import timezone
-
+from typing import List
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_forms.constants import FormTypes
-from api.v1.v1_forms.models import FormApprovalAssignment
+from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.models import (
+    FormApprovalAssignment,
+    UserFormAccess,
+    UserForms,
+    Forms,
+)
 from api.v1.v1_data.models import PendingDataBatch, PendingDataApproval
 from api.v1.v1_data.constants import DataApprovalStatus
+from api.v1.v1_profile.models import Administration
+from api.v1.v1_users.models import SystemUser
 
 
-def check_unique_user(role):
-    return role in [
-        UserRoleTypes.super_admin,
-        UserRoleTypes.admin,
-        UserRoleTypes.approver,
-    ]
+def check_is_approver(role: int, access_form: list = None):
+    # Check if user has approver access through access_form
+    has_approver_access = False
+    if access_form:
+        for form_access in access_form:
+            if form_access.get('access_type') == UserFormAccessTypes.approver:
+                has_approver_access = True
+                break
+    is_approver = role == UserRoleTypes.admin and has_approver_access
+    is_super_admin = role == UserRoleTypes.super_admin
+    return is_approver or is_super_admin
 
 
-def check_form_approval_assigned(role, forms, administration, user=None):
+def check_form_approval_assigned(
+    role: int,
+    forms: List[Forms],
+    administration: Administration,
+    user: SystemUser = None,
+    access_form: list = None
+):
     # if user is None that for add new user (user var is edited user)
     # else that for update/edit user
-    unique_user = check_unique_user(role)
+    unique_user = check_is_approver(role, access_form)
     if not unique_user:
         return False
     # Check if form id x in y administration has approver assignment
@@ -108,31 +126,50 @@ def check_form_approval_assigned(role, forms, administration, user=None):
     return False
 
 
-def assign_form_approval(role, forms, administration, user):
-    unique_user = check_unique_user(role)
+def assign_form_approval(
+    role: int,
+    forms: List[Forms],
+    administration: Administration,
+    user: SystemUser,
+    access_form: List = None
+):
+    unique_user = check_is_approver(role, access_form)
     if not unique_user:
         return False
-    form_to_assign = forms
-    # check if forms already asiggned into user
-    check = FormApprovalAssignment.objects.filter(
-        administration=administration, form__in=forms, user=user
-    )
-    if check:
-        form_to_assign = []
-        for fr in forms:
-            if fr.id in check.values_list("form_id", flat=True):
-                continue
-            if (
-                role is not UserRoleTypes.super_admin
-                and fr.type == FormTypes.national
-            ):
-                continue
-            if (
-                role is UserRoleTypes.super_admin
-                and fr.type == FormTypes.county
-            ):
-                continue
+
+    form_to_assign = []
+    for fr in forms:
+        # Check if the user has approver access for this form
+        user_form = UserForms.objects.filter(user=user, form=fr).first()
+        has_approver_access = False
+
+        # Check if the user has approver access through UserFormAccess
+        if user_form:
+            user_form_access = UserFormAccess.objects.filter(
+                user_form=user_form,
+                access_type=UserFormAccessTypes.approver
+            ).exists()
+            if user_form_access:
+                has_approver_access = True
+
+        # Only assign forms where the user has approver access
+        if has_approver_access:
             form_to_assign.append(fr)
+
+    # check if forms already assigned to user
+    check = FormApprovalAssignment.objects.filter(
+        administration=administration, form__in=form_to_assign, user=user
+    )
+
+    # Update existing assignments
+    if check:
+        # Remove already assigned forms from the list to assign
+        form_to_assign = [
+            fr for fr in form_to_assign
+            if fr.id not in check.values_list("form_id", flat=True)
+        ]
+
+        # Update timestamps for existing assignments
         for fa in check.all():
             fa.updated = timezone.now()
             fa.save()
@@ -160,7 +197,8 @@ def assign_form_approval(role, forms, administration, user):
         current_batch = PendingDataBatch.objects.filter(**batch_filter).all()
         if current_batch.count():
             for batch in current_batch:
-                if batch.form in forms:
+                # Only process forms that are in the approved list
+                if batch.form in forms and batch.form in form_to_assign:
                     approver = PendingDataApproval.objects.filter(
                         level=administration.level, batch=batch
                     ).first()
