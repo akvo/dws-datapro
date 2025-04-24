@@ -275,7 +275,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         queryset=Organisation.objects.none(), required=False)
     trained = CustomBooleanField(default=False)
     role = CustomChoiceField(choices=list(UserRoleTypes.FieldStr.keys()))
-    access_form = FormAccessSerializer(many=True)
+    access_forms = FormAccessSerializer(many=True)
     inform_user = CustomBooleanField(default=True)
 
     def __init__(self, **kwargs):
@@ -343,7 +343,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
             validated_data.pop('inform_user', None)
             administration = validated_data.pop('administration')
             role = validated_data.pop('role')
-            access_form_data = validated_data.pop('access_form', [])
+            access_forms_data = validated_data.pop('access_forms', [])
             user = super(AddEditUserSerializer, self).create(validated_data)
             Access.objects.create(
                 user=user,
@@ -351,7 +351,10 @@ class AddEditUserSerializer(serializers.ModelSerializer):
                 role=role
             )
             # Create user forms and access permissions
-            self._create_user_forms_and_access(user, access_form_data)
+            self._create_user_forms_and_access(
+                user=user,
+                access_forms_data=access_forms_data
+            )
             return user
 
     def update(self, instance, validated_data):
@@ -359,7 +362,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         validated_data.pop('inform_user', None)
         administration = validated_data.pop('administration')
         role = validated_data.pop('role')
-        access_form_data = validated_data.pop('access_form', [])
+        access_forms_data = validated_data.pop('access_forms', [])
 
         instance: SystemUser = super(AddEditUserSerializer,
                                      self).update(instance, validated_data)
@@ -375,7 +378,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
             user_forms.delete()
 
         # Create new user forms and access permissions
-        self._create_user_forms_and_access(instance, access_form_data)
+        self._create_user_forms_and_access(instance, access_forms_data)
         return instance
 
     def _create_form_access(self, user, form, access_types):
@@ -389,10 +392,10 @@ class AddEditUserSerializer(serializers.ModelSerializer):
                 access_type=access
             )
 
-    def _create_user_forms_and_access(self, user, access_form_data):
+    def _create_user_forms_and_access(self, user, access_forms_data):
         # If no access data is provided,
         # assign defaults for super_admin and nothing for admin
-        if not access_form_data:
+        if not access_forms_data:
             if user.user_access.role == UserRoleTypes.super_admin:
                 default_access = [
                     UserFormAccessTypes.read,
@@ -403,7 +406,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
             return
 
         # Process provided access form data
-        for item in access_form_data:
+        for item in access_forms_data:
             self._create_form_access(
                 user=user,
                 form=item["form_id"],
@@ -415,7 +418,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         fields = [
             'first_name', 'last_name', 'email', 'administration',
             'organisation', 'trained', 'role', 'phone_number', 'designation',
-            'access_form', 'inform_user'
+            'access_forms', 'inform_user'
         ]
 
 

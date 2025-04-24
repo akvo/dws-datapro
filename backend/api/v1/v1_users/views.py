@@ -387,7 +387,7 @@ def add_user(request, version):
     is_approver_assigned = check_form_approval_assigned(
         role=serializer.validated_data.get("role"),
         administration=serializer.validated_data.get("administration"),
-        access_form=serializer.validated_data.get("access_form"),
+        access_forms=serializer.validated_data.get("access_forms"),
     )
     if is_approver_assigned:
         return Response(
@@ -400,7 +400,7 @@ def add_user(request, version):
     # Only pass forms with approver access type to the function
     approver_forms = [
         item["form_id"]
-        for item in serializer.validated_data.get("access_form", [])
+        for item in serializer.validated_data.get("access_forms", [])
         if item["access_type"] == UserFormAccessTypes.approver
     ]
 
@@ -411,13 +411,13 @@ def add_user(request, version):
             forms=approver_forms,
             administration=serializer.validated_data.get("administration"),
             user=user,
-            access_form=serializer.validated_data.get("access_form"),
+            access_forms=serializer.validated_data.get("access_forms"),
         )
 
     if serializer.validated_data.get("inform_user"):
         request.data["forms"] = [
             item["form_id"].id
-            for item in serializer.validated_data.get("access_form", [])
+            for item in serializer.validated_data.get("access_forms", [])
         ]
         send_email_to_user(
             type=EmailTypes.user_invite, user=user, request=request
@@ -689,7 +689,7 @@ class UserEditDeleteView(APIView):
             role=serializer.validated_data.get("role"),
             administration=serializer.validated_data.get("administration"),
             user=instance,
-            access_form=serializer.validated_data.get("access_form"),
+            access_forms=serializer.validated_data.get("access_forms"),
         )
         if is_approver_assigned:
             return Response(
@@ -702,7 +702,7 @@ class UserEditDeleteView(APIView):
         # Only pass forms with approver access type to the function
         approver_forms = [
             item["form_id"]
-            for item in serializer.validated_data.get("access_form")
+            for item in serializer.validated_data.get("access_forms")
             if item["access_type"] == UserFormAccessTypes.approver
         ]
         if approver_forms:
@@ -711,14 +711,14 @@ class UserEditDeleteView(APIView):
                 forms=approver_forms,
                 administration=serializer.validated_data.get("administration"),
                 user=user,
-                access_form=serializer.validated_data.get("access_form"),
+                access_forms=serializer.validated_data.get("access_forms"),
             )
 
         # inform user by inform_user payload
         if serializer.validated_data.get("inform_user"):
             request.data["forms"] = [
                 item["form_id"].id
-                for item in serializer.validated_data.get("access_form", [])
+                for item in serializer.validated_data.get("access_forms", [])
             ]
             send_email_to_user(
                 type=EmailTypes.user_update, user=user, request=request
