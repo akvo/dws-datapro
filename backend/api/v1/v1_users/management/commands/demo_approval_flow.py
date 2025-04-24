@@ -5,9 +5,9 @@ from django.core.management import BaseCommand
 from api.v1.v1_profile.constants import UserRoleTypes, UserDesignationTypes
 from api.v1.v1_profile.models import Administration, Access, Levels
 from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.models import Forms, UserForms
+from api.v1.v1_forms.models import Forms, UserForms, UserFormAccess
 from api.v1.v1_forms.models import FormApprovalAssignment
-from api.v1.v1_forms.constants import FormTypes
+from api.v1.v1_forms.constants import FormTypes, UserFormAccessTypes
 from api.v1.v1_mobile.models import MobileAssignment
 fake = Faker()
 
@@ -18,9 +18,8 @@ def create_approver(form, administration, organisation):
         random.randint(10, 100)
     )
     last_name = "Approver"
-    role = UserRoleTypes.approver
+    role = UserRoleTypes.admin  # Default to admin role
     if administration.level.level == 1:
-        role = UserRoleTypes.admin
         last_name = "Admin"
     # check if someone has access to ancestor adminisration
     approver, created = SystemUser.objects.get_or_create(
@@ -41,7 +40,14 @@ def create_approver(form, administration, organisation):
             role=role,
             administration=administration
         )
-    UserForms.objects.get_or_create(form=form, user=approver)
+    # Create UserForms with approver access type
+    user_form, _ = UserForms.objects.get_or_create(form=form, user=approver)
+    # Ensure the user has approver access for this form
+    UserFormAccess.objects.get_or_create(
+        user_form=user_form,
+        access_type=UserFormAccessTypes.approver
+    )
+    # Create form approval assignment
     assignment = FormApprovalAssignment.objects.create(
         form=form,
         administration=administration,
@@ -121,10 +127,21 @@ class Command(BaseCommand):
                     submitter.save()
                     Access.objects.create(
                         user=submitter,
-                        role=UserRoleTypes.user,
+                        role=UserRoleTypes.admin,
                         administration=ancestor
                     )
-                UserForms.objects.get_or_create(form=form, user=submitter)
+                user_form, _ = UserForms.objects.get_or_create(
+                    form=form,
+                    user=submitter
+                )
+                UserFormAccess.objects.get_or_create(
+                    user_form=user_form,
+                    access_type=UserFormAccessTypes.editor
+                )
+                UserFormAccess.objects.get_or_create(
+                    user_form=user_form,
+                    access_type=UserFormAccessTypes.read
+                )
                 if not test:
                     print("\nData entry:")
                     print(f"- Administration: {administration.full_name}")
