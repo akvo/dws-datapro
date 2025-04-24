@@ -29,7 +29,7 @@ class MonitoringDataTestCase(TestCase):
         self.administration = Administration.objects.filter(
             parent__isnull=True
         ).first()
-        role = UserRoleTypes.user
+        role = UserRoleTypes.admin
         self.user_access = Access.objects.create(
             user=self.user, role=role, administration=self.administration
         )
