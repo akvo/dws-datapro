@@ -225,8 +225,21 @@ class UserInvitationTestCase(TestCase):
             'forms', 'approval_assignment', 'pending_approval', 'data',
             'pending_batch'
         ], list(responses))
-        self.assertEqual(responses["forms"],
-                         [{'id': 2, 'name': 'Test Form 2'}])
+        self.assertEqual(
+            responses["forms"],
+            [
+                {
+                    "id": 2,
+                    "name": "Test Form 2",
+                    "access": [
+                        {
+                            "label": "Read",
+                            "value": UserFormAccessTypes.read,
+                        }
+                    ]
+                }
+            ]
+        )
         edit_payload["access_form"] = [
             {
                 "form_id": 1,
@@ -255,9 +268,31 @@ class UserInvitationTestCase(TestCase):
             'forms', 'approval_assignment', 'pending_approval', 'data',
             'pending_batch'
         ], list(responses))
-        self.assertEqual(responses["forms"],
-                         [{'id': 1, 'name': 'Test Form'},
-                          {'id': 2, 'name': 'Test Form 2'}])
+        self.assertEqual(
+            responses["forms"],
+            [
+                {
+                    "id": 1,
+                    "name": "Test Form",
+                    "access": [
+                        {
+                            "label": "Read",
+                            "value": UserFormAccessTypes.read,
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "name": "Test Form 2",
+                    "access": [
+                        {
+                            "label": "Read",
+                            "value": UserFormAccessTypes.read,
+                        }
+                    ]
+                }
+            ]
+        )
 
         # test_update_user_with_pending_approval
         call_command("fake_pending_data_seeder", "--test")
@@ -551,7 +586,6 @@ class UserInvitationTestCase(TestCase):
         )
         self.assertEqual(['id', 'value'], list(response.json()[0].keys()))
 
-    #
     def test_verify_invite(self):
         user = SystemUser.objects.first()
         invite_payload = 'dummy-token'
