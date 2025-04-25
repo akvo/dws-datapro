@@ -10,8 +10,6 @@ import {
   Checkbox,
   Modal,
   Table,
-  Collapse,
-  Space,
   Spin,
 } from "antd";
 import { AdministrationDropdown } from "../../components";
@@ -23,15 +21,14 @@ import {
   uiText,
   ROLE_ID_ADMIN,
   ROLE_ID_SUPERADMIN,
-  FORM_ACCESS_ID_READ,
   FORM_ACCESS_ID_APPROVER,
 } from "../../lib";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { takeRight, take } from "lodash";
 import { useNotification } from "../../util/hooks";
+import { FormAccessCheckbox, FormAccessCollapsible } from "./components";
 
 const { Option } = Select;
-const { Panel } = Collapse;
 
 const descriptionData = (
   <p>
@@ -115,13 +112,15 @@ const AddUser = () => {
   }, [authUser]);
 
   const setApproverForms = (data = []) => {
-    return data.map((d) => ({
-      ...d,
-      access: d.access.map((a) => ({
-        ...a,
-        value: a.id === FORM_ACCESS_ID_APPROVER || a.id === FORM_ACCESS_ID_READ,
-      })),
-    }));
+    return data
+      .filter((d) => d?.checked)
+      .map((d) => ({
+        ...d,
+        access: d.access.map((a) => ({
+          ...a,
+          value: a.id === FORM_ACCESS_ID_APPROVER,
+        })),
+      }));
   };
 
   const onFinish = (values) => {
@@ -140,11 +139,9 @@ const AddUser = () => {
     }
     setSubmitting(true);
     const admin = takeRight(administration, 1)?.[0];
-    const formsPayload = values?.forms?.length
-      ? values.forms
-      : values.nationalApprover
-      ? setApproverForms(forms)
-      : [];
+    const formsPayload = values?.nationalApprover
+      ? setApproverForms(values?.forms)
+      : values?.forms || [];
     const access_forms = formsPayload
       .map((f) =>
         f.access
@@ -227,19 +224,6 @@ const AddUser = () => {
   const onAdminChange = () => {
     setLevelError(false);
     setAdminError(null);
-  };
-
-  const onNationalApproverChange = (e) => {
-    const isChecked = e.target.checked;
-    if (isChecked) {
-      const forms = form.getFieldValue("forms");
-      const updatedForms = setApproverForms(forms);
-      form.setFieldsValue({ forms: updatedForms });
-    } else {
-      form.setFieldsValue({
-        forms,
-      });
-    }
   };
 
   useEffect(() => {
@@ -577,15 +561,13 @@ const AddUser = () => {
                         </Col>
                       </Row>
                     )}
-                  {(selectedLevel === NATIONAL_LEVEL ||
-                    role === ROLE_ID_SUPERADMIN) && (
+                  {role === ROLE_ID_SUPERADMIN && (
                     <Row justify="center" align="middle">
                       <Col span={18} offset={6}>
                         <div className="form-row">
                           <Form.Item
                             name="nationalApprover"
                             valuePropName="checked"
-                            onChange={onNationalApproverChange}
                           >
                             <Checkbox>{text.userNationalApprover}</Checkbox>
                           </Form.Item>
@@ -609,86 +591,51 @@ const AddUser = () => {
                         </label>
                       </Col>
                       <Col span={18}>
-                        <Form.List name="forms">
-                          {(fields) => (
-                            <Collapse defaultActiveKey={["0"]}>
-                              {fields.map(({ key, name, ...restField }) => (
-                                <Panel
-                                  key={key}
-                                  header={form.getFieldValue([
-                                    "forms",
-                                    name,
-                                    "name",
-                                  ])}
-                                  extra={
-                                    <Space className="extra-access-label">
-                                      {formInstance
-                                        .getFieldValue([
-                                          "forms",
-                                          name,
-                                          "access",
-                                        ])
-                                        .filter((a) => a?.value)
-                                        .map((a) => (
-                                          <span
-                                            key={a.id}
-                                            className="access-label"
-                                          >
-                                            {a.label}
-                                          </span>
-                                        ))}
-                                    </Space>
-                                  }
-                                >
-                                  <Form.Item
-                                    {...restField}
-                                    name={[name, "id"]}
-                                    hidden
-                                  >
-                                    <Input />
-                                  </Form.Item>
-                                  <Form.List name={[name, "access"]}>
-                                    {(accessFields) => (
-                                      <ul
-                                        style={{
-                                          listStyle: "none",
-                                          paddingLeft: 0,
-                                        }}
-                                      >
-                                        {accessFields.map(
-                                          ({
-                                            key: accessKey,
-                                            name: accessName,
-                                            ...accessRestField
-                                          }) => (
-                                            <li key={accessKey}>
-                                              <Form.Item
-                                                {...accessRestField}
-                                                name={[accessName, "value"]}
-                                                valuePropName="checked"
-                                                noStyle
-                                              >
-                                                <Checkbox>
-                                                  {form.getFieldValue([
-                                                    "forms",
-                                                    name,
-                                                    "access",
-                                                    accessName,
-                                                    "label",
-                                                  ])}
-                                                </Checkbox>
-                                              </Form.Item>
-                                            </li>
-                                          )
-                                        )}
-                                      </ul>
-                                    )}
-                                  </Form.List>
-                                </Panel>
-                              ))}
-                            </Collapse>
+                        <Form.Item
+                          name="forms"
+                          hasFeedback
+                          rules={[
+                            () => ({
+                              validator(_, value) {
+                                const allAccess = value
+                                  ?.map((a) => a?.access)
+                                  ?.flat();
+                                if (
+                                  allAccess?.filter((a) => a?.value)?.length >
+                                    0 ||
+                                  value?.filter((v) => v?.checked)?.length > 0
+                                ) {
+                                  return Promise.resolve();
+                                }
+                                return Promise.reject(
+                                  new Error(text.questionnairesRequired)
+                                );
+                              },
+                            }),
+                          ]}
+                        >
+                          {role === ROLE_ID_ADMIN && (
+                            <Form.List name="forms">
+                              {(fields) => (
+                                <FormAccessCollapsible
+                                  form={form}
+                                  formInstance={formInstance}
+                                  fields={fields}
+                                />
+                              )}
+                            </Form.List>
                           )}
-                        </Form.List>
+                          {formInstance.getFieldValue("nationalApprover") && (
+                            <Form.List name="forms">
+                              {(fields) => (
+                                <FormAccessCheckbox
+                                  form={form}
+                                  fields={fields}
+                                />
+                              )}
+                            </Form.List>
+                          )}
+                        </Form.Item>
                       </Col>
                     </Row>
                   )}
