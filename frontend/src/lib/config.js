@@ -82,6 +82,7 @@ const config = {
         "form",
         "reports",
         "downloads",
+        "mobile",
       ],
       description: "",
       control_center_order: [
