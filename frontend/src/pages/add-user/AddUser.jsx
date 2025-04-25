@@ -125,12 +125,12 @@ const AddUser = () => {
   };
 
   const onFinish = (values) => {
-    if (selectedLevel === null) {
+    if (selectedLevel === null && values.role === ROLE_ID_ADMIN) {
       setLevelError(true);
       return;
     }
     const admLevel = administration.length;
-    if (admLevel !== selectedLevel) {
+    if (admLevel !== selectedLevel && values.role === ROLE_ID_ADMIN) {
       setAdminError(
         `Please select a ${
           window.levels.find((l) => l.id === selectedLevel)?.name
@@ -318,10 +318,16 @@ const AddUser = () => {
         setLoading(false);
       }
     }
-    if (isUserFetched && administration?.length > 1 && !selectedLevel) {
+    /**
+     * If the user is fetched and the administration length is greater than 1
+     * and the selected level is not set then
+     * set the selected level to the last administration level.
+     */
+    if (isUserFetched && administration?.length > 1 && selectedLevel === null) {
       // get the last administration level
       const lastAdmin = administration.slice(-1)?.[0];
       const lastAdminLevel = lastAdmin?.level + 1;
+      form.setFieldValue("level", lastAdminLevel);
       setSelectedLevel(lastAdminLevel);
     }
   }, [
