@@ -569,6 +569,7 @@ Object {
     "questionCol": "Question",
     "questionnaireText": "Questionnaire",
     "questionnairesLabel": "Questionnaires",
+    "questionnairesRequired": "Please select at least one questionnaire access level: Read-only, Editor, or Approver.",
     "realTime": "Real-Time Monitoring and Information System (IWSIMS)",
     "reportText": "Report generation and visualizations.",
     "reports": "Reports",

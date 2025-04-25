@@ -693,6 +693,8 @@ const uiText = {
     userNationalApprover: "National Approver",
     loadingText: "Loading...",
     questionnairesLabel: "Questionnaires",
+    questionnairesRequired:
+      "Please select at least one questionnaire access level: Read-only, Editor, or Approver.",
     lastLoginLabel: "Last login",
     submissionsText: "Submissions",
     notifyError: "An error occured",
