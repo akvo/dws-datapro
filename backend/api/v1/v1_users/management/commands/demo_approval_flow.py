@@ -5,7 +5,7 @@ from django.core.management import BaseCommand
 from api.v1.v1_profile.constants import UserRoleTypes, UserDesignationTypes
 from api.v1.v1_profile.models import Administration, Access, Levels
 from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.models import Forms, UserForms, UserFormAccess
+from api.v1.v1_forms.models import Forms, UserForms, FormAccess
 from api.v1.v1_forms.models import FormApprovalAssignment
 from api.v1.v1_forms.constants import FormTypes, FormAccessTypes
 from api.v1.v1_mobile.models import MobileAssignment
@@ -43,7 +43,7 @@ def create_approver(form, administration, organisation):
     # Create UserForms with approver access type
     user_form, _ = UserForms.objects.get_or_create(form=form, user=approver)
     # Ensure the user has approver access for this form
-    UserFormAccess.objects.get_or_create(
+    FormAccess.objects.get_or_create(
         user_form=user_form,
         access_type=FormAccessTypes.approve
     )
@@ -134,11 +134,11 @@ class Command(BaseCommand):
                     form=form,
                     user=submitter
                 )
-                UserFormAccess.objects.get_or_create(
+                FormAccess.objects.get_or_create(
                     user_form=user_form,
                     access_type=FormAccessTypes.edit
                 )
-                UserFormAccess.objects.get_or_create(
+                FormAccess.objects.get_or_create(
                     user_form=user_form,
                     access_type=FormAccessTypes.read
                 )

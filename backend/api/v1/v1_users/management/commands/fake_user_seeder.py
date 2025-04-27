@@ -9,7 +9,7 @@ from api.v1.v1_profile.constants import UserRoleTypes, UserDesignationTypes
 from api.v1.v1_profile.constants import OrganisationTypes
 from api.v1.v1_profile.models import Levels, Access, Administration
 from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.models import Forms, UserForms, UserFormAccess
+from api.v1.v1_forms.models import Forms, UserForms, FormAccess
 from api.v1.v1_forms.constants import FormAccessTypes
 fake = Faker()
 
@@ -58,11 +58,11 @@ def create_user(
                 user=user,
                 form=form
             )
-            UserFormAccess.objects.get_or_create(
+            FormAccess.objects.get_or_create(
                 user_form=user_form,
                 access_type=FormAccessTypes.read
             )
-            UserFormAccess.objects.get_or_create(
+            FormAccess.objects.get_or_create(
                 user_form=user_form,
                 access_type=FormAccessTypes.edit
             )
@@ -72,11 +72,11 @@ def create_user(
             user=user,
             form=form
         )
-        UserFormAccess.objects.get_or_create(
+        FormAccess.objects.get_or_create(
             user_form=user_form,
             access_type=FormAccessTypes.read
         )
-        UserFormAccess.objects.get_or_create(
+        FormAccess.objects.get_or_create(
             user_form=user_form,
             access_type=FormAccessTypes.edit
         )

@@ -4,7 +4,7 @@ from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_forms.constants import FormAccessTypes
 from api.v1.v1_forms.models import (
     FormApprovalAssignment,
-    UserFormAccess,
+    FormAccess,
     UserForms,
     Forms,
 )
@@ -158,9 +158,9 @@ def assign_form_approval(
         user_form = UserForms.objects.filter(user=user, form=fr).first()
         has_approver_access = False
 
-        # Check if the user has approver access through UserFormAccess
+        # Check if the user has approver access through FormAccess
         if user_form:
-            user_form_access = UserFormAccess.objects.filter(
+            user_form_access = FormAccess.objects.filter(
                 user_form=user_form,
                 access_type=FormAccessTypes.approve
             ).exists()

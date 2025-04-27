@@ -186,7 +186,7 @@ class UserForms(models.Model):
         db_table = "user_form"
 
 
-class UserFormAccess(models.Model):
+class FormAccess(models.Model):
     user_form = models.ForeignKey(
         to=UserForms,
         on_delete=models.CASCADE,

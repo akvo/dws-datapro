@@ -11,7 +11,7 @@ from api.v1.v1_forms.models import (
     FormApprovalAssignment,
     UserForms,
     Forms,
-    UserFormAccess,
+    FormAccess,
 )
 from api.v1.v1_forms.constants import FormAccessTypes
 from api.v1.v1_profile.constants import UserRoleTypes, OrganisationTypes
@@ -387,7 +387,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
             form=form
         )
         for access in access_types:
-            UserFormAccess.objects.create(
+            FormAccess.objects.create(
                 user_form=user_form,
                 access_type=access
             )
@@ -434,20 +434,20 @@ class UserAdministrationSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'level', 'full_name']
 
 
-class UserFormAccessSerializer(serializers.ModelSerializer):
+class FormAccessSerializer(serializers.ModelSerializer):
     label = serializers.SerializerMethodField()
     value = serializers.SerializerMethodField()
 
     @extend_schema_field(OpenApiTypes.STR)
-    def get_label(self, instance: UserFormAccess):
+    def get_label(self, instance: FormAccess):
         return FormAccessTypes.FieldStr.get(instance.access_type)
 
     @extend_schema_field(OpenApiTypes.NUMBER)
-    def get_value(self, instance: UserFormAccess):
+    def get_value(self, instance: FormAccess):
         return instance.access_type
 
     class Meta:
-        model = UserFormAccess
+        model = FormAccess
         fields = ["label", "value"]
 
 
@@ -456,10 +456,10 @@ class UserFormSerializer(serializers.ModelSerializer):
     name = serializers.ReadOnlyField(source='form.name')
     access = serializers.SerializerMethodField()
 
-    @extend_schema_field(UserFormAccessSerializer(many=True))
+    @extend_schema_field(FormAccessSerializer(many=True))
     def get_access(self, instance: UserForms):
         access = instance.user_form_access.all()
-        return UserFormAccessSerializer(instance=access, many=True).data
+        return FormAccessSerializer(instance=access, many=True).data
 
     class Meta:
         model = UserForms

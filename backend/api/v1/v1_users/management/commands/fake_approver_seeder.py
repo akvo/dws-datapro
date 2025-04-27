@@ -6,7 +6,7 @@ from django.core.management import BaseCommand
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.models import Access, Administration
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_forms.models import UserForms, UserFormAccess
+from api.v1.v1_forms.models import UserForms, FormAccess
 from api.v1.v1_forms.constants import FormAccessTypes
 
 fake = Faker()
@@ -43,7 +43,7 @@ def new_user(administrations):
             )
             # For non-level 1 (non-admin) users, grant approver access
             if administration.level.level > 1:
-                UserFormAccess.objects.get_or_create(
+                FormAccess.objects.get_or_create(
                     user_form=user_form,
                     access_type=FormAccessTypes.approve
                 )
