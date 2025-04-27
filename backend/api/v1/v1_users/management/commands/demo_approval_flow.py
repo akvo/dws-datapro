@@ -136,7 +136,7 @@ class Command(BaseCommand):
                 )
                 UserFormAccess.objects.get_or_create(
                     user_form=user_form,
-                    access_type=UserFormAccessTypes.editor
+                    access_type=UserFormAccessTypes.edit
                 )
                 UserFormAccess.objects.get_or_create(
                     user_form=user_form,

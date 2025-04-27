@@ -129,7 +129,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.editor
+                    "access_type": UserFormAccessTypes.edit
                 }
             ],
             "trained": True,
@@ -336,7 +336,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.editor
+                    "access_type": UserFormAccessTypes.edit
                 },
                 {
                     "form_id": 1,
@@ -372,7 +372,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.editor
+                    "access_type": UserFormAccessTypes.edit
                 },
                 {
                     "form_id": 1,
@@ -401,7 +401,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.editor
+                    "access_type": UserFormAccessTypes.edit
                 },
                 {
                     "form_id": 1,
@@ -514,7 +514,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.editor
+                    "access_type": UserFormAccessTypes.edit
                 }
             ],
             "trained": True,

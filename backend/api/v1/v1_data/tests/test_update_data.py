@@ -205,7 +205,7 @@ class FormDataUpdateTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.editor
+                    "access_type": UserFormAccessTypes.edit
                 }
             ],
             "role": UserRoleTypes.admin

@@ -69,7 +69,7 @@ class ProfileTestHelperMixin:
             )
             UserFormAccess.objects.get_or_create(
                 user_form=user_form,
-                access_type=UserFormAccessTypes.editor
+                access_type=UserFormAccessTypes.edit
             )
             if role_level == self.ROLE_APPROVER:
                 UserFormAccess.objects.get_or_create(

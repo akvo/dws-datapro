@@ -399,7 +399,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
             if user.user_access.role == UserRoleTypes.super_admin:
                 default_access = [
                     UserFormAccessTypes.read,
-                    UserFormAccessTypes.editor
+                    UserFormAccessTypes.edit
                 ]
                 for form in Forms.objects.all():
                     self._create_form_access(user, form, default_access)

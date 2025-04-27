@@ -8,11 +8,11 @@ from api.v1.v1_forms.constants import UserFormAccessTypes
 class IsSubmitter(BasePermission):
     def has_permission(self, request, view):
         # Check for approver access via UserFormAccess
-        has_editor_access = UserFormAccess.objects.filter(
+        has_edit_access = UserFormAccess.objects.filter(
             user_form__user=request.user,
-            access_type=UserFormAccessTypes.editor
+            access_type=UserFormAccessTypes.edit
         ).exists()
-        if has_editor_access:
+        if has_edit_access:
             return True
         return False
 

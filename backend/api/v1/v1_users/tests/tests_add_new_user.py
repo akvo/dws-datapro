@@ -76,7 +76,7 @@ class AddNewUserTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.editor
+                    "access_type": UserFormAccessTypes.edit
                 },
             ],
             "trained": True,

@@ -64,7 +64,7 @@ def create_user(
             )
             UserFormAccess.objects.get_or_create(
                 user_form=user_form,
-                access_type=UserFormAccessTypes.editor
+                access_type=UserFormAccessTypes.edit
             )
     if not is_superadmin:
         form = Forms.objects.all().order_by('?').first()
@@ -78,7 +78,7 @@ def create_user(
         )
         UserFormAccess.objects.get_or_create(
             user_form=user_form,
-            access_type=UserFormAccessTypes.editor
+            access_type=UserFormAccessTypes.edit
         )
     return user
 
