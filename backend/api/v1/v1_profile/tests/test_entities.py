@@ -15,7 +15,7 @@ class EntityTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         super().setUp()
         call_command("administration_seeder", "--test")
-        self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
+        self.user = self.create_user('test@akvo.org', self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
 
     def test_list(self):
@@ -99,7 +99,7 @@ class EntityDataTestCase(TestCase, ProfileTestHelperMixin):
         call_command("administration_seeder", "--test")
         for n in range(2):
             Entity.objects.create(name=f'entity #{n+1}')
-        self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
+        self.user = self.create_user('test@akvo.org', self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
 
     def test_list(self):
@@ -248,7 +248,7 @@ class EntityDataFilterTestCase(TestCase, ProfileTestHelperMixin):
         ]
         seed_levels(geo_config=geo_config)
         self.populate_test_data()
-        self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
+        self.user = self.create_user('test@akvo.org', self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
 
     def test_filter_by_administration_level_3(self):

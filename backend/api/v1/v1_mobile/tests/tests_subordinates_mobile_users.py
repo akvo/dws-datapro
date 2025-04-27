@@ -27,14 +27,14 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
 
         self.user = self.create_user(
             email='user@akvo.org',
-            role_level=self.ROLE_ADMIN,
+            role_level=self.IS_ADMIN,
             password='password',
             administration=administration,
             form=form,
         )
         self.approver = self.create_user(
             email='approver@akvo.org',
-            role_level=self.ROLE_APPROVER,
+            role_level=self.IS_APPROVER,
             password='password',
             administration=administration.parent,
             form=form,

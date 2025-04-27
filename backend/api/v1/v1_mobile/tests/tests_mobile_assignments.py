@@ -31,7 +31,7 @@ class MobileAssignmentTestCase(TestCase, ProfileTestHelperMixin):
                     administration=adm,
                     name=f"{entity.name} - {adm.name}"
                 )
-        self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
+        self.user = self.create_user('test@akvo.org', self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
 
     def test_list(self):
@@ -61,7 +61,7 @@ class MobileAssignmentTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(len(body['data']), 2)
 
     def test_list_shows_only_created_by_user(self):
-        other_user = self.create_user('otheruser@akvo.org', self.ROLE_ADMIN)
+        other_user = self.create_user('otheruser@akvo.org', self.IS_ADMIN)
         assignment1 = MobileAssignment.objects.create_assignment(
                 user=other_user, name='assignment #1')
         assignment2 = MobileAssignment.objects.create_assignment(

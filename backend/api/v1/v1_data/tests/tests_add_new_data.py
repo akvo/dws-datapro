@@ -26,7 +26,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         adm_name = re.sub("[^A-Za-z0-9]+", "", adm.name.lower())
         user = self.create_user(
             email="{0}.1@test.com".format(adm_name),
-            role_level=self.ROLE_SUPER_ADMIN,
+            role_level=self.IS_SUPER_ADMIN,
             administration=adm,
         )
         t = RefreshToken.for_user(user)
@@ -105,7 +105,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         )
         user = self.create_user(
             email=email,
-            role_level=self.ROLE_ADMIN,
+            role_level=self.IS_ADMIN,
             administration=adm,
         )
         # login
@@ -177,7 +177,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         ).first()
         super_approver = self.create_user(
             email="supeer.approver@test.com",
-            role_level=self.ROLE_APPROVER,
+            role_level=self.IS_APPROVER,
             administration=national_adm,
             form=form,
         )
@@ -246,7 +246,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         )
         user = self.create_user(
             email=email,
-            role_level=self.ROLE_ADMIN,
+            role_level=self.IS_ADMIN,
             administration=adm,
         )
         auth_res = self.client.post(
@@ -312,7 +312,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         adm_name = re.sub("[^A-Za-z0-9]+", "", adm.name.lower())
         user = self.create_user(
             email="{}.emtpy@test.com".format(adm_name),
-            role_level=self.ROLE_ADMIN,
+            role_level=self.IS_ADMIN,
             administration=adm,
         )
         # login

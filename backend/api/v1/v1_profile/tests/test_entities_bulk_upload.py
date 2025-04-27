@@ -17,7 +17,7 @@ class EntityTestBulkUploadCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         super().setUp()
         call_command("administration_seeder", "--test")
-        self.user = self.create_user("test@akvo.org", self.ROLE_ADMIN)
+        self.user = self.create_user("test@akvo.org", self.IS_ADMIN)
         call_command("entities_seeder", "--test", True)
         self.token = self.get_auth_token(self.user.email)
         test_folder = "api/v1/v1_profile/tests/fixtures"

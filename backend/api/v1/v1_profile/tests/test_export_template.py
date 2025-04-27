@@ -25,7 +25,7 @@ class AdministrationBulkUploadTemplateExportTestCase(
     def setUp(self):
         super().setUp()
         call_command("administration_seeder", "--test")
-        self.user = self.create_user("test@akvo.org", self.ROLE_ADMIN)
+        self.user = self.create_user("test@akvo.org", self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
         self.attribute1 = AdministrationAttribute.objects.create(
             name="attribute #1"

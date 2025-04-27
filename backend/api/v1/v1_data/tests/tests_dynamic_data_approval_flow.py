@@ -77,7 +77,7 @@ class DynamicDataApprovalFlowTestCase(
         email = ("{0}.{1}@test.com").format(adm_name, random.randint(1, 10))
         user = self.create_user(
             email=email,
-            role_level=self.ROLE_ADMIN,
+            role_level=self.IS_ADMIN,
             administration=adm,
         )
 

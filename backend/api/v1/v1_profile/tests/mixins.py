@@ -6,7 +6,7 @@ from faker import Faker
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Access, Administration
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_forms.models import UserForms, UserFormAccess, Forms
+from api.v1.v1_forms.models import UserForms, FormAccess, Forms
 from api.v1.v1_forms.constants import FormAccessTypes
 fake = Faker()
 
@@ -19,9 +19,9 @@ class HasTestClientProtocol(typing.Protocol):
 
 class ProfileTestHelperMixin:
 
-    ROLE_SUPER_ADMIN = 0
-    ROLE_ADMIN = 1
-    ROLE_APPROVER = 2
+    IS_SUPER_ADMIN = 0
+    IS_ADMIN = 1
+    IS_APPROVER = 2
 
     def create_user(
         self,
@@ -42,7 +42,7 @@ class ProfileTestHelperMixin:
         user.save()
 
         if not administration:
-            if role_level == self.ROLE_SUPER_ADMIN:
+            if role_level == self.IS_SUPER_ADMIN:
                 administration = Administration.objects.filter(
                     level__level=0
                 ).order_by('?').first()
@@ -51,7 +51,7 @@ class ProfileTestHelperMixin:
                     level__level__gt=0
                 ).order_by('?').first()
         role = UserRoleTypes.super_admin \
-            if role_level == self.ROLE_SUPER_ADMIN else UserRoleTypes.admin
+            if role_level == self.IS_SUPER_ADMIN else UserRoleTypes.admin
         Access.objects.create(
             user=user,
             role=role,
@@ -63,16 +63,16 @@ class ProfileTestHelperMixin:
                 user=user,
                 form=form
             )
-            UserFormAccess.objects.get_or_create(
+            FormAccess.objects.get_or_create(
                 user_form=user_form,
                 access_type=FormAccessTypes.read
             )
-            UserFormAccess.objects.get_or_create(
+            FormAccess.objects.get_or_create(
                 user_form=user_form,
                 access_type=FormAccessTypes.edit
             )
-            if role_level == self.ROLE_APPROVER:
-                UserFormAccess.objects.get_or_create(
+            if role_level == self.IS_APPROVER:
+                FormAccess.objects.get_or_create(
                     user_form=user_form,
                     access_type=FormAccessTypes.approve
                 )

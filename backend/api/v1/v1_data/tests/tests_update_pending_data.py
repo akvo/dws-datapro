@@ -22,7 +22,7 @@ class UpdatePendingDataTestCase(TestCase, ProfileTestHelperMixin):
 
         user = self.create_user(
             email="data-entry.999@test.com",
-            role_level=self.ROLE_ADMIN,
+            role_level=self.IS_ADMIN,
             administration=adm,
         )
         user_id = user.id
