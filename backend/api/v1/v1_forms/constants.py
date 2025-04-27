@@ -63,10 +63,10 @@ class AttributeTypes:
 class UserFormAccessTypes:
     read = 1
     edit = 2
-    approver = 3
+    approve = 3
 
     FieldStr = {
         read: "Read",
         edit: "Editor",
-        approver: "Approver",
+        approve: "approve",
     }

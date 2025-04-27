@@ -45,7 +45,7 @@ def new_user(administrations):
             if administration.level.level > 1:
                 UserFormAccess.objects.get_or_create(
                     user_form=user_form,
-                    access_type=UserFormAccessTypes.approver
+                    access_type=UserFormAccessTypes.approve
                 )
 
 

@@ -44,7 +44,7 @@ class FormApprovalTestCase(TestCase):
                 },
                 {
                     "form_id": self.form.id,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "trained": True,

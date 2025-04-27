@@ -401,7 +401,7 @@ def add_user(request, version):
     approver_forms = [
         item["form_id"]
         for item in serializer.validated_data.get("access_forms", [])
-        if item["access_type"] == UserFormAccessTypes.approver
+        if item["access_type"] == UserFormAccessTypes.approve
     ]
 
     # when add new user as approver or admin with approver forms
@@ -703,7 +703,7 @@ class UserEditDeleteView(APIView):
         approver_forms = [
             item["form_id"]
             for item in serializer.validated_data.get("access_forms")
-            if item["access_type"] == UserFormAccessTypes.approver
+            if item["access_type"] == UserFormAccessTypes.approve
         ]
         if approver_forms:
             assign_form_approval(

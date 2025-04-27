@@ -340,7 +340,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "trained": False,
@@ -376,7 +376,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "trained": False,
@@ -405,7 +405,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "trained": False,
@@ -432,7 +432,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "trained": True,
@@ -464,7 +464,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "trained": True,
@@ -489,7 +489,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "trained": True,
@@ -554,7 +554,7 @@ class UserInvitationTestCase(TestCase):
             },
             {
                 "form_id": 2,
-                "access_type": UserFormAccessTypes.approver
+                "access_type": UserFormAccessTypes.approve
             }
         ]
         add_response = self.client.post("/api/v1/user",
@@ -762,7 +762,7 @@ class UserInvitationTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 }
             ],
             "administration": adm_id,

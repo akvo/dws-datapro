@@ -22,7 +22,7 @@ class IsApprover(BasePermission):
         # Check if user has any form with approver access
         has_approver_access = UserFormAccess.objects.filter(
             user_form__user=request.user,
-            access_type=UserFormAccessTypes.approver
+            access_type=UserFormAccessTypes.approve
         ).exists()
         return has_approver_access
 
@@ -62,7 +62,7 @@ class PublicGet(BasePermission):
         # Check for approver access via UserFormAccess
         has_approver_access = UserFormAccess.objects.filter(
             user_form__user=request.user,
-            access_type=UserFormAccessTypes.approver
+            access_type=UserFormAccessTypes.approve
         ).exists()
         if has_approver_access:
             return True

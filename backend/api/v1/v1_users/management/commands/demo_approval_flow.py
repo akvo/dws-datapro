@@ -45,7 +45,7 @@ def create_approver(form, administration, organisation):
     # Ensure the user has approver access for this form
     UserFormAccess.objects.get_or_create(
         user_form=user_form,
-        access_type=UserFormAccessTypes.approver
+        access_type=UserFormAccessTypes.approve
     )
     # Create form approval assignment
     assignment = FormApprovalAssignment.objects.create(

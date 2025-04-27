@@ -74,7 +74,7 @@ class ProfileTestHelperMixin:
             if role_level == self.ROLE_APPROVER:
                 UserFormAccess.objects.get_or_create(
                     user_form=user_form,
-                    access_type=UserFormAccessTypes.approver
+                    access_type=UserFormAccessTypes.approve
                 )
         return user
 

@@ -44,7 +44,7 @@ class UpdateUserTestCase(TestCase):
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approver
+                    "access_type": UserFormAccessTypes.approve
                 },
             ],
             "trained": True,
@@ -128,7 +128,7 @@ class UpdateUserTestCase(TestCase):
         self.assertEqual(len(user_forms), 1)
         user_form = user_forms.first()
         self.assertNotIn(
-            UserFormAccessTypes.approver,
+            UserFormAccessTypes.approve,
             [
                 form_access.access_type
                 for form_access in user_form.user_form_access.all()
