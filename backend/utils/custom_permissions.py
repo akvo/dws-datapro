@@ -2,7 +2,7 @@ from rest_framework.permissions import BasePermission
 
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_forms.models import UserFormAccess
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 
 
 class IsSubmitter(BasePermission):
@@ -10,7 +10,7 @@ class IsSubmitter(BasePermission):
         # Check for approver access via UserFormAccess
         has_edit_access = UserFormAccess.objects.filter(
             user_form__user=request.user,
-            access_type=UserFormAccessTypes.edit
+            access_type=FormAccessTypes.edit
         ).exists()
         if has_edit_access:
             return True
@@ -22,7 +22,7 @@ class IsApprover(BasePermission):
         # Check if user has any form with approver access
         has_approver_access = UserFormAccess.objects.filter(
             user_form__user=request.user,
-            access_type=UserFormAccessTypes.approve
+            access_type=FormAccessTypes.approve
         ).exists()
         return has_approver_access
 
@@ -62,7 +62,7 @@ class PublicGet(BasePermission):
         # Check for approver access via UserFormAccess
         has_approver_access = UserFormAccess.objects.filter(
             user_form__user=request.user,
-            access_type=UserFormAccessTypes.approve
+            access_type=FormAccessTypes.approve
         ).exists()
         if has_approver_access:
             return True

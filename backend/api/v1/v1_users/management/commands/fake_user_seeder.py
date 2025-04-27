@@ -10,7 +10,7 @@ from api.v1.v1_profile.constants import OrganisationTypes
 from api.v1.v1_profile.models import Levels, Access, Administration
 from api.v1.v1_users.models import SystemUser, Organisation
 from api.v1.v1_forms.models import Forms, UserForms, UserFormAccess
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 fake = Faker()
 
 DEFAULT_PASSWORD = "Test#1234"
@@ -60,11 +60,11 @@ def create_user(
             )
             UserFormAccess.objects.get_or_create(
                 user_form=user_form,
-                access_type=UserFormAccessTypes.read
+                access_type=FormAccessTypes.read
             )
             UserFormAccess.objects.get_or_create(
                 user_form=user_form,
-                access_type=UserFormAccessTypes.edit
+                access_type=FormAccessTypes.edit
             )
     if not is_superadmin:
         form = Forms.objects.all().order_by('?').first()
@@ -74,11 +74,11 @@ def create_user(
         )
         UserFormAccess.objects.get_or_create(
             user_form=user_form,
-            access_type=UserFormAccessTypes.read
+            access_type=FormAccessTypes.read
         )
         UserFormAccess.objects.get_or_create(
             user_form=user_form,
-            access_type=UserFormAccessTypes.edit
+            access_type=FormAccessTypes.edit
         )
     return user
 

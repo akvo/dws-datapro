@@ -8,7 +8,7 @@ from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser, Organisation
 from api.v1.v1_forms.models import FormApprovalAssignment
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 from utils.email_helper import EmailTypes
 
 
@@ -125,11 +125,11 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 }
             ],
             "trained": True,
@@ -161,11 +161,11 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 2,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 }
             ],
             "inform_user": True,
@@ -194,7 +194,7 @@ class UserInvitationTestCase(TestCase):
         edit_payload["access_forms"] = [
             {
                 "form_id": 2,
-                "access_type": UserFormAccessTypes.read
+                "access_type": FormAccessTypes.read
             }
         ]
         add_response = self.client.put("/api/v1/user/{0}".format(fl[0]['id']),
@@ -234,7 +234,7 @@ class UserInvitationTestCase(TestCase):
                     "access": [
                         {
                             "label": "Read",
-                            "value": UserFormAccessTypes.read,
+                            "value": FormAccessTypes.read,
                         }
                     ]
                 }
@@ -243,11 +243,11 @@ class UserInvitationTestCase(TestCase):
         edit_payload["access_forms"] = [
             {
                 "form_id": 1,
-                "access_type": UserFormAccessTypes.read
+                "access_type": FormAccessTypes.read
             },
             {
                 "form_id": 2,
-                "access_type": UserFormAccessTypes.read
+                "access_type": FormAccessTypes.read
             }
         ]
         add_response = self.client.put("/api/v1/user/{0}".format(fl[0]['id']),
@@ -277,7 +277,7 @@ class UserInvitationTestCase(TestCase):
                     "access": [
                         {
                             "label": "Read",
-                            "value": UserFormAccessTypes.read,
+                            "value": FormAccessTypes.read,
                         }
                     ]
                 },
@@ -287,7 +287,7 @@ class UserInvitationTestCase(TestCase):
                     "access": [
                         {
                             "label": "Read",
-                            "value": UserFormAccessTypes.read,
+                            "value": FormAccessTypes.read,
                         }
                     ]
                 }
@@ -309,7 +309,7 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": form.id,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 } for form in find_user.user_form.all()
             ],
             "inform_user": True,
@@ -332,15 +332,15 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "trained": False,
@@ -368,15 +368,15 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "trained": False,
@@ -397,15 +397,15 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "trained": False,
@@ -428,11 +428,11 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "trained": True,
@@ -460,11 +460,11 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "trained": True,
@@ -485,11 +485,11 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "trained": True,
@@ -510,11 +510,11 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 }
             ],
             "trained": True,
@@ -550,11 +550,11 @@ class UserInvitationTestCase(TestCase):
         payload["access_forms"] = [
             {
                 "form_id": 2,
-                "access_type": UserFormAccessTypes.read
+                "access_type": FormAccessTypes.read
             },
             {
                 "form_id": 2,
-                "access_type": UserFormAccessTypes.approve
+                "access_type": FormAccessTypes.approve
             }
         ]
         add_response = self.client.post("/api/v1/user",
@@ -758,11 +758,11 @@ class UserInvitationTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "administration": adm_id,

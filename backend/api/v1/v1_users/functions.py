@@ -1,7 +1,7 @@
 from django.utils import timezone
 from typing import List
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 from api.v1.v1_forms.models import (
     FormApprovalAssignment,
     UserFormAccess,
@@ -19,7 +19,7 @@ def is_has_approver(role: int, access_forms: list = None):
     has_approver_access = False
     if access_forms:
         for form_access in access_forms:
-            if form_access.get('access_type') == UserFormAccessTypes.approve:
+            if form_access.get('access_type') == FormAccessTypes.approve:
                 has_approver_access = True
                 break
     is_approver = role == UserRoleTypes.admin and has_approver_access
@@ -107,7 +107,7 @@ def check_form_approval_assigned(
         form_to_assign = [
             item["form_id"].id
             for item in access_forms
-            if item["access_type"] == UserFormAccessTypes.approve
+            if item["access_type"] == FormAccessTypes.approve
         ]
         for fa in form_assigned:
             if fa not in form_to_assign:
@@ -162,7 +162,7 @@ def assign_form_approval(
         if user_form:
             user_form_access = UserFormAccess.objects.filter(
                 user_form=user_form,
-                access_type=UserFormAccessTypes.approve
+                access_type=FormAccessTypes.approve
             ).exists()
             if user_form_access:
                 has_approver_access = True

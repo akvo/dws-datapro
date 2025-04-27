@@ -60,13 +60,13 @@ class AttributeTypes:
     }
 
 
-class UserFormAccessTypes:
+class FormAccessTypes:
     read = 1
     edit = 2
     approve = 3
 
     FieldStr = {
         read: "Read",
-        edit: "Editor",
-        approve: "approve",
+        edit: "Edit",
+        approve: "Approve",
     }

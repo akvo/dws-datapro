@@ -7,7 +7,7 @@ from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.models import Access, Administration
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_forms.models import UserForms, UserFormAccess
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 
 fake = Faker()
 
@@ -45,7 +45,7 @@ def new_user(administrations):
             if administration.level.level > 1:
                 UserFormAccess.objects.get_or_create(
                     user_form=user_form,
-                    access_type=UserFormAccessTypes.approve
+                    access_type=FormAccessTypes.approve
                 )
 
 

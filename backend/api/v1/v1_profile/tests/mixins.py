@@ -7,7 +7,7 @@ from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Access, Administration
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_forms.models import UserForms, UserFormAccess, Forms
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 fake = Faker()
 
 
@@ -65,16 +65,16 @@ class ProfileTestHelperMixin:
             )
             UserFormAccess.objects.get_or_create(
                 user_form=user_form,
-                access_type=UserFormAccessTypes.read
+                access_type=FormAccessTypes.read
             )
             UserFormAccess.objects.get_or_create(
                 user_form=user_form,
-                access_type=UserFormAccessTypes.edit
+                access_type=FormAccessTypes.edit
             )
             if role_level == self.ROLE_APPROVER:
                 UserFormAccess.objects.get_or_create(
                     user_form=user_form,
-                    access_type=UserFormAccessTypes.approve
+                    access_type=FormAccessTypes.approve
                 )
         return user
 

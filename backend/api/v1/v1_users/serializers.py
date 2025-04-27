@@ -13,7 +13,7 @@ from api.v1.v1_forms.models import (
     Forms,
     UserFormAccess,
 )
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 from api.v1.v1_profile.constants import UserRoleTypes, OrganisationTypes
 from api.v1.v1_profile.models import Administration, Access, Levels
 from api.v1.v1_users.models import SystemUser, \
@@ -255,7 +255,7 @@ class FormAccessSerializer(serializers.Serializer):
         queryset=Forms.objects.none()
     )
     access_type = CustomChoiceField(
-        choices=list(UserFormAccessTypes.FieldStr.keys())
+        choices=list(FormAccessTypes.FieldStr.keys())
     )
 
     def __init__(self, **kwargs):
@@ -398,8 +398,8 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         if not access_forms_data:
             if user.user_access.role == UserRoleTypes.super_admin:
                 default_access = [
-                    UserFormAccessTypes.read,
-                    UserFormAccessTypes.edit
+                    FormAccessTypes.read,
+                    FormAccessTypes.edit
                 ]
                 for form in Forms.objects.all():
                     self._create_form_access(user, form, default_access)
@@ -440,7 +440,7 @@ class UserFormAccessSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_label(self, instance: UserFormAccess):
-        return UserFormAccessTypes.FieldStr.get(instance.access_type)
+        return FormAccessTypes.FieldStr.get(instance.access_type)
 
     @extend_schema_field(OpenApiTypes.NUMBER)
     def get_value(self, instance: UserFormAccess):

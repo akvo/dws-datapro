@@ -63,7 +63,7 @@ from api.v1.v1_users.functions import (
 )
 
 from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 from iwsims.settings import REST_FRAMEWORK, WEBDOMAIN
 from utils.custom_permissions import IsSuperAdmin, IsAdmin
 from utils.custom_serializer_fields import validate_serializers_message
@@ -401,7 +401,7 @@ def add_user(request, version):
     approver_forms = [
         item["form_id"]
         for item in serializer.validated_data.get("access_forms", [])
-        if item["access_type"] == UserFormAccessTypes.approve
+        if item["access_type"] == FormAccessTypes.approve
     ]
 
     # when add new user as approver or admin with approver forms
@@ -703,7 +703,7 @@ class UserEditDeleteView(APIView):
         approver_forms = [
             item["form_id"]
             for item in serializer.validated_data.get("access_forms")
-            if item["access_type"] == UserFormAccessTypes.approve
+            if item["access_type"] == FormAccessTypes.approve
         ]
         if approver_forms:
             assign_form_approval(

@@ -6,7 +6,7 @@ from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration, Levels, Access
 from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 
 
 @override_settings(USE_TZ=False)
@@ -40,11 +40,11 @@ class FormApprovalTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": self.form.id,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": self.form.id,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 }
             ],
             "trained": True,

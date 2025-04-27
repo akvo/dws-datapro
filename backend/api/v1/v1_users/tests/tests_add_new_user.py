@@ -6,7 +6,7 @@ from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser, Organisation
 from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 
 
 @override_settings(USE_TZ=False)
@@ -72,11 +72,11 @@ class AddNewUserTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 },
             ],
             "trained": True,

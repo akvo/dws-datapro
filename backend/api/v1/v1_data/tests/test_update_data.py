@@ -6,7 +6,7 @@ from django.test.utils import override_settings
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_forms.constants import FormTypes
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.models import Administration
 
@@ -201,11 +201,11 @@ class FormDataUpdateTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 }
             ],
             "role": UserRoleTypes.admin

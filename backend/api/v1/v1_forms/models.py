@@ -8,7 +8,7 @@ from api.v1.v1_forms.constants import (
     FormTypes,
     AttributeTypes,
     SubmissionTypes,
-    UserFormAccessTypes,
+    FormAccessTypes,
 )
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
@@ -193,7 +193,7 @@ class UserFormAccess(models.Model):
         related_name="user_form_access",
     )
     access_type = models.IntegerField(
-        choices=UserFormAccessTypes.FieldStr.items()
+        choices=FormAccessTypes.FieldStr.items()
     )
 
     def __str__(self):

@@ -5,7 +5,7 @@ from django.test.utils import override_settings
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.constants import UserFormAccessTypes
+from api.v1.v1_forms.constants import FormAccessTypes
 
 
 @override_settings(USE_TZ=False)
@@ -40,11 +40,11 @@ class UpdateUserTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.approve
+                    "access_type": FormAccessTypes.approve
                 },
             ],
             "trained": True,
@@ -93,11 +93,11 @@ class UpdateUserTestCase(TestCase):
             "access_forms": [
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.read
+                    "access_type": FormAccessTypes.read
                 },
                 {
                     "form_id": 1,
-                    "access_type": UserFormAccessTypes.edit
+                    "access_type": FormAccessTypes.edit
                 },
             ],
         }
@@ -128,7 +128,7 @@ class UpdateUserTestCase(TestCase):
         self.assertEqual(len(user_forms), 1)
         user_form = user_forms.first()
         self.assertNotIn(
-            UserFormAccessTypes.approve,
+            FormAccessTypes.approve,
             [
                 form_access.access_type
                 for form_access in user_form.user_form_access.all()
