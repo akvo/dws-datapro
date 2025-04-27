@@ -1,10 +1,10 @@
 import api from "./api";
 import {
-  FORM_ACCESS_ID_APPROVER,
-  FORM_ACCESS_ID_EDITOR,
-  FORM_ACCESS_ID_READ,
-  ROLE_ID_ADMIN,
-  ROLE_ID_SUPERADMIN,
+  FORM_APPROVER_ACCESS,
+  FORM_EDITOR_ACCESS,
+  FORM_READER_ACCESS,
+  IS_ADMIN,
+  IS_SUPER_ADMIN,
 } from "./constants";
 
 const config = {
@@ -33,7 +33,7 @@ const config = {
   ],
   roles: [
     {
-      id: ROLE_ID_SUPERADMIN,
+      id: IS_SUPER_ADMIN,
       name: "Super Admin",
       filter_form: false,
       delete_data: true,
@@ -66,7 +66,7 @@ const config = {
       ],
     },
     {
-      id: ROLE_ID_ADMIN,
+      id: IS_ADMIN,
       name: "Admin",
       filter_form: false,
       delete_data: true,
@@ -853,17 +853,17 @@ const config = {
   maxLevelApproval: 3,
   accessFormTypes: [
     {
-      id: FORM_ACCESS_ID_READ,
+      id: FORM_READER_ACCESS,
       label: "Read Only",
       value: false,
     },
     {
-      id: FORM_ACCESS_ID_EDITOR,
+      id: FORM_EDITOR_ACCESS,
       label: "Editor",
       value: false,
     },
     {
-      id: FORM_ACCESS_ID_APPROVER,
+      id: FORM_APPROVER_ACCESS,
       label: "Approver",
       value: false,
     },

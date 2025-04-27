@@ -19,9 +19,9 @@ import {
   store,
   config,
   uiText,
-  ROLE_ID_ADMIN,
-  ROLE_ID_SUPERADMIN,
-  FORM_ACCESS_ID_APPROVER,
+  IS_ADMIN,
+  IS_SUPER_ADMIN,
+  FORM_APPROVER_ACCESS,
 } from "../../lib";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { takeRight, take } from "lodash";
@@ -105,9 +105,7 @@ const AddUser = () => {
 
   const allowedRoles = useMemo(() => {
     const lookUp =
-      authUser?.role?.id === ROLE_ID_SUPERADMIN
-        ? ROLE_ID_SUPERADMIN
-        : ROLE_ID_ADMIN;
+      authUser?.role?.id === IS_SUPER_ADMIN ? IS_SUPER_ADMIN : IS_ADMIN;
     return config.roles.filter((r) => r.id >= lookUp);
   }, [authUser]);
 
@@ -118,18 +116,18 @@ const AddUser = () => {
         ...d,
         access: d.access.map((a) => ({
           ...a,
-          value: a.id === FORM_ACCESS_ID_APPROVER,
+          value: a.id === FORM_APPROVER_ACCESS,
         })),
       }));
   };
 
   const onFinish = (values) => {
-    if (selectedLevel === null && values.role === ROLE_ID_ADMIN) {
+    if (selectedLevel === null && values.role === IS_ADMIN) {
       setLevelError(true);
       return;
     }
     const admLevel = administration.length;
-    if (admLevel !== selectedLevel && values.role === ROLE_ID_ADMIN) {
+    if (admLevel !== selectedLevel && values.role === IS_ADMIN) {
       setAdminError(
         `Please select a ${
           window.levels.find((l) => l.id === selectedLevel)?.name
@@ -273,7 +271,7 @@ const AddUser = () => {
            * Check if all forms have the approver access
            */
           const isNationalApprover = editForms.every((f) =>
-            f.access.some((a) => a.id === FORM_ACCESS_ID_APPROVER && a.value)
+            f.access.some((a) => a.id === FORM_APPROVER_ACCESS && a.value)
           );
           form.setFieldsValue({
             administration: res.data?.administration,
@@ -507,7 +505,7 @@ const AddUser = () => {
                       )}
                     </Col>
                   </Row>
-                  {role === ROLE_ID_ADMIN && (
+                  {role === IS_ADMIN && (
                     <Form.Item
                       label={text.admLevel}
                       name="level"
@@ -537,7 +535,7 @@ const AddUser = () => {
                       )}
                     </Form.Item>
                   )}
-                  {role === ROLE_ID_ADMIN &&
+                  {role === IS_ADMIN &&
                     selectedLevel &&
                     selectedLevel !== NATIONAL_LEVEL && (
                       <Row className="form-row">
@@ -561,7 +559,7 @@ const AddUser = () => {
                         </Col>
                       </Row>
                     )}
-                  {role === ROLE_ID_SUPERADMIN && (
+                  {role === IS_SUPER_ADMIN && (
                     <Row justify="center" align="middle">
                       <Col span={18} offset={6}>
                         <div className="form-row">
@@ -576,7 +574,7 @@ const AddUser = () => {
                     </Row>
                   )}
 
-                  {(role === ROLE_ID_ADMIN ||
+                  {(role === IS_ADMIN ||
                     formInstance.getFieldValue("nationalApprover") ===
                       true) && (
                     <Row
@@ -614,7 +612,7 @@ const AddUser = () => {
                             }),
                           ]}
                         >
-                          {role === ROLE_ID_ADMIN && (
+                          {role === IS_ADMIN && (
                             <Form.List name="forms">
                               {(fields) => (
                                 <FormAccessCollapsible

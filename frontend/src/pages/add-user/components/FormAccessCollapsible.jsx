@@ -1,12 +1,12 @@
 import React from "react";
 import { Collapse, Form, Input, Space, Checkbox } from "antd";
-import { config, FORM_ACCESS_ID_READ } from "../../../lib";
+import { config, FORM_READER_ACCESS } from "../../../lib";
 
 const { Panel } = Collapse;
 
 const FormAccessCollapsible = ({ form, formInstance, fields }) => {
   const indexOfReadOnly = config.accessFormTypes.findIndex(
-    (af) => af.id === FORM_ACCESS_ID_READ
+    (af) => af.id === FORM_READER_ACCESS
   );
 
   return (
