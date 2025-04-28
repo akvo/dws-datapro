@@ -47,6 +47,14 @@ const Sidebar = () => {
         url: "/control-center/master-data/organisations",
       },
     ],
+    submissions: {
+      label: "Manage Submissions",
+      url: "/control-center/data/submissions",
+    },
+    approvals: {
+      label: "Manage Approvals",
+      url: "/control-center/approvals",
+    },
   };
 
   const controlCenterToLabelMapping = {
@@ -62,7 +70,7 @@ const Sidebar = () => {
     "manage-data": {
       label: "Data",
       icon: TableOutlined,
-      childrenKeys: ["data"],
+      childrenKeys: ["data", "submissions", "approvals"],
     },
     "manage-master-data": {
       label: "Master Data",
@@ -187,6 +195,7 @@ const Sidebar = () => {
   };
 
   const handleMenuClick = ({ key }) => {
+    setSelectedKey(key);
     handleResetGlobalFilterState();
     const url = findUrlByKey(usersMenuItem, key);
     navigate(url);
@@ -218,29 +227,29 @@ const Sidebar = () => {
     }
   }, []);
 
-  useEffect(() => {
-    const currentKey = findKeyByUrl(usersMenuItem, location.pathname);
-    if (currentKey !== selectedKey || openKeys.length === 0) {
-      setSelectedKey(currentKey);
-      const newOpenKeys = [];
-      for (const menu of usersMenuItem) {
-        if (menu.url && menu.key === currentKey) {
-          newOpenKeys.push(menu.key);
-          break;
-        }
-        if (menu.children) {
-          const item = menu.children.find((child) => child.key === currentKey);
-          if (item) {
-            newOpenKeys.push(menu.key);
-            break;
-          }
-        }
-      }
-      if (JSON.stringify(openKeys) !== JSON.stringify(newOpenKeys)) {
-        setOpenKeys(newOpenKeys);
-      }
-    }
-  }, [usersMenuItem, selectedKey, openKeys, findKeyByUrl]);
+  // useEffect(() => {
+  //   const currentKey = findKeyByUrl(usersMenuItem, location.pathname);
+  //   if (currentKey !== selectedKey || openKeys.length === 0) {
+  //     setSelectedKey(currentKey);
+  //     const newOpenKeys = [];
+  //     for (const menu of usersMenuItem) {
+  //       if (menu.url && menu.key === currentKey) {
+  //         newOpenKeys.push(menu.key);
+  //         break;
+  //       }
+  //       if (menu.children) {
+  //         const item = menu.children.find((child) => child.key === currentKey);
+  //         if (item) {
+  //           newOpenKeys.push(menu.key);
+  //           break;
+  //         }
+  //       }
+  //     }
+  //     if (JSON.stringify(openKeys) !== JSON.stringify(newOpenKeys)) {
+  //       setOpenKeys(newOpenKeys);
+  //     }
+  //   }
+  // }, [usersMenuItem, selectedKey, openKeys, findKeyByUrl]);
 
   return (
     <Sider className="site-layout-background">
