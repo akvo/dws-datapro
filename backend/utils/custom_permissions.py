@@ -5,7 +5,7 @@ from api.v1.v1_forms.models import FormAccess
 from api.v1.v1_forms.constants import FormAccessTypes
 
 
-class IsSubmitter(BasePermission):
+class IsEditor(BasePermission):
     def has_permission(self, request, view):
         # Check for approver access via FormAccess
         has_edit_access = FormAccess.objects.filter(
@@ -39,6 +39,13 @@ class IsSuperAdmin(BasePermission):
         if request.user.user_access.role == UserRoleTypes.super_admin:
             return True
         return False
+
+
+class IsEditorOrSuperAdmin(BasePermission):
+    def has_permission(self, request, view):
+        is_editor = IsEditor().has_permission(request, view)
+        is_super_admin = IsSuperAdmin().has_permission(request, view)
+        return is_editor or is_super_admin
 
 
 class PublicGet(BasePermission):
