@@ -237,11 +237,11 @@ def seed_county_data(
             user = SystemUser.objects.filter(
                 user_form__form_id__in=[form.pk],
                 user_access__administration=administration,
-                user_access__role=UserRoleTypes.user
+                user_access__role=UserRoleTypes.admin
             ).order_by('?').first()
             if not user:
                 user = create_user(
-                    role=UserRoleTypes.user,
+                    role=UserRoleTypes.admin,
                     administration=administration,
                     random_password=False,
                 )

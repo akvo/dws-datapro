@@ -6,6 +6,7 @@ from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration, Levels, Access
 from api.v1.v1_users.models import SystemUser, Organisation
+from api.v1.v1_forms.constants import FormAccessTypes
 
 
 @override_settings(USE_TZ=False)
@@ -35,8 +36,17 @@ class FormApprovalTestCase(TestCase):
             "email": email,
             "administration": admin.id,
             "organisation": self.org.id,
-            "role": UserRoleTypes.approver,
-            "forms": [self.form.id],
+            "role": UserRoleTypes.admin,
+            "access_forms": [
+                {
+                    "form_id": self.form.id,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": self.form.id,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "trained": True,
         }
         add_response = self.client.post("/api/v1/user",

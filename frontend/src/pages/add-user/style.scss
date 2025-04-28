@@ -68,6 +68,14 @@
         }
       }
     }
+    .ant-space.extra-access-label {
+      :not(:last-child).ant-space-item {
+        border-right-width: 1px;
+        border-right-style: solid;
+        border-right-color: #d9d9d9;
+        padding-right: 8px;
+      }
+    }
   }
 }
 

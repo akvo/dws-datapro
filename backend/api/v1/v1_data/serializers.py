@@ -19,7 +19,7 @@ from api.v1.v1_data.models import (
     AnswerHistory,
     PendingAnswerHistory,
 )
-from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import QuestionTypes, SubmissionTypes
 from api.v1.v1_forms.models import (
     Questions,
     Forms,
@@ -920,13 +920,41 @@ class CreateBatchSerializer(serializers.Serializer):
             raise ValidationError("name has already been taken")
         return name
 
+    def validate_data(self, data):
+        if len(data) == 0:
+            raise ValidationError("No data found for this batch")
+        return data
+
     def validate(self, attrs):
+        if len(attrs.get("data")) == 0:
+            raise ValidationError(
+                {"data": "No form found for this batch"}
+            )
         form = attrs.get("data")[0].form
+        # Get the list of administrations that the user has access to
+        adms = [
+            ac.pk
+            for ac in self.context.get("user")
+            .user_access.administration.ancestors
+        ]
+        adms += [
+            self.context.get("user").user_access.administration.pk
+        ]
+        # Check if the form has any approvers in the user's administration
+        if not form.form_data_approval.filter(
+            administration__pk__in=adms
+        ).exists():
+            raise ValidationError(
+                {"data": "No approvers found for this batch"}
+            )
         for pending in attrs.get("data"):
             if pending.form_id != form.id:
-                raise ValidationError(
-                    {"data": "Form id is different for provided data"}
-                )
+                raise ValidationError({
+                    "data": (
+                        "Mismatched form ID for one or more"
+                        " pending data items."
+                    )
+                })
         return attrs
 
     def create(self, validated_data):
@@ -1089,26 +1117,6 @@ class SubmitPendingFormSerializer(serializers.Serializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def validate(self, attrs):
-        form: Forms = self.context.get("form")
-        user: SystemUser = self.context.get("user")
-        # county admin with county form type directly saved to form-data
-        # if form.type == FormTypes.county and \
-        #         user.user_access.role == UserRoleTypes.admin:
-        #     raise ValidationError(
-        #         {'data': 'You do not permission to submit the data'})
-        if (
-            form.type == FormTypes.national
-            and user.user_access.role == UserRoleTypes.user
-        ):
-            raise ValidationError(
-                {"data": "You do not permission to submit the data"}
-            )
-        return attrs
-
-    def update(self, instance, validated_data):
-        pass
-
     def create(self, validated_data):
         data = validated_data.get("data")
         data["form"] = self.context.get("form")
@@ -1117,12 +1125,25 @@ class SubmitPendingFormSerializer(serializers.Serializer):
         # check user role and form type
         user = self.context.get("user")
         is_super_admin = user.user_access.role == UserRoleTypes.super_admin
-        is_county_admin = (
-            user.user_access.role == UserRoleTypes.admin
-            and data["form"].type == FormTypes.county
-        )
 
-        direct_to_data = is_super_admin or is_county_admin
+        direct_to_data = is_super_admin
+        # check if the form has any approvers in the user's administration
+        # if no approvers found, save directly to form data
+        if not direct_to_data:
+            adms = (
+                [
+                    ac.pk
+                    for ac in user.user_access.administration.ancestors
+                ] + [
+                    user.user_access.administration.pk
+                ]
+            )
+            form_approval = FormApprovalAssignment.objects.filter(
+                form=data["form"],
+                administration__pk__in=adms
+            ).exists()
+            if not form_approval:
+                direct_to_data = True
 
         # save to pending data
         if not direct_to_data:

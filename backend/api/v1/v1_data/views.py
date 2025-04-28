@@ -53,8 +53,8 @@ from api.v1.v1_data.serializers import (
     BatchListRequestSerializer,
     SubmitFormDataAnswerSerializer,
 )
-from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
-from api.v1.v1_forms.models import Forms, Questions
+from api.v1.v1_forms.constants import QuestionTypes, SubmissionTypes
+from api.v1.v1_forms.models import Forms, Questions, FormApprovalAssignment
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.constants import UserRoleTypes
@@ -207,7 +207,9 @@ class FormDataAddListView(APIView):
             filter_descendants.append(filter_administration.id)
             filter_data["administration_id__in"] = filter_descendants
         else:
-            user_path = access.administration.path or "1."
+            user_path = (
+                access.administration.path or f"{access.administration.pk}."
+            )
             filter_data["administration__path__startswith"] = user_path
 
         queryset = form.form_form_data.filter(**filter_data).order_by(
@@ -286,15 +288,18 @@ class FormDataAddListView(APIView):
             )
 
         answers = request.data
-        # is_national_form = form.type == FormTypes.national
-        is_county_form = form.type == FormTypes.county
-
+        # check if user is super admin
         is_super_admin = user_role == UserRoleTypes.super_admin
-        is_county_admin = user_role == UserRoleTypes.admin
-        is_county_admin_with_county_form = is_county_admin and is_county_form
+        have_approvals = FormApprovalAssignment.objects.filter(
+            form=form,
+            administration__in=[
+                data.administration,
+                data.administration.parent
+            ]
+        ).exists()
 
         # Direct update
-        if is_super_admin or is_county_admin_with_county_form:
+        if is_super_admin or not have_approvals:
             # move current answer to answer_history
             for answer in answers:
                 form_answer = Answers.objects.filter(
@@ -703,7 +708,9 @@ class BatchView(APIView):
         summary="To create batch",
     )
     def post(self, request, version):
-        serializer = CreateBatchSerializer(data=request.data)
+        serializer = CreateBatchSerializer(
+            data=request.data, context={"user": request.user}
+        )
         if not serializer.is_valid():
             return Response(
                 {"message": validate_serializers_message(serializer.errors)},

@@ -8,6 +8,7 @@ from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser, Organisation
 from api.v1.v1_forms.models import FormApprovalAssignment
+from api.v1.v1_forms.constants import FormAccessTypes
 from utils.email_helper import EmailTypes
 
 
@@ -48,12 +49,11 @@ class UserInvitationTestCase(TestCase):
             'id': 1,
             'value': 'Super Admin'
         })
-        call_command("fake_user_seeder", "-r", 100)
+        call_command("fake_user_seeder", "-r", 10, "--test", True)
         response = self.client.get("/api/v1/users?page=3",
                                    follow=True,
                                    **self.header)
         users = response.json()
-        self.assertEqual(len(users['data']), 10)
         self.assertEqual([
             'id',
             'first_name',
@@ -100,8 +100,7 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(users['data'][0]['email'], 'admin@rush.com')
         self.assertEqual(users['data'][0]['first_name'], 'Admin')
         self.assertEqual(users['data'][0]['last_name'], 'RUSH')
-        # test filter user if not super admin user logged in
-        call_command("fake_user_seeder", "-r", 10)
+
         find_user = SystemUser.objects.filter(
             user_access__role=UserRoleTypes.admin).first()
         token = RefreshToken.for_user(find_user)
@@ -123,7 +122,16 @@ class UserInvitationTestCase(TestCase):
             "email": "john@example.com",
             "administration": adm1.id,
             "organisation": self.org.id,
-            "forms": [1],
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.edit
+                }
+            ],
             "trained": True,
             "inform_user": True,
         }
@@ -150,7 +158,16 @@ class UserInvitationTestCase(TestCase):
             "organisation": self.org.id,
             "trained": False,
             "role": 6,
-            "forms": [1, 2],
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 2,
+                    "access_type": FormAccessTypes.read
+                }
+            ],
             "inform_user": True,
         }
         list_response = self.client.get("/api/v1/users?pending=true",
@@ -165,12 +182,6 @@ class UserInvitationTestCase(TestCase):
                                        content_type='application/json',
                                        **self.header)
         self.assertEqual(add_response.status_code, 400)
-        edit_payload["role"] = UserRoleTypes.user
-        add_response = self.client.put("/api/v1/user/{0}".format(fl[0]['id']),
-                                       edit_payload,
-                                       content_type='application/json',
-                                       **self.header)
-        self.assertEqual(add_response.status_code, 400)
         edit_payload["role"] = UserRoleTypes.admin
         add_response = self.client.put("/api/v1/user/{0}".format(fl[0]['id']),
                                        edit_payload,
@@ -180,7 +191,12 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(add_response.json(),
                          {'message': 'User updated successfully'})
         edit_payload["role"] = UserRoleTypes.admin
-        edit_payload["forms"] = [2]
+        edit_payload["access_forms"] = [
+            {
+                "form_id": 2,
+                "access_type": FormAccessTypes.read
+            }
+        ]
         add_response = self.client.put("/api/v1/user/{0}".format(fl[0]['id']),
                                        edit_payload,
                                        content_type='application/json',
@@ -209,9 +225,31 @@ class UserInvitationTestCase(TestCase):
             'forms', 'approval_assignment', 'pending_approval', 'data',
             'pending_batch'
         ], list(responses))
-        self.assertEqual(responses["forms"],
-                         [{'id': 2, 'name': 'Test Form 2'}])
-        edit_payload["forms"] = [1, 2]
+        self.assertEqual(
+            responses["forms"],
+            [
+                {
+                    "id": 2,
+                    "name": "Test Form 2",
+                    "access": [
+                        {
+                            "label": "Read",
+                            "value": FormAccessTypes.read,
+                        }
+                    ]
+                }
+            ]
+        )
+        edit_payload["access_forms"] = [
+            {
+                "form_id": 1,
+                "access_type": FormAccessTypes.read
+            },
+            {
+                "form_id": 2,
+                "access_type": FormAccessTypes.read
+            }
+        ]
         add_response = self.client.put("/api/v1/user/{0}".format(fl[0]['id']),
                                        edit_payload,
                                        content_type='application/json',
@@ -230,9 +268,31 @@ class UserInvitationTestCase(TestCase):
             'forms', 'approval_assignment', 'pending_approval', 'data',
             'pending_batch'
         ], list(responses))
-        self.assertEqual(responses["forms"],
-                         [{'id': 1, 'name': 'Test Form'},
-                          {'id': 2, 'name': 'Test Form 2'}])
+        self.assertEqual(
+            responses["forms"],
+            [
+                {
+                    "id": 1,
+                    "name": "Test Form",
+                    "access": [
+                        {
+                            "label": "Read",
+                            "value": FormAccessTypes.read,
+                        }
+                    ]
+                },
+                {
+                    "id": 2,
+                    "name": "Test Form 2",
+                    "access": [
+                        {
+                            "label": "Read",
+                            "value": FormAccessTypes.read,
+                        }
+                    ]
+                }
+            ]
+        )
 
         # test_update_user_with_pending_approval
         call_command("fake_pending_data_seeder", "--test")
@@ -246,25 +306,43 @@ class UserInvitationTestCase(TestCase):
             "organisation": self.org.id,
             "trained": False,
             "role": find_user.user_access.role,
-            "forms": [fr.form_id for fr in find_user.user_form.all()],
+            "access_forms": [
+                {
+                    "form_id": form.id,
+                    "access_type": FormAccessTypes.read
+                } for form in find_user.user_form.all()
+            ],
             "inform_user": True,
         }
         response = self.client.put("/api/v1/user/{0}".format(find_user.id),
                                    edit_payload,
                                    content_type='application/json',
                                    **self.header)
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(response.status_code, 400)
 
     def test_add_admin_user(self):
         adm1, adm2 = Administration.objects.filter(level__level=1)[:2]
         payload = {
             "first_name": "County",
             "last_name": "Admin",
-            "email": "county_admin@example.com",
+            "email": "admin@example.com",
             "administration": adm1.id,
             "organisation": self.org.id,
             "role": 2,
-            "forms": [1],
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.edit
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "trained": False,
         }
         add_response = self.client.post("/api/v1/user",
@@ -275,7 +353,7 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(add_response.json(),
                          {'message': 'User added successfully'})
         user = SystemUser.objects.filter(
-            email="county_admin@example.com").first()
+            email="admin@example.com").first()
         form_approval_assignment = FormApprovalAssignment.objects.filter(
             form=1, administration=adm1.id, user=user).first()
         self.assertEqual(form_approval_assignment.user, user)
@@ -283,11 +361,24 @@ class UserInvitationTestCase(TestCase):
         payload = {
             "first_name": "Second County",
             "last_name": "Admin",
-            "email": "county_admin2@example.com",
+            "email": "admin2@example.com",
             "administration": adm1.id,
             "organisation": self.org.id,
             "role": 2,
-            "forms": [1],
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.edit
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "trained": False,
         }
         add_response = self.client.post("/api/v1/user",
@@ -299,11 +390,24 @@ class UserInvitationTestCase(TestCase):
         payload = {
             "first_name": "Third County",
             "last_name": "Admin",
-            "email": "county_admin3@example.com",
+            "email": "admin3@example.com",
             "administration": adm2.id,
             "organisation": self.org.id,
             "role": 2,
-            "forms": [1],
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.edit
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "trained": False,
         }
         add_response = self.client.post("/api/v1/user",
@@ -320,8 +424,17 @@ class UserInvitationTestCase(TestCase):
             "email": "test_approver@example.com",
             "administration": adm1.id,
             "organisation": self.org.id,
-            "role": 3,
-            "forms": [1],
+            "role": UserRoleTypes.admin,
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "trained": True,
         }
         add_response = self.client.post("/api/v1/user",
@@ -343,8 +456,17 @@ class UserInvitationTestCase(TestCase):
             "email": "test2_approver@example.com",
             "administration": adm1.id,
             "organisation": self.org.id,
-            "role": 3,
-            "forms": [1],
+            "role": UserRoleTypes.admin,
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "trained": True,
         }
         add_response = self.client.post("/api/v1/user",
@@ -359,8 +481,17 @@ class UserInvitationTestCase(TestCase):
             "email": "test3_approver@example.com",
             "administration": adm2.id,
             "organisation": self.org.id,
-            "role": 3,
-            "forms": [1],
+            "role": UserRoleTypes.admin,
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "trained": True,
         }
         add_response = self.client.post("/api/v1/user",
@@ -375,8 +506,17 @@ class UserInvitationTestCase(TestCase):
             "email": "data_entry@example.com",
             "administration": adm2.id,
             "organisation": self.org.id,
-            "role": 4,
-            "forms": [1],
+            "role": UserRoleTypes.admin,
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.edit
+                }
+            ],
             "trained": True,
         }
         add_response = self.client.post("/api/v1/user",
@@ -384,36 +524,18 @@ class UserInvitationTestCase(TestCase):
                                         content_type='application/json',
                                         **self.header)
         self.assertEqual(add_response.status_code, 200)
-        user = SystemUser.objects.filter(
-            email="data_entry@example.com").first()
-        form_approval_assignment = FormApprovalAssignment.objects.filter(
-            form=1, administration=adm2.id, user=user).first()
-        self.assertEqual(form_approval_assignment, None)
-        # Add another role with same form and administration
-        payload = {
-            "first_name": "Second Data",
-            "last_name": "Entry",
-            "email": "data_entry2@example.com",
-            "administration": adm2.id,
-            "organisation": self.org.id,
-            "role": 4,
-            "forms": [1],
-            "trained": True,
-        }
-        add_response = self.client.post("/api/v1/user",
-                                        payload,
-                                        content_type='application/json',
-                                        **self.header)
-        self.assertEqual(add_response.status_code, 200)
-
         # Add national super admin approver
         payload = {
             "first_name": "National Approver",
             "last_name": "Entry",
             "email": "national_approver@example.com",
             "organisation": self.org.id,
-            "role": 1,
-            "forms": [1],
+            "role": UserRoleTypes.super_admin,
+            "access_forms": [
+                {
+                    "form_id": 1
+                }
+            ],
             "trained": True,
         }
         add_response = self.client.post("/api/v1/user",
@@ -423,8 +545,18 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(add_response.status_code, 400)
         self.assertEqual(
             add_response.json(),
-            {"message": "Super Admin can only approve National Type of form"})
-        payload["forms"] = [2]
+            {"message": "access_type is required."}
+        )
+        payload["access_forms"] = [
+            {
+                "form_id": 2,
+                "access_type": FormAccessTypes.read
+            },
+            {
+                "form_id": 2,
+                "access_type": FormAccessTypes.approve
+            }
+        ]
         add_response = self.client.post("/api/v1/user",
                                         payload,
                                         content_type='application/json',
@@ -448,10 +580,12 @@ class UserInvitationTestCase(TestCase):
             content_type='application/json',
         )
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(4, len(response.json()))
+        self.assertEqual(
+            len(UserRoleTypes.FieldStr.items()),
+            len(response.json())
+        )
         self.assertEqual(['id', 'value'], list(response.json()[0].keys()))
 
-    #
     def test_verify_invite(self):
         user = SystemUser.objects.first()
         invite_payload = 'dummy-token'
@@ -561,12 +695,12 @@ class UserInvitationTestCase(TestCase):
         user = user_response.json()
         token = user.get('token')
         header = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
-        call_command("fake_user_seeder")
-        call_command("demo_approval_flow")
+        call_command("fake_user_seeder", "--test", True)
+        call_command("demo_approval_flow", "--test", True)
         u = SystemUser.objects.filter(
-            user_access__role__in=[
-                UserRoleTypes.approver, UserRoleTypes.user],
-            password__isnull=False).first()
+            user_access__role=UserRoleTypes.admin,
+            password__isnull=False
+        ).first()
         response = self.client.delete('/api/v1/user/{0}'.format(u.id),
                                       content_type='application/json',
                                       **header)
@@ -594,12 +728,12 @@ class UserInvitationTestCase(TestCase):
         user = user_response.json()
         token = user.get('token')
         header = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
-        call_command("fake_user_seeder")
+        call_command("fake_user_seeder", "--test", True)
         call_command("fake_approver_seeder")
         u = SystemUser.objects.filter(
             user_access__role__in=[
-                UserRoleTypes.approver,
-                UserRoleTypes.user
+                UserRoleTypes.admin,
+                UserRoleTypes.admin
             ],
             password__isnull=False).first()
         adm_id = u.user_access.administration_id
@@ -620,8 +754,17 @@ class UserInvitationTestCase(TestCase):
             "last_name": user.last_name,
             "email": user.email,
             "organisation": org.id,
-            "role": 3,
-            "forms": [1],
+            "role": UserRoleTypes.admin,
+            "access_forms": [
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.read
+                },
+                {
+                    "form_id": 1,
+                    "access_type": FormAccessTypes.approve
+                }
+            ],
             "administration": adm_id,
             "trained": True,
         }

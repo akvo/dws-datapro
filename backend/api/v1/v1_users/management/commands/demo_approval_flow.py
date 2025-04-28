@@ -5,33 +5,31 @@ from django.core.management import BaseCommand
 from api.v1.v1_profile.constants import UserRoleTypes, UserDesignationTypes
 from api.v1.v1_profile.models import Administration, Access, Levels
 from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.models import Forms, UserForms
+from api.v1.v1_forms.models import Forms, UserForms, FormAccess
 from api.v1.v1_forms.models import FormApprovalAssignment
-from api.v1.v1_forms.constants import FormTypes
+from api.v1.v1_forms.constants import FormTypes, FormAccessTypes
 from api.v1.v1_mobile.models import MobileAssignment
 fake = Faker()
 
 
 def create_approver(form, administration, organisation):
-    email = ("{}{}.{}@approver.com").format(
+    email = ("{0}.{1}@test.com").format(
         re.sub('[^A-Za-z0-9]+', '', administration.name.lower()),
-        administration.id,
-        random.randint(1, 1000)
+        random.randint(10, 100)
     )
     last_name = "Approver"
-    role = UserRoleTypes.approver
+    role = UserRoleTypes.admin  # Default to admin role
     if administration.level.level == 1:
-        role = UserRoleTypes.admin
         last_name = "Admin"
     # check if someone has access to ancestor adminisration
     approver, created = SystemUser.objects.get_or_create(
-        organisation=organisation,
         email=email,
-        first_name=administration.name,
-        last_name=last_name
     )
     if created:
         approver.set_password("test")
+        approver.organisation = organisation
+        approver.first_name = administration.name
+        approver.last_name = last_name
         approver.phone_number = fake.msisdn()
         approver.designation = fake.random_element(
             elements=UserDesignationTypes.FieldStr.keys()
@@ -42,7 +40,14 @@ def create_approver(form, administration, organisation):
             role=role,
             administration=administration
         )
-    UserForms.objects.get_or_create(form=form, user=approver)
+    # Create UserForms with approver access type
+    user_form, _ = UserForms.objects.get_or_create(form=form, user=approver)
+    # Ensure the user has approver access for this form
+    FormAccess.objects.get_or_create(
+        user_form=user_form,
+        access_type=FormAccessTypes.approve
+    )
+    # Create form approval assignment
     assignment = FormApprovalAssignment.objects.create(
         form=form,
         administration=administration,
@@ -103,28 +108,40 @@ class Command(BaseCommand):
                             last_name
                         ))
                 # create user
-                email = ("{}{}@user.com").format(
-                        re.sub(
-                            '[^A-Za-z0-9]+', '', administration.name.lower()
-                        ),
-                        administration.id
-                    )
+                email = "{0}.{1}@test.com".format(
+                    re.sub(
+                        '[^A-Za-z0-9]+', '', administration.name.lower()
+                    ),
+                    random.randint(200, 300)
+                )
                 submitter, created = SystemUser.objects.get_or_create(
-                    organisation=organisation,
                     email=email,
-                    first_name=administration.name,
-                    last_name="User")
+                )
                 if created:
                     submitter.set_password("test")
+                    submitter.organisation = organisation
+                    submitter.first_name = administration.name
+                    submitter.last_name = "User"
                     submitter.phone_number = fake.msisdn()
                     submitter.designation = UserDesignationTypes.sa
                     submitter.save()
                     Access.objects.create(
                         user=submitter,
-                        role=UserRoleTypes.user,
+                        role=UserRoleTypes.admin,
                         administration=ancestor
                     )
-                UserForms.objects.get_or_create(form=form, user=submitter)
+                user_form, _ = UserForms.objects.get_or_create(
+                    form=form,
+                    user=submitter
+                )
+                FormAccess.objects.get_or_create(
+                    user_form=user_form,
+                    access_type=FormAccessTypes.edit
+                )
+                FormAccess.objects.get_or_create(
+                    user_form=user_form,
+                    access_type=FormAccessTypes.read
+                )
                 if not test:
                     print("\nData entry:")
                     print(f"- Administration: {administration.full_name}")

@@ -22,7 +22,7 @@ class AdministrationTestCase(TestCase, ProfileTestHelperMixin):
         super().setUp()
         call_command("administration_seeder", "--test")
         self.reset_db_sequence(Administration)
-        self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
+        self.user = self.create_user('test@akvo.org', self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
 
     def test_list(self):
@@ -205,7 +205,7 @@ class AdministrationAttributeValueTestCase(TestCase, ProfileTestHelperMixin):
         super().setUp()
         call_command("administration_seeder", "--test")
         self.reset_db_sequence(Administration)
-        self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
+        self.user = self.create_user('test@akvo.org', self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
         self.value_att = AdministrationAttribute.objects.create(
                 name='value attribute')
@@ -552,7 +552,7 @@ class AdministrationListFiltersTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         super().setUp()
         self.generate_administrations()
-        self.user = self.create_user('test@akvo.org', self.ROLE_ADMIN)
+        self.user = self.create_user('test@akvo.org', self.IS_ADMIN)
         self.token = self.get_auth_token(self.user.email)
 
     def test_filter_search_name(self):

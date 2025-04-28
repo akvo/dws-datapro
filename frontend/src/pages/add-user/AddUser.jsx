@@ -10,13 +10,23 @@ import {
   Checkbox,
   Modal,
   Table,
+  Spin,
 } from "antd";
 import { AdministrationDropdown } from "../../components";
 import { useNavigate, useParams } from "react-router-dom";
-import { api, store, config, uiText } from "../../lib";
+import {
+  api,
+  store,
+  config,
+  uiText,
+  IS_ADMIN,
+  IS_SUPER_ADMIN,
+  FORM_APPROVER_ACCESS,
+} from "../../lib";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
-import { takeRight, take, max } from "lodash";
+import { takeRight, take } from "lodash";
 import { useNotification } from "../../util/hooks";
+import { FormAccessCheckbox, FormAccessCollapsible } from "./components";
 
 const { Option } = Select;
 
@@ -34,11 +44,16 @@ const AddUser = () => {
   const {
     user: authUser,
     administration,
-    forms,
-    loadingForm,
+    forms: allForms,
     language,
+    levels,
   } = store.useState((s) => s);
+  const NATIONAL_LEVEL = levels?.find((l) => l.level === 0)?.id;
   const { active: activeLang } = language;
+  const forms = allForms.map((f) => ({
+    ...f,
+    access: config.accessFormTypes,
+  }));
 
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -51,10 +66,9 @@ const AddUser = () => {
   const { notify } = useNotification();
   const { id } = useParams();
   const [organisations, setOrganisations] = useState([]);
-  const [nationalApprover, setNationalApprover] = useState(false);
   const [isModalVisible, setIsModalVisible] = useState(false);
   const [modalContent, setModalContent] = useState([]);
-  const maxLevel = max(authUser?.role_detail?.administration_level || 0);
+  const [isUserFetched, setIsUserFetched] = useState(false);
 
   const text = useMemo(() => {
     return uiText[activeLang];
@@ -90,40 +104,52 @@ const AddUser = () => {
   };
 
   const allowedRoles = useMemo(() => {
-    const lookUp = authUser.role?.id === 2 ? 3 : authUser.role?.id || 4;
+    const lookUp =
+      authUser?.role?.id === IS_SUPER_ADMIN ? IS_SUPER_ADMIN : IS_ADMIN;
     return config.roles.filter((r) => r.id >= lookUp);
   }, [authUser]);
 
+  const setApproverForms = (data = []) => {
+    return data
+      .filter((d) => d?.checked)
+      .map((d) => ({
+        ...d,
+        access: d.access.map((a) => ({
+          ...a,
+          value: a.id === FORM_APPROVER_ACCESS,
+        })),
+      }));
+  };
+
   const onFinish = (values) => {
-    if ([3, 5].includes(values.role)) {
-      if (selectedLevel === null) {
-        setLevelError(true);
-        return;
-      }
-      const admLevel = administration.length;
-      if (selectedLevel < maxLevel && admLevel !== selectedLevel) {
-        setAdminError(
-          `Please select a ${
-            window.levels.find((l) => l.id === selectedLevel)?.name
-          }`
-        );
-        return;
-      }
-    } else if ([2, 4].includes(values.role)) {
-      if (
-        !allowedLevels.map((a) => a.level + 1).includes(administration.length)
-      ) {
-        const levelNames = allowedLevels.map((l) => l.name).join("/");
-        setAdminError(
-          `${
-            allowedRoles.find((a) => role === a.id)?.name
-          } is allowed with ${levelNames} administration`
-        );
-        return;
-      }
+    if (selectedLevel === null && values.role === IS_ADMIN) {
+      setLevelError(true);
+      return;
+    }
+    const admLevel = administration.length;
+    if (admLevel !== selectedLevel && values.role === IS_ADMIN) {
+      setAdminError(
+        `Please select a ${
+          window.levels.find((l) => l.id === selectedLevel)?.name
+        }`
+      );
+      return;
     }
     setSubmitting(true);
     const admin = takeRight(administration, 1)?.[0];
+    const formsPayload = values?.nationalApprover
+      ? setApproverForms(values?.forms)
+      : values?.forms || [];
+    const access_forms = formsPayload
+      .map((f) =>
+        f.access
+          .filter((f_access) => f_access.value)
+          .map((f_access) => ({
+            form_id: f.id,
+            access_type: f_access.id,
+          }))
+      )
+      .flat();
     const payload = {
       first_name: values.first_name,
       last_name: values.last_name,
@@ -132,10 +158,10 @@ const AddUser = () => {
       phone_number: values.phone_number,
       designation: values.designation,
       role: values.role,
-      forms: values.forms,
       inform_user: values.inform_user,
       organisation: values.organisation,
       trained: values.trained,
+      access_forms: access_forms,
     };
     api[id ? "put" : "post"](id ? `user/${id}` : "user", payload)
       .then(() => {
@@ -168,7 +194,11 @@ const AddUser = () => {
     setLevelError(false);
     setAdminError(null);
     form.setFieldsValue({
-      forms: [],
+      nationalApprover: false,
+      forms: allForms.map((f) => ({
+        ...f,
+        access: config.accessFormTypes,
+      })),
     });
     if (r > 1) {
       store.update((s) => {
@@ -178,6 +208,7 @@ const AddUser = () => {
   };
 
   const onLevelChange = (l) => {
+    form.setFieldValue("level", l);
     setSelectedLevel(l);
     setLevelError(false);
     setAdminError(null);
@@ -203,19 +234,45 @@ const AddUser = () => {
         store.update((s) => {
           s.administration = acc;
         });
-        if ([3, 5].includes(roleRes)) {
-          setSelectedLevel(
-            window.levels.find(
-              (l) => l.name === takeRight(acc, 1)[0].level_name
-            ).level + 1
-          );
-        }
       }
     };
-    if (id) {
+    if (id && !isUserFetched) {
+      setIsUserFetched(true);
+      setLoading(true);
       try {
-        setLoading(true);
         api.get(`user/${id}`).then((res) => {
+          /**
+           * Get the forms that are assigned to the user
+           * and map the access to the form access types
+           * and set the value to true if the user has access
+           * to the form.
+           */
+          const userForms = res.data?.forms?.map((f) => ({
+            ...f,
+            access: config.accessFormTypes.map((a) => ({
+              ...a,
+              value: f.access.some((af) => af.value === a.id),
+            })),
+          }));
+          /**
+           * Get the forms that are not in the user forms
+           */
+          const editForms = forms.map((f) => {
+            const editForm = userForms.find((ef) => ef.id === f.id);
+            if (editForm) {
+              return {
+                ...f,
+                access: editForm.access,
+              };
+            }
+            return f;
+          });
+          /**
+           * Check if all forms have the approver access
+           */
+          const isNationalApprover = editForms.every((f) =>
+            f.access.some((a) => a.id === FORM_APPROVER_ACCESS && a.value)
+          );
           form.setFieldsValue({
             administration: res.data?.administration,
             designation: parseInt(res.data?.designation) || null,
@@ -224,10 +281,10 @@ const AddUser = () => {
             last_name: res.data?.last_name,
             phone_number: res.data?.phone_number,
             role: res.data?.role,
-            forms: res.data?.forms.map((f) => parseInt(f.id)),
+            forms: editForms,
             organisation: res.data?.organisation?.id || [],
             trained: res?.data?.trained,
-            nationalApprover: res.data?.role === 1 && !!res.data?.forms?.length,
+            nationalApprover: isNationalApprover,
             inform_user: !id
               ? true
               : authUser?.email === res.data?.email
@@ -236,9 +293,6 @@ const AddUser = () => {
           });
           setRole(res.data?.role);
           setLoading(false);
-          setNationalApprover(
-            res.data?.role === 1 && !!res.data?.forms?.length
-          );
           fetchData(res.data.administration, [], res.data?.role);
         });
       } catch (error) {
@@ -246,20 +300,29 @@ const AddUser = () => {
         setLoading(false);
       }
     }
-  }, [id, form, forms, notify, text.errorUserLoad, authUser?.email]);
-
-  const allowedLevels = useMemo(() => {
-    const admLevels =
-      allowedRoles.find((r) => r.id === role)?.administration_level || [];
-    return window.levels?.filter((l) => admLevels.includes(l.level + 1)) || [];
-  }, [role, allowedRoles]);
-
-  const allowedForms = useMemo(() => {
-    if (role === 1) {
-      return forms.filter((f) => f.type === 2);
+    /**
+     * If the user is fetched and the administration length is greater than 1
+     * and the selected level is not set then
+     * set the selected level to the last administration level.
+     */
+    if (isUserFetched && administration?.length > 1 && selectedLevel === null) {
+      // get the last administration level
+      const lastAdmin = administration.slice(-1)?.[0];
+      const lastAdminLevel = lastAdmin?.level + 1;
+      form.setFieldValue("level", lastAdminLevel);
+      setSelectedLevel(lastAdminLevel);
     }
-    return role < 3 ? forms : forms.filter((f) => f.type === 1);
-  }, [role, forms]);
+  }, [
+    id,
+    form,
+    forms,
+    notify,
+    text.errorUserLoad,
+    authUser?.email,
+    isUserFetched,
+    selectedLevel,
+    administration,
+  ]);
 
   return (
     <div id="add-user">
@@ -276,305 +339,344 @@ const AddUser = () => {
       </div>
       <div className="table-section">
         <div className="table-wrapper">
-          <Form
-            name="adm-form"
-            form={form}
-            labelCol={{ span: 6 }}
-            wrapperCol={{ span: 18 }}
-            initialValues={{
-              first_name: "",
-              last_name: "",
-              phone_number: "",
-              designation: null,
-              email: "",
-              role: null,
-              county: null,
-              forms: [],
-              inform_user: true,
-              organisation: [],
-            }}
-            onFinish={onFinish}
-          >
-            <div className="form-row">
-              <Form.Item
-                label={text.userFirstName}
-                name="first_name"
-                rules={[
-                  {
-                    required: true,
-                    message: text.valFirstName,
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </div>
-            <div className="form-row">
-              <Form.Item
-                label={text.userLastName}
-                name="last_name"
-                rules={[
-                  {
-                    required: true,
-                    message: text.valLastName,
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </div>
-            <div className="form-row">
-              <Form.Item
-                label={text.userEmail}
-                name="email"
-                rules={[
-                  {
-                    required: true,
-                    message: text.valEmail,
-                    type: "email",
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </div>
-            <div className="form-row">
-              <Form.Item
-                label={text.userPhoneNumber}
-                name="phone_number"
-                rules={[
-                  {
-                    required: true,
-                    message: text.valPhone,
-                  },
-                ]}
-              >
-                <Input />
-              </Form.Item>
-            </div>
-            <div className="form-row">
-              <Form.Item
-                name="organisation"
-                label={text.userOrganisation}
-                rules={[{ required: true, message: text.valOrganization }]}
-              >
-                <Select
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                  placeholder={text.selectOne}
-                  allowClear
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children
-                      .toLowerCase()
-                      .indexOf(input.toLowerCase()) >= 0
-                  }
-                >
-                  {organisations?.map((o, oi) => (
-                    <Option key={`org-${oi}`} value={o.id}>
-                      {o.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </div>
-            <div className="form-row">
-              <Form.Item
-                name="designation"
-                label={text.userDesignation}
-                rules={[{ required: true, message: text.valDesignation }]}
-              >
-                <Select
-                  placeholder={text.selectOne}
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                  showSearch
-                  optionFilterProp="children"
-                  filterOption={(input, option) =>
-                    option.children
-                      .toLowerCase()
-                      .indexOf(input.toLowerCase()) >= 0
-                  }
-                >
-                  {config?.designations?.map((d, di) => (
-                    <Option key={di} value={d.id}>
-                      {d.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </div>
-            <Row className="form-row">
-              <Col span={18} offset={6}>
-                <Form.Item name="trained" valuePropName="checked">
-                  <Checkbox>{text.userTrained}</Checkbox>
-                </Form.Item>
-              </Col>
-            </Row>
-            <div className="form-row">
-              <Form.Item
-                name="role"
-                label="Role"
-                rules={[{ required: true, message: text.valRole }]}
-              >
-                <Select
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                  placeholder={text.selectOne}
-                  onChange={onRoleChange}
-                >
-                  {allowedRoles.map((r, ri) => (
-                    <Option key={ri} value={r.id}>
-                      {r.name}
-                    </Option>
-                  ))}
-                </Select>
-              </Form.Item>
-            </div>
-            <Row justify="center" align="middle">
-              <Col span={18} offset={6}>
-                {role && (
-                  <span className="role-description">
-                    {config.roles.find((r) => r.id === role)?.description}
-                  </span>
-                )}
-              </Col>
-            </Row>
-            {(role === 3 || role === 5) && (
-              <Form.Item label={text.admLevel}>
-                <Select
-                  value={selectedLevel}
-                  getPopupContainer={(trigger) => trigger.parentNode}
-                  placeholder={text.selectOne}
-                  onChange={onLevelChange}
-                >
-                  {allowedLevels.map((l, li) => (
-                    <Option key={li} value={l.level + 1}>
-                      {l.name}
-                    </Option>
-                  ))}
-                </Select>
-                {levelError && (
-                  <div className="text-error">
-                    {text.userSelectLevelRequired}
-                  </div>
-                )}
-              </Form.Item>
-            )}
-            {([2, 4].includes(role) ||
-              ([3, 5].includes(role) && selectedLevel > 1)) && (
-              <Row className="form-row">
-                <Col span={6} className=" ant-form-item-label">
-                  <label htmlFor="administration">
-                    {text.administrationLabel}
-                  </label>
-                </Col>
-                <Col span={18}>
-                  <AdministrationDropdown
-                    withLabel={true}
-                    persist={true}
-                    size="large"
-                    width="100%"
-                    onChange={onAdminChange}
-                    maxLevel={
-                      [3, 5].includes(role)
-                        ? selectedLevel
-                        : max(
-                            allowedRoles?.find((r) => r.id === role)
-                              ?.administration_level
-                          ) || null
-                    }
-                  />
-                  {!!adminError && (
-                    <div className="text-error">{adminError}</div>
-                  )}
-                </Col>
-              </Row>
-            )}
-            <Row justify="center" align="middle">
-              <Col span={18} offset={6}>
-                {role === 1 && (
+          <Spin tip={text.loadingText} spinning={loading}>
+            <Form
+              name="adm-form"
+              form={form}
+              labelCol={{ span: 6 }}
+              wrapperCol={{ span: 18 }}
+              initialValues={{
+                first_name: "",
+                last_name: "",
+                phone_number: "",
+                designation: null,
+                email: "",
+                role: null,
+                inform_user: true,
+                organisation: [],
+                forms,
+              }}
+              onFinish={onFinish}
+            >
+              {(_, formInstance) => (
+                <>
                   <div className="form-row">
                     <Form.Item
-                      name="nationalApprover"
-                      valuePropName="checked"
-                      onChange={(e) => setNationalApprover(e.target.checked)}
+                      label={text.userFirstName}
+                      name="first_name"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valFirstName,
+                        },
+                      ]}
                     >
-                      <Checkbox>{text.userNationalApprover}</Checkbox>
+                      <Input />
                     </Form.Item>
                   </div>
-                )}
-              </Col>
-            </Row>
-            {([2, 3, 4].includes(role) || nationalApprover) && (
-              <div className="form-row" style={{ marginTop: 24 }}>
-                {loadingForm || loading ? (
-                  <>
-                    <div className="ant-form-item-label">
-                      <label title={text.questionnairesLabel}>
-                        {text.questionnairesLabel}
-                      </label>
-                    </div>
-                    <p style={{ paddingLeft: 12, color: "#6b6b6f" }}>
-                      {text.loadingText}
-                    </p>
-                  </>
-                ) : (
-                  <Form.Item
-                    name="forms"
-                    label={text.questionnairesLabel}
-                    rules={[{ required: false }]}
-                  >
-                    <Select
-                      mode="multiple"
-                      getPopupContainer={(trigger) => trigger.parentNode}
-                      placeholder={text.selectText}
-                      allowClear
+                  <div className="form-row">
+                    <Form.Item
+                      label={text.userLastName}
+                      name="last_name"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valLastName,
+                        },
+                      ]}
                     >
-                      {allowedForms.map((f) => (
-                        <Option key={f.id} value={f.id}>
-                          {f.name}
-                        </Option>
-                      ))}
-                    </Select>
-                  </Form.Item>
-                )}
-              </div>
-            )}
-            <Row justify="center" align="middle">
-              <Col span={18} offset={6}>
-                <Form.Item
-                  id="informUser"
-                  label=""
-                  valuePropName="checked"
-                  name="inform_user"
-                  rules={[{ required: false }]}
-                >
-                  <Checkbox
-                    disabled={
-                      !id
-                        ? true
-                        : authUser?.email === form.getFieldValue("email")
-                        ? true
-                        : false
-                    }
-                  >
-                    {text.informUser}
-                  </Checkbox>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row justify="center" align="middle">
-              <Col span={18} offset={6}>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  shape="round"
-                  loading={submitting}
-                >
-                  {id ? text.updateUser : text.addUser}
-                </Button>
-              </Col>
-            </Row>
-          </Form>
+                      <Input />
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      label={text.userEmail}
+                      name="email"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valEmail,
+                          type: "email",
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      label={text.userPhoneNumber}
+                      name="phone_number"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.valPhone,
+                        },
+                      ]}
+                    >
+                      <Input />
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      name="organisation"
+                      label={text.userOrganisation}
+                      rules={[
+                        { required: true, message: text.valOrganization },
+                      ]}
+                    >
+                      <Select
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        placeholder={text.selectOne}
+                        allowClear
+                        showSearch
+                        optionFilterProp="children"
+                        filterOption={(input, option) =>
+                          option.children
+                            .toLowerCase()
+                            .indexOf(input.toLowerCase()) >= 0
+                        }
+                      >
+                        {organisations?.map((o, oi) => (
+                          <Option key={`org-${oi}`} value={o.id}>
+                            {o.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <div className="form-row">
+                    <Form.Item
+                      name="designation"
+                      label={text.userDesignation}
+                      rules={[{ required: true, message: text.valDesignation }]}
+                    >
+                      <Select
+                        placeholder={text.selectOne}
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        showSearch
+                        optionFilterProp="children"
+                        filterOption={(input, option) =>
+                          option.children
+                            .toLowerCase()
+                            .indexOf(input.toLowerCase()) >= 0
+                        }
+                      >
+                        {config?.designations?.map((d, di) => (
+                          <Option key={di} value={d.id}>
+                            {d.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <Row className="form-row">
+                    <Col span={18} offset={6}>
+                      <Form.Item name="trained" valuePropName="checked">
+                        <Checkbox>{text.userTrained}</Checkbox>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <div className="form-row">
+                    <Form.Item
+                      name="role"
+                      label="Role"
+                      rules={[{ required: true, message: text.valRole }]}
+                    >
+                      <Select
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        placeholder={text.selectOne}
+                        onChange={onRoleChange}
+                      >
+                        {allowedRoles.map((r, ri) => (
+                          <Option key={ri} value={r.id}>
+                            {r.name}
+                          </Option>
+                        ))}
+                      </Select>
+                    </Form.Item>
+                  </div>
+                  <Row justify="center" align="middle">
+                    <Col span={18} offset={6}>
+                      {role && (
+                        <span className="role-description">
+                          {config.roles.find((r) => r.id === role)?.description}
+                        </span>
+                      )}
+                    </Col>
+                  </Row>
+                  {role === IS_ADMIN && (
+                    <Form.Item
+                      label={text.admLevel}
+                      name="level"
+                      rules={[
+                        {
+                          required: true,
+                          message: text.levelFieldRequired,
+                        },
+                      ]}
+                    >
+                      <Select
+                        value={selectedLevel}
+                        getPopupContainer={(trigger) => trigger.parentNode}
+                        placeholder={text.selectOne}
+                        onChange={onLevelChange}
+                      >
+                        {levels.map((l, li) => (
+                          <Option key={li} value={l.id}>
+                            {l.name}
+                          </Option>
+                        ))}
+                      </Select>
+                      {levelError && (
+                        <div className="text-error">
+                          {text.userSelectLevelRequired}
+                        </div>
+                      )}
+                    </Form.Item>
+                  )}
+                  {role === IS_ADMIN &&
+                    selectedLevel &&
+                    selectedLevel !== NATIONAL_LEVEL && (
+                      <Row className="form-row">
+                        <Col span={6} className=" ant-form-item-label">
+                          <label htmlFor="administration">
+                            {text.administrationLabel}
+                          </label>
+                        </Col>
+                        <Col span={18}>
+                          <AdministrationDropdown
+                            withLabel={true}
+                            persist={true}
+                            size="large"
+                            width="100%"
+                            onChange={onAdminChange}
+                            maxLevel={selectedLevel}
+                          />
+                          {!!adminError && (
+                            <div className="text-error">{adminError}</div>
+                          )}
+                        </Col>
+                      </Row>
+                    )}
+                  {role === IS_SUPER_ADMIN && (
+                    <Row justify="center" align="middle">
+                      <Col span={18} offset={6}>
+                        <div className="form-row">
+                          <Form.Item
+                            name="nationalApprover"
+                            valuePropName="checked"
+                          >
+                            <Checkbox>{text.userNationalApprover}</Checkbox>
+                          </Form.Item>
+                        </div>
+                      </Col>
+                    </Row>
+                  )}
+
+                  {(role === IS_ADMIN ||
+                    formInstance.getFieldValue("nationalApprover") ===
+                      true) && (
+                    <Row
+                      justify="start"
+                      align="stretch"
+                      className="form-row"
+                      style={{ marginTop: "24px" }}
+                    >
+                      <Col span={6} className=" ant-form-item-label">
+                        <label htmlFor="forms">
+                          {text.questionnairesLabel}
+                        </label>
+                      </Col>
+                      <Col span={18}>
+                        <Form.Item
+                          name="forms"
+                          hasFeedback
+                          rules={[
+                            () => ({
+                              validator(_, value) {
+                                const allAccess = value
+                                  ?.map((a) => a?.access)
+                                  ?.flat();
+                                if (
+                                  allAccess?.filter((a) => a?.value)?.length >
+                                    0 ||
+                                  value?.filter((v) => v?.checked)?.length > 0
+                                ) {
+                                  return Promise.resolve();
+                                }
+                                return Promise.reject(
+                                  new Error(text.questionnairesRequired)
+                                );
+                              },
+                            }),
+                          ]}
+                        >
+                          {role === IS_ADMIN && (
+                            <Form.List name="forms">
+                              {(fields) => (
+                                <FormAccessCollapsible
+                                  form={form}
+                                  formInstance={formInstance}
+                                  fields={fields}
+                                />
+                              )}
+                            </Form.List>
+                          )}
+                          {formInstance.getFieldValue("nationalApprover") && (
+                            <Form.List name="forms">
+                              {(fields) => (
+                                <FormAccessCheckbox
+                                  form={form}
+                                  fields={fields}
+                                />
+                              )}
+                            </Form.List>
+                          )}
+                        </Form.Item>
+                      </Col>
+                    </Row>
+                  )}
+
+                  <Row justify="center" align="middle">
+                    <Col span={18} offset={6}>
+                      <Form.Item
+                        id="informUser"
+                        label=""
+                        valuePropName="checked"
+                        name="inform_user"
+                        rules={[{ required: false }]}
+                      >
+                        <Checkbox
+                          disabled={
+                            !id
+                              ? true
+                              : authUser?.email === form.getFieldValue("email")
+                              ? true
+                              : false
+                          }
+                        >
+                          {text.informUser}
+                        </Checkbox>
+                      </Form.Item>
+                    </Col>
+                  </Row>
+                  <Row justify="center" align="middle">
+                    <Col span={18} offset={6}>
+                      <Button
+                        type="primary"
+                        htmlType="submit"
+                        shape="round"
+                        loading={submitting}
+                      >
+                        {id ? text.updateUser : text.addUser}
+                      </Button>
+                    </Col>
+                  </Row>
+                </>
+              )}
+            </Form>
+          </Spin>
         </div>
       </div>
 

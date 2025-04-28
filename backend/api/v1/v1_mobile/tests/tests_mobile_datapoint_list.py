@@ -24,7 +24,7 @@ class MobileDataPointDownloadListTestCase(TestCase):
         )
         self.administrations = Administration.objects.filter(level__level=2)
         self.administration = self.administrations.first()
-        role = UserRoleTypes.user
+        role = UserRoleTypes.admin
         self.user_access = Access.objects.create(
             user=self.user, role=role, administration=self.administration
         )

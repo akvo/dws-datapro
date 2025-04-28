@@ -58,3 +58,15 @@ class AttributeTypes:
         jmp: "jmp",
         advanced_filter: "advanced_filter",
     }
+
+
+class FormAccessTypes:
+    read = 1
+    edit = 2
+    approve = 3
+
+    FieldStr = {
+        read: "Read",
+        edit: "Edit",
+        approve: "Approve",
+    }

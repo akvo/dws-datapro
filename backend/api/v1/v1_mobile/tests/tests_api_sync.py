@@ -15,19 +15,22 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
     def setUp(self):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
+        call_command("demo_approval_flow", "--test", True)
+
         self.user = SystemUser.objects.create_user(
             email="test@test.org",
             password="test1234",
             first_name="test",
             last_name="testing",
         )
-        self.administration = Administration.objects.filter(
-            parent__isnull=True
-        ).first()
-        self.administration2 = Administration.objects.last()
+        adm1, adm2 = Administration.objects.filter(
+            level__gt=0
+        ).all()[:2]
+        self.administration = adm1
+        self.administration2 = adm2
         self.form = Forms.objects.first()
 
-        role = UserRoleTypes.user
+        role = UserRoleTypes.admin
         self.user_access = Access.objects.create(
             user=self.user, role=role, administration=self.administration
         )
@@ -133,13 +136,6 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
             pending_data[0].submitter, self.mobile_assignment.name
         )
         self.assertEqual(pending_data[0].duration, 3000)
-
-        administration = (
-            Access.objects.filter(user=self.user).first().administration
-        )
-        self.assertNotEqual(
-            pending_data[0].administration.id, administration.id
-        )
 
         # Submit with invalid token
         response = self.client.post(

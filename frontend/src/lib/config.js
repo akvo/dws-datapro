@@ -1,4 +1,11 @@
 import api from "./api";
+import {
+  FORM_APPROVER_ACCESS,
+  FORM_EDITOR_ACCESS,
+  FORM_READER_ACCESS,
+  IS_ADMIN,
+  IS_SUPER_ADMIN,
+} from "./constants";
 
 const config = {
   siteTitle: "RUSH",
@@ -26,7 +33,7 @@ const config = {
   ],
   roles: [
     {
-      id: 1,
+      id: IS_SUPER_ADMIN,
       name: "Super Admin",
       filter_form: false,
       delete_data: true,
@@ -47,9 +54,8 @@ const config = {
         "downloads",
         "mobile",
       ],
-      administration_level: [1],
       description:
-        "Overall national administrator of the RUSH. Assigns roles to all county admins",
+        "Super Admin has access to all the forms and can manage all the data.",
       control_center_order: [
         "manage-user",
         "manage-data",
@@ -60,8 +66,8 @@ const config = {
       ],
     },
     {
-      id: 2,
-      name: "County Admin",
+      id: IS_ADMIN,
+      name: "Admin",
       filter_form: false,
       delete_data: true,
       page_access: [
@@ -76,69 +82,15 @@ const config = {
         "form",
         "reports",
         "downloads",
+        "mobile",
       ],
-      administration_level: [2],
-      description:
-        "Overall County administrator of the RUSH. Assigns roles to all sub county RUSH admins (approvers) in the county under jusridistion.",
+      description: "",
       control_center_order: [
         "manage-user",
         "manage-mobile",
         "manage-data",
         "approvals",
         "submission",
-        "download",
-      ],
-    },
-    {
-      id: 3,
-      name: "Data Approver",
-      filter_form: 1,
-      delete_data: false,
-      page_access: [
-        "profile",
-        "control-center",
-        "data",
-        "visualisation",
-        "approvals",
-        "questionnaires",
-        "reports",
-        "mobile",
-        "form",
-        "downloads",
-      ],
-      administration_level: [3, 4],
-      description:
-        "Gives final approval to data submitted from the area under jurisdiction. Can edit or return data for correction.",
-      control_center_order: [
-        "approvals",
-        "submission",
-        "manage-data",
-        "manage-mobile",
-        "download",
-      ],
-    },
-    {
-      id: 4,
-      name: "Data Entry Supervisor",
-      filter_form: 1,
-      delete_data: false,
-      page_access: [
-        "profile",
-        "form",
-        "data",
-        "visualisation",
-        "control-center",
-        "reports",
-        "mobile",
-        "downloads",
-      ],
-      administration_level: [4],
-      description:
-        "Overall role to collect data from community/village assigned to them",
-      control_center_order: [
-        "submission",
-        "manage-data",
-        "manage-mobile",
         "download",
       ],
     },
@@ -898,6 +850,24 @@ const config = {
     registration: "#2563eb",
     monitoring: "#0891b2",
   },
+  maxLevelApproval: 3,
+  accessFormTypes: [
+    {
+      id: FORM_READER_ACCESS,
+      label: "Read Only",
+      value: false,
+    },
+    {
+      id: FORM_EDITOR_ACCESS,
+      label: "Editor",
+      value: false,
+    },
+    {
+      id: FORM_APPROVER_ACCESS,
+      label: "Approver",
+      value: false,
+    },
+  ],
 };
 
 export default config;
