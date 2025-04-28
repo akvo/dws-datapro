@@ -11,6 +11,11 @@ from api.v1.v1_profile.models import Levels, Access, Administration
 from api.v1.v1_users.models import SystemUser, Organisation
 from api.v1.v1_forms.models import Forms, UserForms, FormAccess
 from api.v1.v1_forms.constants import FormAccessTypes
+from api.v1.v1_users.functions import (
+    check_form_approval_assigned,
+    assign_form_approval,
+)
+
 fake = Faker()
 
 DEFAULT_PASSWORD = "Test#1234"
@@ -23,12 +28,14 @@ def create_user(
 ) -> SystemUser:
     first_name = fake.first_name()
     last_name = fake.last_name()
-    email = ("{}@test.com").format(
-        re.sub('[^A-Za-z0-9]+', '', first_name.lower()))
-    email = "{}_{}".format(str(uuid.uuid4())[:4], email)
+    email = (
+        "{}.{}@test.com").format(
+        re.sub("[^A-Za-z0-9]+", "", first_name.lower()),
+        str(uuid.uuid4())[:4]
+    )
     organisation = Organisation.objects.filter(
         organisation_organisation_attribute=OrganisationTypes.member
-    ).order_by('?').first()
+    ).order_by("?").first()
     user = SystemUser.objects.create(
         email=email,
         first_name=first_name,
@@ -60,26 +67,55 @@ def create_user(
             )
             FormAccess.objects.get_or_create(
                 user_form=user_form,
-                access_type=FormAccessTypes.read
-            )
-            FormAccess.objects.get_or_create(
-                user_form=user_form,
                 access_type=FormAccessTypes.edit
             )
+            if random.choice([True, False]):
+                FormAccess.objects.get_or_create(
+                    user_form=user_form,
+                    access_type=FormAccessTypes.approve
+                )
     if not is_superadmin:
-        form = Forms.objects.all().order_by('?').first()
+        form = Forms.objects.all().order_by("?").first()
         user_form, _ = UserForms.objects.get_or_create(
             user=user,
             form=form
         )
-        FormAccess.objects.get_or_create(
-            user_form=user_form,
-            access_type=FormAccessTypes.read
-        )
-        FormAccess.objects.get_or_create(
-            user_form=user_form,
-            access_type=FormAccessTypes.edit
-        )
+        if random.choice([True, False]):
+            FormAccess.objects.get_or_create(
+                user_form=user_form,
+                access_type=FormAccessTypes.read
+            )
+        else:
+            FormAccess.objects.get_or_create(
+                user_form=user_form,
+                access_type=FormAccessTypes.edit
+            )
+            is_approver = random.choice([True, False])
+            if is_approver:
+                is_approver_assigned = check_form_approval_assigned(
+                    role=UserRoleTypes.admin,
+                    administration=administration,
+                    access_forms=[{
+                        "form_id": form
+                    }],
+                )
+                # Check if the user already has approver access
+                if not is_approver_assigned:
+                    # Assign approver access to the user
+                    FormAccess.objects.get_or_create(
+                        user_form=user_form,
+                        access_type=FormAccessTypes.approve
+                    )
+                    assign_form_approval(
+                        role=UserRoleTypes.admin,
+                        forms=[form],
+                        administration=administration,
+                        user=user,
+                        access_forms=[{
+                            "form_id": form,
+                            "access_type": FormAccessTypes.approve
+                        }],
+                    )
     return user
 
 
@@ -90,7 +126,7 @@ class Command(BaseCommand):
             "--repeat",
             nargs="?",
             const=1,
-            default=1,
+            default=5,
             type=int
         )
         parser.add_argument(
@@ -105,16 +141,34 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         repeat = options.get("repeat")
         test = options.get("test")
-        levels = Levels.objects.all()
-        for level in levels:
+        level = 0
+        total_levels = Levels.objects.count() - 1
+        for _ in range(repeat):
+            if level > total_levels:
+                level = 0
+            is_superadmin = level == 0
+            # Get administrations with entity data
             administration = Administration.objects.filter(
-                level=level
-            ).order_by('?').first()
+                level__level=level
+            ).exclude(
+                entity_data=None
+            ).order_by("?").first()
+
+            # Fall back to any administration if none with entity data exists
             if not administration:
-                continue
-            for _ in range(repeat):
-                create_user(
-                    administration=administration,
-                    is_superadmin=level.level == 0,
-                    test=test
+                administration = Administration.objects.filter(
+                    level__level=level,
+                ).order_by("?").first()
+
+            level += 1
+            create_user(
+                administration=administration,
+                is_superadmin=is_superadmin,
+                test=test
+            )
+        if not test:
+            self.stdout.write(
+                self.style.SUCCESS(
+                    "Successfully created {} users".format(repeat)
                 )
+            )
