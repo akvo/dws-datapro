@@ -53,7 +53,9 @@ from api.v1.v1_data.serializers import (
     BatchListRequestSerializer,
     SubmitFormDataAnswerSerializer,
 )
-from api.v1.v1_forms.constants import QuestionTypes, SubmissionTypes
+from api.v1.v1_forms.constants import (
+    QuestionTypes, SubmissionTypes, FormAccessTypes
+)
 from api.v1.v1_forms.models import Forms, Questions, FormApprovalAssignment
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
@@ -64,7 +66,7 @@ from utils.custom_permissions import (
     IsSuperAdmin,
     IsAdmin,
     IsApprover,
-    IsSubmitter,
+    IsEditorOrSuperAdmin,
     PublicGet,
 )
 from utils.custom_serializer_fields import validate_serializers_message
@@ -76,6 +78,11 @@ period_length = 60 * 15
 
 class FormDataAddListView(APIView):
     permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.request.method == "PUT":
+            return [IsAuthenticated(), IsEditorOrSuperAdmin()]
+        return [IsAuthenticated()]
 
     @extend_schema(
         responses={
@@ -297,9 +304,18 @@ class FormDataAddListView(APIView):
                 data.administration.parent
             ]
         ).exists()
+        user_form = user.user_form.filter(
+            form=form
+        ).first()
+
+        is_editor = False
+        if user_form:
+            is_editor = user_form.user_form_access.filter(
+                access_type=FormAccessTypes.edit
+            ).exists()
 
         # Direct update
-        if is_super_admin or not have_approvals:
+        if is_super_admin or not have_approvals or is_editor:
             # move current answer to answer_history
             for answer in answers:
                 form_answer = Answers.objects.filter(
@@ -564,7 +580,7 @@ def list_pending_batch(request, version):
 )
 @api_view(["GET"])
 @permission_classes(
-    [IsAuthenticated, IsSuperAdmin | IsAdmin | IsApprover | IsSubmitter]
+    [IsAuthenticated, IsSuperAdmin | IsAdmin | IsApprover]
 )
 def list_pending_data_batch(request, version, batch_id):
     batch = get_object_or_404(PendingDataBatch, pk=batch_id)
