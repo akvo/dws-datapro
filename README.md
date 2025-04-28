@@ -83,7 +83,6 @@ The script will prompt you for various actions related to data seeding such as:
 - add a new super admin
 - seed fake users
 - seed forms
-- and seed fake data
 
 Answer each prompt by entering 'y' or 'n' followed by the Enter key.
 
