@@ -49,8 +49,8 @@ class UserInvitationTestCase(TestCase):
             'id': 1,
             'value': 'Super Admin'
         })
-        call_command("fake_user_seeder", "-r", 10, "--test", True)
-        response = self.client.get("/api/v1/users?page=3",
+        call_command("fake_user_seeder", "-r", 25, "--test", True)
+        response = self.client.get("/api/v1/users?page=2",
                                    follow=True,
                                    **self.header)
         users = response.json()
@@ -729,7 +729,6 @@ class UserInvitationTestCase(TestCase):
         token = user.get('token')
         header = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
         call_command("fake_user_seeder", "--test", True)
-        call_command("fake_approver_seeder")
         u = SystemUser.objects.filter(
             user_access__role__in=[
                 UserRoleTypes.admin,
