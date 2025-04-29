@@ -54,12 +54,11 @@ from api.v1.v1_data.serializers import (
     SubmitFormDataAnswerSerializer,
 )
 from api.v1.v1_forms.constants import (
-    QuestionTypes, SubmissionTypes, FormAccessTypes
+    QuestionTypes, SubmissionTypes
 )
-from api.v1.v1_forms.models import Forms, Questions, FormApprovalAssignment
+from api.v1.v1_forms.models import Forms, Questions
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.constants import UserRoleTypes
 
 from iwsims.settings import REST_FRAMEWORK
 from utils.custom_permissions import (
@@ -279,8 +278,6 @@ class FormDataAddListView(APIView):
     def put(self, request, form_id, version):
         data_id = request.GET["data_id"]
         user = request.user
-        user_role = user.user_access.role
-        form = get_object_or_404(Forms, pk=form_id)
         data = get_object_or_404(FormData, pk=data_id)
         serializer = SubmitFormDataAnswerSerializer(
             data=request.data, many=True
@@ -295,96 +292,29 @@ class FormDataAddListView(APIView):
             )
 
         answers = request.data
-        # check if user is super admin
-        is_super_admin = user_role == UserRoleTypes.super_admin
-        have_approvals = FormApprovalAssignment.objects.filter(
-            form=form,
-            administration__in=[
-                data.administration,
-                data.administration.parent
-            ]
-        ).exists()
-        user_form = user.user_form.filter(
-            form=form
-        ).first()
-
-        is_editor = False
-        if user_form:
-            is_editor = user_form.user_form_access.filter(
-                access_type=FormAccessTypes.edit
-            ).exists()
 
         # Direct update
-        if is_super_admin or not have_approvals or is_editor:
-            # move current answer to answer_history
-            for answer in answers:
-                form_answer = Answers.objects.filter(
-                    data=data, question=answer.get("question")
-                ).first()
-                if form_answer:
-                    AnswerHistory.objects.create(
-                        data=form_answer.data,
-                        question=form_answer.question,
-                        name=form_answer.name,
-                        value=form_answer.value,
-                        options=form_answer.options,
-                        created_by=user,
-                    )
-                if not form_answer:
-                    form_answer = Answers(
-                        data=data,
-                        question_id=answer.get("question"),
-                        created_by=user,
-                    )
-                # prepare updated answer
-                question_id = answer.get("question")
-                question = Questions.objects.get(id=question_id)
-                name = None
-                value = None
-                option = None
-                if question.type in [
-                    QuestionTypes.geo,
-                    QuestionTypes.option,
-                    QuestionTypes.multiple_option,
-                ]:
-                    option = answer.get("value")
-                elif question.type in [
-                    QuestionTypes.text,
-                    QuestionTypes.photo,
-                    QuestionTypes.date,
-                ]:
-                    name = answer.get("value")
-                else:
-                    # for administration,number question type
-                    value = answer.get("value")
-                # Update answer
-                form_answer.data = data
-                form_answer.question = question
-                form_answer.name = name
-                form_answer.value = value
-                form_answer.options = option
-                form_answer.updated = timezone.now()
-                form_answer.save()
-            # update datapoint
-            data.updated = timezone.now()
-            data.updated_by = user
-            data.save()
-            data.save_to_file
-            return Response(
-                {"message": "direct update success"}, status=status.HTTP_200_OK
-            )
-        # Store edit data to pending form data
-        pending_data = PendingFormData.objects.create(
-            name=data.name,
-            form=data.form,
-            data=data,
-            administration=data.administration,
-            geo=data.geo,
-            batch=None,
-            created_by=user,
-        )
+        # move current answer to answer_history
         for answer in answers:
-            # store to pending answer
+            form_answer = Answers.objects.filter(
+                data=data, question=answer.get("question")
+            ).first()
+            if form_answer:
+                AnswerHistory.objects.create(
+                    data=form_answer.data,
+                    question=form_answer.question,
+                    name=form_answer.name,
+                    value=form_answer.value,
+                    options=form_answer.options,
+                    created_by=user,
+                )
+            if not form_answer:
+                form_answer = Answers(
+                    data=data,
+                    question_id=answer.get("question"),
+                    created_by=user,
+                )
+            # prepare updated answer
             question_id = answer.get("question")
             question = Questions.objects.get(id=question_id)
             name = None
@@ -405,17 +335,21 @@ class FormDataAddListView(APIView):
             else:
                 # for administration,number question type
                 value = answer.get("value")
-            PendingAnswers.objects.create(
-                pending_data=pending_data,
-                question=question,
-                name=name,
-                value=value,
-                options=option,
-                created_by=user,
-            )
+            # Update answer
+            form_answer.data = data
+            form_answer.question = question
+            form_answer.name = name
+            form_answer.value = value
+            form_answer.options = option
+            form_answer.updated = timezone.now()
+            form_answer.save()
+        # update datapoint
+        data.updated = timezone.now()
+        data.updated_by = user
+        data.save()
+        data.save_to_file
         return Response(
-            {"message": "store to pending data success"},
-            status=status.HTTP_200_OK,
+            {"message": "direct update success"}, status=status.HTTP_200_OK
         )
 
 
