@@ -359,11 +359,6 @@ class FormDataAddListView(APIView):
 class DataAnswerDetailDeleteView(APIView):
     permission_classes = [PublicGet]
 
-    def get_permissions(self):
-        if self.request.method == "DELETE":
-            return [IsAuthenticated(), IsEditorOrSuperAdmin()]
-        return [PublicGet()]
-
     @extend_schema(
         responses={200: ListDataAnswerSerializer(many=True)},
         tags=["Data"],

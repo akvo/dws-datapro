@@ -69,22 +69,12 @@ class PublicGet(BasePermission):
         if request.user.is_anonymous:
             return False
         if request.method == "DELETE":
-            if request.user.user_access.role in [
-                UserRoleTypes.super_admin,
-                UserRoleTypes.admin,
-            ]:
-                return True
-            return False
+            is_editor = IsEditor().has_permission(request, view)
+            is_super_admin = IsSuperAdmin().has_permission(request, view)
+            return is_editor or is_super_admin
         if request.user.user_access.role in [
             UserRoleTypes.super_admin,
             UserRoleTypes.admin,
         ]:
-            return True
-        # Check for approver access via FormAccess
-        has_approver_access = FormAccess.objects.filter(
-            user_form__user=request.user,
-            access_type=FormAccessTypes.approve
-        ).exists()
-        if has_approver_access:
             return True
         return False
