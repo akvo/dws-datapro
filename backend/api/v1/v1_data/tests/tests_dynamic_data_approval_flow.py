@@ -9,7 +9,9 @@ from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from api.v1.v1_mobile.tests.mixins import AssignmentTokenTestHelperMixin
 from api.v1.v1_profile.models import Levels, Administration
 from api.v1.v1_forms.models import FormApprovalAssignment, Forms, FormTypes
-from api.v1.v1_forms.constants import SubmissionTypes, QuestionTypes
+from api.v1.v1_forms.constants import (
+    SubmissionTypes, QuestionTypes, FormAccessTypes
+)
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_data.models import (
     PendingFormData, PendingDataApproval, PendingDataBatch,
@@ -80,6 +82,14 @@ class DynamicDataApprovalFlowTestCase(
             role_level=self.IS_ADMIN,
             administration=adm,
         )
+        # Assign form access to user with read access
+        user_form = user.user_form.create(
+            form=self.form,
+        )
+        user_form.user_form_access.create(
+            access_type=FormAccessTypes.read,
+        )
+        user_form.save()
 
         mobile_assignment = MobileAssignment.objects.create_assignment(
             user=user,
