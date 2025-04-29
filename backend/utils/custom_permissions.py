@@ -48,6 +48,20 @@ class IsEditorOrSuperAdmin(BasePermission):
         return is_editor or is_super_admin
 
 
+class IsSuperAdminOrFormUser(BasePermission):
+    # Check if the user is a super admin or has form access
+    def has_permission(self, request, view):
+        # Check if user is super admin
+        if request.user.user_access.role == UserRoleTypes.super_admin:
+            return True
+        # Check if user has any form
+        has_form_access = FormAccess.objects.filter(
+            user_form__user=request.user,
+            user_form__form_id=view.kwargs.get("form_id")
+        ).exists()
+        return has_form_access
+
+
 class PublicGet(BasePermission):
     def has_permission(self, request, view):
         if request.method == "GET":
