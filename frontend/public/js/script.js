@@ -1,9 +1,11 @@
 const updateOffset = () => {
   requestAnimationFrame(updateOffset);
-  document.body.style.setProperty(
-    "--y",
-    document.querySelector(".js-content").scrollTop
-  );
+  if (document.querySelector(".js-content")) {
+    document.body.style.setProperty(
+      "--y",
+      document.querySelector(".js-content").scrollTop
+    );
+  }
   updateProps();
 };
 
