@@ -106,6 +106,9 @@ const config = {
       ?.flatMap((f) => f?.access)
       ?.some((a) => a?.value === FORM_APPROVER_ACCESS);
   },
+  hasEditAccess: (form = {}) => {
+    return form?.access?.some((a) => a?.value === FORM_EDITOR_ACCESS);
+  },
   approvalsLiteral: (props = { isButton: false }) => {
     return props?.isButton ? "Approve" : "Approvals";
   },
