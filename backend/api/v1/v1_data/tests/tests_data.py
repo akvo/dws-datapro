@@ -2,7 +2,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.test.utils import override_settings
 from api.v1.v1_data.models import FormData, Forms, Answers, AnswerHistory
-from api.v1.v1_forms.constants import SubmissionTypes
+from api.v1.v1_forms.constants import SubmissionTypes, FormAccessTypes
 from api.v1.v1_profile.models import (
     UserRoleTypes,
     Access,
@@ -32,6 +32,10 @@ class DataTestCase(TestCase):
         )
 
     def test_list_form_data(self):
+        form = Forms.objects.filter(
+            form_form_data__gt=0
+        ).first()
+
         user = SystemUser.objects.create_user(
             email="test@test.org",
             password="test1234",
@@ -43,6 +47,14 @@ class DataTestCase(TestCase):
         Access.objects.create(
             user=user, role=role, administration=administration
         )
+        # Assign form access to user with read access
+        user_form = user.user_form.create(
+            form=form,
+        )
+        user_form.user_form_access.create(
+            access_type=FormAccessTypes.read,
+        )
+        user_form.save()
 
         user_payload = {"email": "test@test.org", "password": "test1234"}
 
@@ -52,10 +64,6 @@ class DataTestCase(TestCase):
         token = user_response.json().get("token")
         header = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
 
-        # PRIVATE ACCESS
-        form = Forms.objects.filter(
-            form_form_data__gt=0
-        ).first()
         data = self.client.get(
             f"/api/v1/form-data/{form.id}?submission_type=1&page=1",
             content_type="application/json",
@@ -98,6 +106,41 @@ class DataTestCase(TestCase):
             **header
         )
         self.assertEqual(data.status_code, 404)
+
+    def test_unauthorized_access_list_form_data(self):
+        form = Forms.objects.filter(
+            form_form_data__gt=0
+        ).first()
+
+        user = SystemUser.objects.create_user(
+            email="test2@test.org",
+            password="test1234",
+            first_name="test2",
+            last_name="testing",
+        )
+        administration = Administration.objects.filter(level__level=1).first()
+        role = UserRoleTypes.admin
+        Access.objects.create(
+            user=user, role=role, administration=administration
+        )
+
+        user_response = self.client.post(
+            "/api/v1/login",
+            {
+                "email": user.email,
+                "password": "test1234"
+            },
+            content_type="application/json"
+        )
+        token = user_response.json().get("token")
+        header = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+
+        data = self.client.get(
+            f"/api/v1/form-data/{form.id}?submission_type=1&page=1",
+            content_type="application/json",
+            **header,
+        )
+        self.assertEqual(data.status_code, 403)
 
     def test_datapoint_deletion(self):
         header = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
