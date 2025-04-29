@@ -66,6 +66,7 @@ from utils.custom_permissions import (
     IsAdmin,
     IsApprover,
     IsEditorOrSuperAdmin,
+    IsSuperAdminOrFormUser,
     PublicGet,
 )
 from utils.custom_serializer_fields import validate_serializers_message
@@ -79,6 +80,8 @@ class FormDataAddListView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get_permissions(self):
+        if self.request.method == "GET":
+            return [IsAuthenticated(), IsSuperAdminOrFormUser()]
         if self.request.method == "PUT":
             return [IsAuthenticated(), IsEditorOrSuperAdmin()]
         return [IsAuthenticated()]
@@ -355,6 +358,11 @@ class FormDataAddListView(APIView):
 
 class DataAnswerDetailDeleteView(APIView):
     permission_classes = [PublicGet]
+
+    def get_permissions(self):
+        if self.request.method == "DELETE":
+            return [IsAuthenticated(), IsEditorOrSuperAdmin()]
+        return [PublicGet()]
 
     @extend_schema(
         responses={200: ListDataAnswerSerializer(many=True)},
