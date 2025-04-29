@@ -164,6 +164,50 @@ class DataTestCase(TestCase):
         answers = Answers.objects.filter(data_id=data_id).count()
         self.assertEqual(answers, 0)
 
+    def test_datapoint_deletion_with_read_access(self):
+        form = Forms.objects.filter(
+            form_form_data__gt=0
+        ).first()
+
+        user = SystemUser.objects.create_user(
+            email="test3@test.org",
+            password="test1234",
+            first_name="test",
+            last_name="testing",
+        )
+        administration = Administration.objects.filter(level__level=1).first()
+        role = UserRoleTypes.admin
+        Access.objects.create(
+            user=user, role=role, administration=administration
+        )
+        # Assign form access to user with read access
+        user_form = user.user_form.create(
+            form=form,
+        )
+        user_form.user_form_access.create(
+            access_type=FormAccessTypes.read,
+        )
+        user_form.save()
+
+        user_response = self.client.post(
+            "/api/v1/login",
+            {
+                "email": user.email,
+                "password": "test1234"
+            },
+            content_type="application/json"
+        )
+        token = user_response.json().get("token")
+        header = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
+
+        data_id = form.form_form_data.first().id
+        data = self.client.delete(
+            f"/api/v1/data/{data_id}",
+            content_type="application/json",
+            **header,
+        )
+        self.assertEqual(data.status_code, 403)
+
     def test_datapoint_with_history_deletion(self):
         header = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
 
@@ -298,3 +342,19 @@ class DataTestCase(TestCase):
         self.assertEqual(result["total"], parent.children.count() + 1)
         # make sure the last item is parent
         self.assertEqual(result["data"][-1]["name"], parent.name)
+
+    def test_get_data_details_anonymously(self):
+        data_id = FormData.objects.first().id
+        data = self.client.get(
+            f"/api/v1/data/{data_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(data.status_code, 200)
+
+    def test_datapoint_deletion_anonymously(self):
+        data_id = FormData.objects.first().id
+        data = self.client.delete(
+            f"/api/v1/data/{data_id}",
+            content_type="application/json",
+        )
+        self.assertEqual(data.status_code, 401)
