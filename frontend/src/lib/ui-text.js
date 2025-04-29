@@ -176,10 +176,10 @@ const uiText = {
     valOrgName: "Organization name is required",
     valOrgAttributes: "Please select an Attributes",
     // Control Center
-    manageDataTitle: "Manage Routine Data",
-    manageDataButton: "Manage Routine Data",
+    manageDataTitle: "Manage Data",
+    manageDataButton: "Manage Data",
     newSubmissionBtn: "Add New Submission",
-    finishSubmissionBtn: "Finish and Go to Manage Routine Data",
+    finishSubmissionBtn: "Finish and Go to Manage Data",
     finishSubmissionBatchBtn: "Finish and Go to Batch",
     noFormText: "No data",
     noFormSelectedText: "No form selected",
@@ -727,7 +727,7 @@ const uiText = {
     questionCol: "Question",
     responseCol: "Response",
     lastResponseCol: "Last Response",
-    backManageData: "Back to Manage Routine Data",
+    backManageData: "Back to Manage Data",
     monitoringDataTitle: "Monitoring data",
     monitoringDataDescription: (
       <Fragment>
