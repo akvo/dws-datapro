@@ -72,9 +72,4 @@ class PublicGet(BasePermission):
             is_editor = IsEditor().has_permission(request, view)
             is_super_admin = IsSuperAdmin().has_permission(request, view)
             return is_editor or is_super_admin
-        if request.user.user_access.role in [
-            UserRoleTypes.super_admin,
-            UserRoleTypes.admin,
-        ]:
-            return True
         return False
