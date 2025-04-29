@@ -80,7 +80,7 @@ Object {
     "attrTypeRequired": "Attribute type is required",
     "backBtn": "Back",
     "backHome": "Back to Homepage",
-    "backManageData": "Back to Manage Routine Data",
+    "backManageData": "Back to Manage Data",
     "backToAdmLabel": "Back to Administrative List",
     "backToCenterLabel": "Back to Control Center",
     "batchDatasets": "Batch Datasets",
@@ -241,7 +241,7 @@ Object {
     "fileUploadSuccess": "File uploaded successfully",
     "finish": "Finish",
     "finishSubmissionBatchBtn": "Finish and Go to Batch",
-    "finishSubmissionBtn": "Finish and Go to Manage Routine Data",
+    "finishSubmissionBtn": "Finish and Go to Manage Data",
     "footerAboutDescription": "",
     "footerAboutTitle": "About Data",
     "footerContactAddress": "",
@@ -360,7 +360,7 @@ Object {
       </ul>
     </React.Fragment>,
     "manageAttributes": "Manage Attributes",
-    "manageDataButton": "Manage Routine Data",
+    "manageDataButton": "Manage Data",
     "manageDataText": <React.Fragment>
       This is where you :
       <ul>
@@ -375,7 +375,7 @@ Object {
         </li>
       </ul>
     </React.Fragment>,
-    "manageDataTitle": "Manage Routine Data",
+    "manageDataTitle": "Manage Data",
     "manageDataValidationSetup": "Validation Tree",
     "manageEntities": "Manage Entities",
     "manageEntitiesText": <React.Fragment>

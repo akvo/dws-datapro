@@ -44,6 +44,7 @@ const config = {
         "data",
         "visualisation",
         "questionnaires",
+        "submissions",
         "approvals",
         "approvers",
         "form",
@@ -77,12 +78,14 @@ const config = {
         "data",
         "visualisation",
         "questionnaires",
+        "submissions",
         "approvals",
         "approvers",
         "form",
         "reports",
         "downloads",
         "mobile",
+        "submissions",
       ],
       description: "",
       control_center_order: [
@@ -97,6 +100,14 @@ const config = {
   ],
   checkAccess: (roles, page) => {
     return roles?.page_access?.includes(page);
+  },
+  checkApproverAccess: (forms = []) => {
+    return forms
+      ?.flatMap((f) => f?.access)
+      ?.some((a) => a?.value === FORM_APPROVER_ACCESS);
+  },
+  hasEditAccess: (form = {}) => {
+    return form?.access?.some((a) => a?.value === FORM_EDITOR_ACCESS);
   },
   approvalsLiteral: (props = { isButton: false }) => {
     return props?.isButton ? "Approve" : "Approvals";

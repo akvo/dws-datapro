@@ -17,7 +17,7 @@ const ControlCenter = () => {
     return uiText[activeLang];
   }, [activeLang]);
 
-  const { roles, checkAccess } = config;
+  const { roles, checkAccess, checkApproverAccess } = config;
 
   const panels = useMemo(() => {
     return [
@@ -66,10 +66,16 @@ const ControlCenter = () => {
             checkAccess(authUser.role_detail, panel.access)
         )
       )
-      .filter((panel) => panel);
+      .filter((panel) => panel)
+      .filter(
+        (panel) =>
+          (panel.access === "approvals" &&
+            checkApproverAccess(authUser?.forms)) ||
+          panel.access !== "approvals"
+      );
 
     return filteredAndOrderedPanels;
-  }, [panels, roles, checkAccess, authUser]);
+  }, [panels, roles, checkAccess, checkApproverAccess, authUser]);
 
   return (
     <>

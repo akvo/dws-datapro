@@ -2,8 +2,12 @@ from django.test import TestCase
 from django.core.management import call_command
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_data.models import FormData
-from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import FormTypes, SubmissionTypes
+from api.v1.v1_forms.models import Forms, UserForms
+from api.v1.v1_forms.constants import (
+    FormTypes,
+    FormAccessTypes,
+    SubmissionTypes,
+)
 from api.v1.v1_profile.models import Administration, Access
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_data.management.commands.fake_data_seeder import (
@@ -29,7 +33,19 @@ class MonitoringDataTestCase(TestCase):
             user=self.user, role=role, administration=self.administration
         )
         self.uuid = '1234567890'
-        self.form = Forms.objects.filter(type=FormTypes.county).first()
+        form = Forms.objects.filter(type=FormTypes.county).first()
+        user_form = UserForms.objects.create(
+            user=self.user,
+            form=form,
+        )
+        user_form.user_form_access.create(
+            access_type=FormAccessTypes.approve
+        )
+        self.user_form = user_form.user_form_access.create(
+            access_type=FormAccessTypes.edit
+        )
+
+        self.form = form
         self.adm_data = Administration.objects.filter(
             level__level=2,
             path__startswith=self.administration.path

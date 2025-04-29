@@ -15,7 +15,7 @@ const ControlCenterTour = () => {
       ? [
           {
             image: "/assets/tour/control-center/1.png",
-            title: "Manage Routine Data",
+            title: "Manage Data",
             description: text.tourManageData,
           },
           {

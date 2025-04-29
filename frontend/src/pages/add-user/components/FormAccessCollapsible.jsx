@@ -9,6 +9,35 @@ const FormAccessCollapsible = ({ form, formInstance, fields }) => {
     (af) => af.id === FORM_READER_ACCESS
   );
 
+  const onChange = (checked, name, accessKey) => {
+    const forms = formInstance.getFieldValue(["forms"]).map((f, fx) => {
+      if (fx === name) {
+        return {
+          ...f,
+          access: config.accessFormTypes.map((af, index) => ({
+            ...af,
+            value:
+              index === accessKey
+                ? checked
+                : formInstance.getFieldValue([
+                    "forms",
+                    name,
+                    "access",
+                    indexOfReadOnly,
+                    "value",
+                  ])
+                ? false
+                : f?.access?.[index]?.value,
+          })),
+        };
+      }
+      return f;
+    });
+    formInstance.setFieldsValue({
+      forms,
+    });
+  };
+
   return (
     <Collapse defaultActiveKey={["0"]}>
       {fields.map(({ key, name, ...restField }) => (
@@ -64,6 +93,9 @@ const FormAccessCollapsible = ({ form, formInstance, fields }) => {
                             disabled={
                               accessKey !== indexOfReadOnly && isReadOnly
                             }
+                            onChange={(e) => {
+                              onChange(e.target.checked, name, accessKey);
+                            }}
                           >
                             {form.getFieldValue([
                               "forms",

@@ -22,13 +22,16 @@ const DataDetail = ({
   const [saving, setSaving] = useState(false);
   const [resetButton, setresetButton] = useState({});
   const pendingData = record?.pending_data?.created_by || false;
-  const { user: authUser, forms } = store.useState((state) => state);
+  const { user: authUser } = store.useState((state) => state);
   const { notify } = useNotification();
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
+  const { hasEditAccess } = config;
+  const userForm = authUser?.forms?.find((f) => f.id === record?.form);
+  const isEditor = hasEditAccess(userForm);
 
   const updateCell = (key, parentId, value) => {
     setresetButton({ ...resetButton, [key]: true });
@@ -94,7 +97,6 @@ const DataDetail = ({
   const handleSave = () => {
     const data = [];
     const formId = flatten(dataset.map((qg) => qg.question))[0].form;
-    const formRes = forms.find((f) => f.id === formId);
     dataset.map((rd) => {
       rd.question.map((rq) => {
         if (rq.newValue || rq.newValue === 0) {
@@ -116,11 +118,7 @@ const DataDetail = ({
       .then(() => {
         notify({
           type: "success",
-          message:
-            authUser?.role?.id === 4 ||
-            (authUser?.role?.id === 2 && formRes.type === 2)
-              ? "Created New Pending Submission. Please go to your Profile to send this data for approval"
-              : "Data updated successfully",
+          message: "Data updated successfully",
         });
         updater(
           updateRecord === record.id
@@ -256,6 +254,7 @@ const DataDetail = ({
                       pendingData={pendingData}
                       isPublic={isPublic}
                       resetButton={resetButton}
+                      readonly={!isEditor}
                     />
                   ),
                   width: "50%",
@@ -281,7 +280,7 @@ const DataDetail = ({
           </div>
         ))}
       </div>
-      {!isPublic && (
+      {!isPublic && isEditor && (
         <div className="button-save">
           <Space>
             <Button
