@@ -101,6 +101,11 @@ const config = {
   checkAccess: (roles, page) => {
     return roles?.page_access?.includes(page);
   },
+  checkApproverAccess: (forms = []) => {
+    return forms
+      ?.flatMap((f) => f?.access)
+      ?.some((a) => a?.value === FORM_APPROVER_ACCESS);
+  },
   approvalsLiteral: (props = { isButton: false }) => {
     return props?.isButton ? "Approve" : "Approvals";
   },
