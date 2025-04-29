@@ -86,6 +86,8 @@ The script will prompt you for various actions related to data seeding such as:
 
 Answer each prompt by entering 'y' or 'n' followed by the Enter key.
 
+Default Fake User's password: `Test#123`
+
 #### Log
 
 ```bash

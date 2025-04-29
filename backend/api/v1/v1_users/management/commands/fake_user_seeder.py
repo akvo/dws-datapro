@@ -18,7 +18,7 @@ from api.v1.v1_users.functions import (
 
 fake = Faker()
 
-DEFAULT_PASSWORD = "Test#1234"
+DEFAULT_PASSWORD = "Test#123"
 
 
 def create_user(
