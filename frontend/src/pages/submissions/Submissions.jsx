@@ -445,6 +445,7 @@ const Submissions = () => {
         onCancel={() => {
           setModalVisible(false);
         }}
+        maskClosable={false}
         footer={
           <Row align="middle">
             <Col xs={24} align="left">
@@ -483,6 +484,7 @@ const Submissions = () => {
                 shape="round"
                 onClick={sendBatch}
                 disabled={!batchName.length}
+                loading={loading}
               >
                 {text.createNewBatch}
               </Button>
