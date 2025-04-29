@@ -50,9 +50,11 @@ class UserInvitationTestCase(TestCase):
             'value': 'Super Admin'
         })
         call_command("fake_user_seeder", "-r", 25, "--test", True)
-        response = self.client.get("/api/v1/users?page=2",
-                                   follow=True,
-                                   **self.header)
+        response = self.client.get(
+            "/api/v1/users?page=1",
+            follow=True,
+            **self.header
+        )
         users = response.json()
         self.assertEqual([
             'id',
