@@ -1,6 +1,5 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { Layout, Menu } from "antd";
-const { Sider } = Layout;
 import { store, config, api } from "../../lib";
 import { useNavigate } from "react-router-dom";
 import {
@@ -11,14 +10,17 @@ import {
   DownloadOutlined,
 } from "@ant-design/icons";
 
+const { Sider } = Layout;
+
 const Sidebar = () => {
   const { user: authUser, administration } = store.useState((s) => s);
   const [selectedKey, setSelectedKey] = useState("");
   const [openKeys, setOpenKeys] = useState([]);
   const navigate = useNavigate();
 
-  const { roles } = config;
+  const { roles, checkApproverAccess } = config;
   const superAdminRole = roles.find((r) => r.id === authUser?.role_detail?.id);
+  const isApprover = checkApproverAccess(authUser?.forms);
 
   const pageAccessToLabelAndUrlMapping = {
     user: { label: "Manage Platform Users", url: "/control-center/users" },
@@ -57,31 +59,38 @@ const Sidebar = () => {
     },
   };
 
-  const controlCenterToLabelMapping = {
-    "control-center": {
-      label: "Control Center",
-      icon: DashboardOutlined,
-    },
-    "manage-user": {
-      label: "Users",
-      icon: UserOutlined,
-      childrenKeys: ["user", "approvers", "mobile"],
-    },
-    "manage-data": {
-      label: "Data",
-      icon: TableOutlined,
-      childrenKeys: ["data", "submissions", "approvals"],
-    },
-    "manage-master-data": {
-      label: "Master Data",
-      icon: DatabaseOutlined,
-      childrenKeys: ["master-data"],
-    },
-    download: {
-      label: "Downloads",
-      icon: DownloadOutlined,
-    },
-  };
+  const controlCenterToLabelMapping = useMemo(() => {
+    const manageDataChildren = ["data", "submissions"];
+    if (isApprover) {
+      manageDataChildren.push("approvals");
+    }
+    const mapping = {
+      "control-center": {
+        label: "Control Center",
+        icon: DashboardOutlined,
+      },
+      "manage-user": {
+        label: "Users",
+        icon: UserOutlined,
+        childrenKeys: ["user", "approvers", "mobile"],
+      },
+      "manage-data": {
+        label: "Data",
+        icon: TableOutlined,
+        childrenKeys: manageDataChildren,
+      },
+      "manage-master-data": {
+        label: "Master Data",
+        icon: DatabaseOutlined,
+        childrenKeys: ["master-data"],
+      },
+      download: {
+        label: "Downloads",
+        icon: DownloadOutlined,
+      },
+    };
+    return mapping;
+  }, [isApprover]);
 
   const determineChildren = (key) => {
     const mapping = pageAccessToLabelAndUrlMapping[key];
@@ -226,30 +235,6 @@ const Sidebar = () => {
       }
     }
   }, []);
-
-  // useEffect(() => {
-  //   const currentKey = findKeyByUrl(usersMenuItem, location.pathname);
-  //   if (currentKey !== selectedKey || openKeys.length === 0) {
-  //     setSelectedKey(currentKey);
-  //     const newOpenKeys = [];
-  //     for (const menu of usersMenuItem) {
-  //       if (menu.url && menu.key === currentKey) {
-  //         newOpenKeys.push(menu.key);
-  //         break;
-  //       }
-  //       if (menu.children) {
-  //         const item = menu.children.find((child) => child.key === currentKey);
-  //         if (item) {
-  //           newOpenKeys.push(menu.key);
-  //           break;
-  //         }
-  //       }
-  //     }
-  //     if (JSON.stringify(openKeys) !== JSON.stringify(newOpenKeys)) {
-  //       setOpenKeys(newOpenKeys);
-  //     }
-  //   }
-  // }, [usersMenuItem, selectedKey, openKeys, findKeyByUrl]);
 
   return (
     <Sider className="site-layout-background">
