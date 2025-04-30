@@ -2,154 +2,161 @@
 
 #root {
   #approversTree {
-    .ant-row.tree-header {
-      border-bottom: solid #d7dbec 1px;
-      padding-bottom: 25px;
+    .table-wrapper {
+      overflow-x: auto;
+      width: 100%;
+      position: relative;
 
-      &.loading {
-        opacity: 0.3;
-      }
+      .ant-row.tree-header {
+        border-bottom: solid #d7dbec 1px;
+        padding-bottom: 25px;
+        width: fit-content;
+        min-width: 100%;
 
-      .ant-col {
-        width: 300px;
-        font-weight: $font-weight-bold;
-        font-size: 15px;
+        &.loading {
+          opacity: 0.3;
+        }
 
-        .shade {
-          position: absolute;
-          z-index: 2;
-          top: 70px;
-          width: 100%;
-          height: 15px;
-          opacity: 0;
-          transition: opacity 0.2s ease-out;
+        .ant-col {
+          width: 300px;
+          font-weight: $font-weight-bold;
+          font-size: 15px;
+          min-width: 300px;
 
-          &::before {
+          .shade {
             position: absolute;
-            content: " ";
+            z-index: 2;
+            top: 70px;
             width: 100%;
-            left: 0px;
-            top: 0px;
-            height: 1px;
-            box-shadow: 0 2px 4px #838383;
-          }
+            height: 15px;
+            opacity: 0;
+            transition: opacity 0.2s ease-out;
 
-          &.on {
-            opacity: 1;
+            &::before {
+              position: absolute;
+              content: " ";
+              width: 100%;
+              left: 0px;
+              top: 0px;
+              height: 1px;
+              box-shadow: 0 2px 4px #838383;
+            }
+
+            &.on {
+              opacity: 1;
+            }
           }
         }
       }
-    }
 
-    .tree-wrap {
-      position: relative;
-      height: 70vh;
-      width: 100%;
-      padding-top: 25px;
+      .tree-wrap {
+        position: relative;
+        height: 70vh;
+        width: fit-content;
+        min-width: 100%;
+        padding-top: 25px;
 
-      ::-webkit-scrollbar {
-        width: 0;
+        ::-webkit-scrollbar {
+          width: 0;
+          background: transparent;
+        }
 
-        /* Remove scrollbar space */
-        background: transparent;
-
-        /* Optional: just make scrollbar invisible */
-      }
-
-      .ant-row {
-        overflow-y: hidden;
-        overflow-x: scroll;
-        width: 100%;
-        height: 100%;
-
-        .ant-col {
-          stroke-dashoffset: 2px;
+        .ant-row {
+          overflow-y: hidden;
+          overflow-x: visible;
+          width: 100%;
           height: 100%;
-          overflow-y: scroll;
-          position: relative;
 
-          .tree-block {
-            padding: 12px 16px;
-            border-radius: 4px;
-            background-color: #f9fafb;
-            margin-bottom: 35px;
-            font-size: $font-size-small;
-            text-align: left;
-            width: 180px;
-            cursor: pointer;
-            transition: all 0.4s ease-in-out;
+          .ant-col {
+            stroke-dashoffset: 2px;
+            height: 100%;
+            overflow-y: scroll;
             position: relative;
+            min-width: 300px;
 
-            .ant-select {
-              width: 100%;
+            .tree-block {
+              padding: 12px 16px;
+              border-radius: 4px;
+              background-color: #f9fafb;
+              margin-bottom: 35px;
+              font-size: $font-size-small;
+              text-align: left;
+              width: 180px;
+              cursor: pointer;
+              transition: all 0.4s ease-in-out;
+              position: relative;
 
-              .ant-select-selector {
-                border: 0 none;
-                background-color: transparent;
-                margin-top: 5px;
-                font-size: 15px;
-                padding-left: 0;
-                box-shadow: none;
+              .ant-select {
+                width: 100%;
 
-                .ant-select-selection-item {
-                  font-weight: $font-weight-semi-bold;
+                .ant-select-selector {
+                  border: 0 none;
+                  background-color: transparent;
+                  margin-top: 5px;
+                  font-size: 15px;
+                  padding-left: 0;
+                  box-shadow: none;
+
+                  .ant-select-selection-item {
+                    font-weight: $font-weight-semi-bold;
+                  }
+                }
+
+                .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
+                  .ant-select-selector {
+                  border: 0 none;
+                  box-shadow: none;
+                }
+
+                .ant-select-selector:hover {
+                  color: $blue;
                 }
               }
 
-              .ant-select-focused:not(.ant-select-disabled).ant-select:not(.ant-select-customize-input)
-                .ant-select-selector {
-                border: 0 none;
-                box-shadow: none;
-              }
-
-              .ant-select-selector:hover {
-                color: $blue;
-              }
-            }
-
-            h3 {
-              &.not-assigned {
-                font-style: italic;
-                color: #9e9e9e;
-              }
-            }
-          }
-
-          .tree-block:hover {
-            -webkit-box-shadow: inset 0px 0px 0px 2px #0080ff;
-            -moz-box-shadow: inset 0px 0px 0px 2px #0080ff;
-            box-shadow: inset 0px 0px 0px 2px #0080ff;
-          }
-
-          .tree-block.active,
-          .tree-block.active:hover {
-            -webkit-box-shadow: inset 0px 0px 0px 2px #0080ff;
-            box-shadow: inset 0px 0px 0px 2px #0080ff;
-            -moz-box-shadow: inset 0px 0px 0px 2px #0080ff;
-            background-color: #fff;
-          }
-
-          .tree-block.active,
-          .tree-block.active:hover,
-          .tree-block {
-            &.assigned {
-              background-color: #0080ff;
-              color: #fff;
-              font-weight: bold;
-
               h3 {
-                color: #fff;
+                &.not-assigned {
+                  font-style: italic;
+                  color: #9e9e9e;
+                }
               }
-              .info-icon {
-                position: absolute;
-                right: 10px;
+            }
+
+            .tree-block:hover {
+              -webkit-box-shadow: inset 0px 0px 0px 2px #0080ff;
+              -moz-box-shadow: inset 0px 0px 0px 2px #0080ff;
+              box-shadow: inset 0px 0px 0px 2px #0080ff;
+            }
+
+            .tree-block.active,
+            .tree-block.active:hover {
+              -webkit-box-shadow: inset 0px 0px 0px 2px #0080ff;
+              box-shadow: inset 0px 0px 0px 2px #0080ff;
+              -moz-box-shadow: inset 0px 0px 0px 2px #0080ff;
+              background-color: #fff;
+            }
+
+            .tree-block.active,
+            .tree-block.active:hover,
+            .tree-block {
+              &.assigned {
+                background-color: #0080ff;
+                color: #fff;
+                font-weight: bold;
+
+                h3 {
+                  color: #fff;
+                }
+                .info-icon {
+                  position: absolute;
+                  right: 10px;
+                }
               }
             }
           }
-        }
 
-        .ant-col:first-child {
-          border-left: none;
+          .ant-col:first-child {
+            border-left: none;
+          }
         }
       }
     }
