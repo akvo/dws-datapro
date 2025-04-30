@@ -5,9 +5,10 @@ from django.core.management import BaseCommand
 from api.v1.v1_profile.constants import UserRoleTypes, UserDesignationTypes
 from api.v1.v1_profile.models import Administration, Access, Levels
 from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.models import Forms, UserForms, FormAccess
-from api.v1.v1_forms.models import FormApprovalAssignment
-from api.v1.v1_forms.constants import FormTypes, FormAccessTypes
+from api.v1.v1_forms.models import (
+    Forms, UserForms, FormAccess, FormApprovalAssignment
+)
+from api.v1.v1_forms.constants import FormAccessTypes
 from api.v1.v1_mobile.models import MobileAssignment
 fake = Faker()
 
@@ -64,7 +65,7 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         test = options.get("test")
-        forms = Forms.objects.filter(type=FormTypes.county).all()
+        forms = Forms.objects.all()
         for form in forms:
             last_level = Levels.objects.order_by('-level')[1:2].first()
             administrations = Administration.objects.filter(
