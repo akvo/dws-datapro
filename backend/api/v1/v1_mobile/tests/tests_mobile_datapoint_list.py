@@ -4,7 +4,7 @@ from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_profile.models import Administration, Access
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_data.models import FormData
 from api.v1.v1_users.models import SystemUser
 from django.core.management import call_command
@@ -28,9 +28,7 @@ class MobileDataPointDownloadListTestCase(TestCase):
         self.user_access = Access.objects.create(
             user=self.user, role=role, administration=self.administration
         )
-        self.forms = Forms.objects.filter(
-            type=FormTypes.county,
-        ).all()
+        self.forms = Forms.objects.all()
         self.uuid = "1234"
         self.passcode = "passcode1234"
         self.mobile_assignment = MobileAssignment.objects.create_assignment(
