@@ -6,7 +6,7 @@ from django.test.utils import override_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.v1.v1_forms.models import Forms, FormApprovalAssignment
-from api.v1.v1_forms.constants import FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_data.models import FormData, PendingFormData, \
     Answers, PendingAnswers
@@ -35,7 +35,6 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
-        self.assertEqual(form.type, FormTypes.county)
         form_id = form.id
         adm = Administration.objects.filter(level__level=1).first()
         payload = {
@@ -121,7 +120,6 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
-        self.assertEqual(form.type, FormTypes.county)
         form_id = form.id
         payload = {
             "data": {
@@ -165,13 +163,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         pending_form_data = PendingFormData.objects.filter(
             form_id=form_id).count()
         self.assertEqual(pending_form_data, 1)
-
-        # national form
-        form = Forms.objects.filter(
-            type=FormTypes.national
-        ).first()
-
-        # Add national approver
+        form = Forms.objects.get(pk=2)
         national_adm = Administration.objects.filter(
             level__level=0
         ).first()
@@ -189,7 +181,6 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
 
         self.assertEqual(form.id, 2)
         self.assertEqual(form.name, "Test Form 2")
-        self.assertEqual(form.type, FormTypes.national)
         form_id = form.id
         payload = {
             "data": {
@@ -260,7 +251,6 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
-        self.assertEqual(form.type, FormTypes.county)
         form_id = form.id
 
         payload = {
@@ -327,7 +317,6 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
-        self.assertEqual(form.type, FormTypes.county)
         form_id = form.id
         payload = {
             "data": {

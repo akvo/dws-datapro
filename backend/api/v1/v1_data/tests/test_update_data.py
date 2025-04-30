@@ -4,11 +4,10 @@ from django.core import signing
 from django.test.utils import override_settings
 
 from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import FormTypes
-from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_forms.constants import FormAccessTypes
-from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.models import Administration
+from api.v1.v1_users.models import SystemUser
+from api.v1.v1_profile.constants import UserRoleTypes
 
 
 @override_settings(USE_TZ=False)
@@ -39,7 +38,6 @@ class FormDataUpdateTestCase(TestCase):
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
-        self.assertEqual(form.type, FormTypes.county)
         # Add data to edit
         payload = {
             "data": {
@@ -156,7 +154,6 @@ class FormDataUpdateTestCase(TestCase):
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
-        self.assertEqual(form.type, FormTypes.county)
 
         user = {"email": "admin@rush.com", "password": "Test105*"}
         user = self.client.post('/api/v1/login',

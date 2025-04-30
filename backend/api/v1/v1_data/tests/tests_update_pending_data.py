@@ -4,7 +4,7 @@ from django.db.models import ProtectedError
 
 from api.v1.v1_data.models import Forms, FormData, PendingFormData, \
     PendingAnswers, PendingAnswerHistory
-from api.v1.v1_forms.constants import FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
@@ -37,7 +37,6 @@ class UpdatePendingDataTestCase(TestCase, ProfileTestHelperMixin):
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
-        self.assertEqual(form.type, FormTypes.county)
         form_id = form.id
 
         # Add pending data
