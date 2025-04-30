@@ -1,12 +1,7 @@
 import pandas as pd
-from datetime import datetime, timedelta, time
 from django.core.management import BaseCommand
 from faker import Faker
-
-from django.utils.timezone import make_aware
-from iwsims.settings import COUNTRY_NAME
 from api.v1.v1_data.models import (
-    FormData,
     PendingFormData,
     PendingDataBatch,
     PendingDataApproval,
@@ -21,28 +16,6 @@ from api.v1.v1_data.tasks import seed_approved_data
 from api.v1.v1_data.constants import DataApprovalStatus
 
 fake = Faker()
-
-
-def create_registration(index, form, administration, user):
-    fake_geo = pd.read_csv(f"./source/{COUNTRY_NAME}_random_points.csv")
-    fake_geo = fake_geo.sample(frac=1).reset_index(drop=True)
-    geo = fake_geo.iloc[index].to_dict()
-    geo_value = [geo["X"], geo["Y"]]
-    data = FormData.objects.create(
-        name=fake.pystr_format(),
-        geo=geo_value,
-        form=form,
-        administration=administration,
-        created_by=user,
-    )
-    now_date = datetime.now()
-    start_date = now_date - timedelta(days=5 * 365)
-    created = fake.date_between(start_date, now_date)
-    created = datetime.combine(created, time.min)
-    data.created = make_aware(created)
-    data.save()
-    add_fake_answers(data)
-    return data
 
 
 def seed_data(form, datapoint, user, repeat, approved):
