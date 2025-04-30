@@ -116,14 +116,13 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         token = auth_res.json().get("token")
         self.assertTrue(token)
 
-        # county form
         form = Forms.objects.first()
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
         form_id = form.id
         payload = {
             "data": {
-                "name": "Testing Data County",
+                "name": "Testing Data #2",
                 "administration": adm.id,
                 "geo": [6.2088, 106.8456],
                 "submission_type": SubmissionTypes.registration,

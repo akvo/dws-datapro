@@ -33,7 +33,7 @@ from utils.custom_serializer_fields import validate_serializers_message
     responses={200: ListFormSerializer(many=True)},
     tags=["Form"],
     summary="To get list of forms",
-    description="Form type county or national",
+    description="To get list of forms",
 )
 @api_view(["GET"])
 def list_form(request, version):

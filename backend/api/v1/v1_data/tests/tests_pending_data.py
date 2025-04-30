@@ -70,9 +70,9 @@ class PendingDataTestCase(TestCase):
                     'geo', 'created_by', 'created'
                 ], list(response.json()[0]))
 
-        county_form = Forms.objects.first()
+        user_form = Forms.objects.first()
         pending_form_data = PendingFormData.objects.filter(
-            form=county_form).all()
+            form=user_form).all()
         values = list(pending_form_data.values_list('id', flat=True))
         payload = {
             "name": "Test Batch",

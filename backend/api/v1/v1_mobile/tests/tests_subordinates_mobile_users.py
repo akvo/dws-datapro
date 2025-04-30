@@ -60,7 +60,7 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
 
         self.assertEqual(response.status_code, 201)
 
-        # Login as Sub-county user
+        # Login as approver
         t = RefreshToken.for_user(self.approver)
 
         response = typing.cast(
@@ -129,7 +129,7 @@ def test_subordinates_with_diff_forms(self):
 
     self.assertEqual(response.status_code, 201)
 
-    # Login as Sub-county user
+    # Login as approver
     t = RefreshToken.for_user(self.approver)
 
     response = typing.cast(
