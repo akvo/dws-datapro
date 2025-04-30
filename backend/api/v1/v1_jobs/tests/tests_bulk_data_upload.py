@@ -232,7 +232,7 @@ class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
             created_by=self.user,
         )
         data.save()
-        add_fake_answers(data, form.type)
+        add_fake_answers(data)
 
         upload_file = "{0}/test-success-update-registration.xlsx".format(
             self.test_folder
@@ -283,7 +283,7 @@ class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
             created_by=self.user,
         )
         data.save()
-        add_fake_answers(data, form.type)
+        add_fake_answers(data)
 
         upload_file = "{0}/test-success-new-monitoring.xlsx".format(
             self.test_folder
