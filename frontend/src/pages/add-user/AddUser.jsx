@@ -270,9 +270,10 @@ const AddUser = () => {
           /**
            * Check if all forms have the approver access
            */
-          const isNationalApprover = editForms.every((f) =>
-            f.access.some((a) => a.id === FORM_APPROVER_ACCESS && a.value)
-          );
+          const allApproverAccess = editForms
+            .flatMap((f) => f.access.map((fa) => ({ ...fa, form_id: f.id })))
+            .filter((a) => a.id === FORM_APPROVER_ACCESS && a.value);
+          const isNationalApprover = allApproverAccess.length > 0;
           form.setFieldsValue({
             administration: res.data?.administration,
             designation: parseInt(res.data?.designation) || null,
@@ -281,7 +282,10 @@ const AddUser = () => {
             last_name: res.data?.last_name,
             phone_number: res.data?.phone_number,
             role: res.data?.role,
-            forms: editForms,
+            forms: editForms.map((f) => ({
+              ...f,
+              checked: allApproverAccess.some((a) => a.form_id === f.id),
+            })),
             organisation: res.data?.organisation?.id || [],
             trained: res?.data?.trained,
             nationalApprover: isNationalApprover,
