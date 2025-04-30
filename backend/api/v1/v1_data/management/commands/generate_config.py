@@ -4,7 +4,6 @@ from django.core.management import BaseCommand
 from jsmin import jsmin
 
 from iwsims.settings import COUNTRY_NAME
-from api.v1.v1_forms.constants import FormTypes
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.models import Levels
 from api.v1.v1_forms.serializers import FormDataSerializer
@@ -32,9 +31,7 @@ class Command(BaseCommand):
                 {
                     "id": form.id,
                     "name": form.name,
-                    "type": form.type,
                     "version": form.version,
-                    "type_text": FormTypes.FieldStr.get(form.type),
                     "content": FormDataSerializer(instance=form).data,
                 }
             )
