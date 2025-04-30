@@ -862,6 +862,7 @@ const config = {
     monitoring: "#0891b2",
   },
   maxLevelApproval: 3,
+  minEntityLevel: 0,
   accessFormTypes: [
     {
       id: FORM_READER_ACCESS,
