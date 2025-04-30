@@ -7,13 +7,11 @@ from api.v1.v1_data.models import (
     PendingDataBatch
 )
 from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_profile.models import Administration, Access
 from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_data.management.commands.fake_data_seeder import (
-    add_fake_answers
-)
 from api.v1.v1_data.tasks import seed_approved_data
+from api.v1.v1_data.functions import add_fake_answers
 
 
 class MonitoringDataTestCase(TestCase):
@@ -34,7 +32,7 @@ class MonitoringDataTestCase(TestCase):
             user=self.user, role=role, administration=self.administration
         )
         self.uuid = '1234567890'
-        self.form = Forms.objects.filter(type=FormTypes.county).first()
+        self.form = Forms.objects.first()
         self.data = FormData.objects.create(
             parent=None,
             uuid=self.uuid,
@@ -42,7 +40,7 @@ class MonitoringDataTestCase(TestCase):
             administration=self.administration,
             created_by=self.user,
         )
-        add_fake_answers(self.data, FormTypes.county)
+        add_fake_answers(self.data)
 
     def test_parent_data(self):
         self.assertTrue(self.data.name)
@@ -63,9 +61,7 @@ class MonitoringDataTestCase(TestCase):
                 submission_type=SubmissionTypes.monitoring if i == 0
                 else SubmissionTypes.registration
             )
-            add_fake_answers(pending_data,
-                             form_type=FormTypes.county,
-                             pending=True)
+            add_fake_answers(pending_data)
         self.assertTrue(PendingFormData.objects.count() == 2)
         batch = PendingDataBatch.objects.create(
             name='test batch',
