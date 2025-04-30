@@ -40,7 +40,7 @@ const AddAssignment = () => {
 
   const admLevels = levels
     .slice()
-    .filter((l) => l?.id > userAdmLevel)
+    .filter((l) => l?.id >= userAdmLevel)
     .sort((a, b) => a?.level - b?.level);
   /**
    * Administration is required when
