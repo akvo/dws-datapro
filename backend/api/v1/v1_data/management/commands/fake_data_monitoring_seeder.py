@@ -12,7 +12,7 @@ from api.v1.v1_data.models import (
     PendingDataApproval,
 )
 from api.v1.v1_forms.models import Forms, FormApprovalAssignment
-from api.v1.v1_forms.constants import FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_data.management.commands.fake_data_seeder import (
     add_fake_answers,
 )
@@ -41,7 +41,7 @@ def create_registration(index, form, administration, user):
     created = datetime.combine(created, time.min)
     data.created = make_aware(created)
     data.save()
-    add_fake_answers(data, form.type)
+    add_fake_answers(data)
     return data
 
 
@@ -57,9 +57,7 @@ def seed_data(form, datapoint, user, repeat, approved):
             created_by=user,
             submission_type=SubmissionTypes.monitoring,
         )
-        add_fake_answers(
-            pending_data, form_type=FormTypes.county, pending=True
-        )
+        add_fake_answers(pending_data)
         pendings.append(pending_data)
     pending_items = [
         {"administration_id": pending.administration.id, "instance": pending}
@@ -130,7 +128,7 @@ class Command(BaseCommand):
         repeat = options.get("repeat")
         approved = options.get("approved")
 
-        forms = Forms.objects.filter(type=FormTypes.county).all()
+        forms = Forms.objects.all()
         for form in forms:
             if not test:
                 print(f"Seeding - {form.name}")
