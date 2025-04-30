@@ -12,7 +12,6 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.v1.v1_forms.constants import FormTypes
 from api.v1.v1_forms.models import (
     Forms,
     FormApprovalAssignment,
@@ -21,7 +20,6 @@ from api.v1.v1_forms.serializers import (
     ListFormSerializer,
     WebFormDetailSerializer,
     FormDataSerializer,
-    ListFormRequestSerializer,
     FormApproverRequestSerializer,
     FormApproverResponseSerializer,
 )
@@ -33,31 +31,13 @@ from utils.custom_serializer_fields import validate_serializers_message
 
 @extend_schema(
     responses={200: ListFormSerializer(many=True)},
-    parameters=[
-        OpenApiParameter(
-            name="type",
-            required=False,
-            enum=FormTypes.FieldStr.keys(),
-            type=OpenApiTypes.NUMBER,
-            location=OpenApiParameter.QUERY,
-        ),
-    ],
     tags=["Form"],
     summary="To get list of forms",
-    description="Form type 1=County and 2=National",
+    description="Form type county or national",
 )
 @api_view(["GET"])
 def list_form(request, version):
-    serializer = ListFormRequestSerializer(data=request.GET)
-    if not serializer.is_valid():
-        return Response(
-            {"message": validate_serializers_message(serializer.errors)},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    filter_data = {}
-    if serializer.validated_data.get("type"):
-        filter_data["type"] = serializer.validated_data.get("type")
-    instance = Forms.objects.filter(**filter_data)
+    instance = Forms.objects.all()
     return Response(
         ListFormSerializer(instance=instance, many=True).data,
         status=status.HTTP_200_OK,
@@ -133,6 +113,9 @@ def form_approver(request, version):
 
     instance = Administration.objects.filter(
         parent=serializer.validated_data.get("administration_id"),
+    )
+    instance = [serializer.validated_data.get("administration_id")] + list(
+        instance
     )
     return Response(
         FormApproverResponseSerializer(

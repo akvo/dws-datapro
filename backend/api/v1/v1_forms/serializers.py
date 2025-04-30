@@ -5,7 +5,7 @@ from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
 
-from api.v1.v1_forms.constants import QuestionTypes, AttributeTypes, FormTypes
+from api.v1.v1_forms.constants import QuestionTypes, AttributeTypes
 from api.v1.v1_forms.models import (
     Forms,
     QuestionGroup,
@@ -83,7 +83,7 @@ class ListQuestionSerializer(serializers.ModelSerializer):
             user = self.context.get("user")
             administration = user.user_access.administration
             # max depth for cascade question in national form
-            max_level = instance.form.type == FormTypes.national
+            max_level = False
             extra_objects = {}
             if max_level:
                 extra_objects = {
@@ -196,7 +196,7 @@ class ListQuestionSerializer(serializers.ModelSerializer):
     def get_source(self, instance: Questions):
         user = self.context.get("user")
         assignment = self.context.get("mobile_assignment")
-        max_level = instance.form.type == FormTypes.national
+        max_level = False
         extra_objects = {}
         if instance.type == QuestionTypes.cascade:
             if instance.extra:
@@ -342,31 +342,13 @@ class WebFormDetailSerializer(serializers.ModelSerializer):
         ]
 
 
-class ListFormRequestSerializer(serializers.Serializer):
-    type = CustomChoiceField(
-        choices=list(FormTypes.FieldStr.keys()), required=False
-    )
-
-
 class ListFormSerializer(serializers.ModelSerializer):
-    type_text = serializers.SerializerMethodField()
-
-    @extend_schema_field(
-        CustomChoiceField(
-            choices=[FormTypes.FieldStr[d] for d in FormTypes.FieldStr]
-        )
-    )
-    def get_type_text(self, instance):
-        return FormTypes.FieldStr.get(instance.type)
-
     class Meta:
         model = Forms
         fields = [
             "id",
             "name",
-            "type",
             "version",
-            "type_text",
             "submission_types",
         ]
 
