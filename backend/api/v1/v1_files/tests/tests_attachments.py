@@ -30,8 +30,8 @@ class AttachmentUploadTest(TestCase):
             "docx",
             "doc",
         ]
-        params = '&'.join(
-            f'allowed_file_types={ext}' for ext in allowed_file_types
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in allowed_file_types
         )
         response = self.client.post(
             f"/api/v1/upload/attachments/?{params}",
@@ -56,8 +56,8 @@ class AttachmentUploadTest(TestCase):
             "docx",
             "doc",
         ]
-        params = '&'.join(
-            f'allowed_file_types={ext}' for ext in allowed_file_types
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in allowed_file_types
         )
         response = self.client.post(
             (
@@ -80,8 +80,8 @@ class AttachmentUploadTest(TestCase):
             "docx",
             "doc",
         ]
-        params = '&'.join(
-            f'allowed_file_types={ext}' for ext in allowed_file_types
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in allowed_file_types
         )
         response = self.client.post(
             (
@@ -108,8 +108,8 @@ class AttachmentUploadTest(TestCase):
             "docx",
             "doc",
         ]
-        params = '&'.join(
-            f'allowed_file_types={ext}' for ext in allowed_file_types
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in allowed_file_types
         )
         response = self.client.post(
             (
@@ -131,8 +131,8 @@ class AttachmentUploadTest(TestCase):
             "docx",
             "doc",
         ]
-        params = '&'.join(
-            f'allowed_file_types={ext}' for ext in allowed_file_types
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in allowed_file_types
         )
         response = self.client.post(
             (
@@ -147,6 +147,29 @@ class AttachmentUploadTest(TestCase):
             "No file was submitted in file.",
         )
 
+    def test_file_upload_with_no_allowed_file_types(self):
+        filename = generate_file(filename="test", extension="pdf")
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in []
+        )
+        response = self.client.post(
+            (
+                f"/api/v1/upload/attachments/?{params}"
+            ),
+            {"file": open(filename, "rb")},
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(list(response.json()), ["message", "file"])
+        uploaded_filename = response.json().get("file")
+        uploaded_filename = uploaded_filename.split("/")[-1]
+        self.assertTrue(
+            storage.check(f"/attachments/{uploaded_filename}"),
+            "File exists",
+        )
+        os.remove(f"{STORAGE_PATH}/attachments/{uploaded_filename}")
+        os.remove(filename)
+
     def test_failed_upload_return_500(self):
         filename = generate_file(filename="test", extension="pdf")
         allowed_file_types = [
@@ -154,8 +177,8 @@ class AttachmentUploadTest(TestCase):
             "docx",
             "doc",
         ]
-        params = '&'.join(
-            f'allowed_file_types={ext}' for ext in allowed_file_types
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in allowed_file_types
         )
         with patch(
             "utils.storage.upload",
