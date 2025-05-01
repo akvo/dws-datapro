@@ -53,7 +53,7 @@ from api.v1.v1_forms.serializers import WebFormDetailSerializer
 from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_data.serializers import SubmitPendingFormSerializer
 from api.v1.v1_files.serializers import UploadImagesSerializer
-from api.v1.v1_files.functions import process_image
+from api.v1.v1_files.functions import handle_upload
 from utils.custom_helper import CustomPasscode
 from utils.default_serializers import DefaultResponseSerializer
 from utils.custom_serializer_fields import (
@@ -264,7 +264,7 @@ def upload_image_form_device(request, version):
             validate_serializers_message(serializer.errors),
             status=status.HTTP_400_BAD_REQUEST,
         )
-    filename = process_image(request)
+    filename = handle_upload(request=request, folder="images")
     return Response(
         {
             "message": "File uploaded successfully",
