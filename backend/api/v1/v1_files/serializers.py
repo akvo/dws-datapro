@@ -16,13 +16,18 @@ class AttachmentsSerializer(serializers.Serializer):
     )
 
     def validate_file(self, value):
-        """
-        Validate the file type against allowed file types.
-        This method checks if the file extension is in the list of allowed
-        file types provided in the context.
-        If the file type is not allowed, it raises a ValidationError.
-        """
         allowed_file_types = self.context.get("allowed_file_types", [])
+        # Skip validation if no allowed file types are provided
+        if not allowed_file_types:
+            return value
+        """
+        Validate the file extension against the allowed file types
+        provided in the context.
+        If the file type is not allowed, raise a ValidationError.
+        The allowed file types should be a list of strings.
+        Example: ["pdf", "docx", "doc"]
+        The file extension should be in lowercase.
+        """
         validator = FileExtensionValidator(allowed_file_types)
         try:
             validator(value)
