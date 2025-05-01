@@ -21,7 +21,7 @@ import {
   Modal,
 } from "antd";
 import axios from "axios";
-import { api, config, store, uiText } from "../../lib";
+import { api, config, IS_ADMIN, store, uiText } from "../../lib";
 import { takeRight, pick, isEmpty } from "lodash";
 import { PageLoader, Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
@@ -46,13 +46,7 @@ const Forms = () => {
     return uiText[activeLang];
   }, [activeLang]);
 
-  const formType = window.forms.find(
-    (x) => x.id === parseInt(formId)
-  )?.type_text;
-
-  const redirectToBatch =
-    (formType === "National" && authUser.role.id === 2) ||
-    (formType === "County" && authUser.role.id > 2);
+  const redirectToBatch = authUser.role.id === IS_ADMIN;
 
   const pagePath = [
     {
@@ -181,10 +175,7 @@ const Forms = () => {
       data: dataPayload,
       answer: answers.map((x) => pick(x, ["question", "value"])),
     };
-    if (
-      uuid &&
-      ["Super Admin", "County Admin"].includes(authUser?.role?.value)
-    ) {
+    if (uuid && ["Super Admin", "Admin"].includes(authUser?.role?.value)) {
       /**
        * Save uuid to localStorage to prevent redirection to the same page after submitted data
        */

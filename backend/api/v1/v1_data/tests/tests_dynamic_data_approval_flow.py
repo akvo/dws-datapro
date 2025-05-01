@@ -8,7 +8,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from api.v1.v1_mobile.tests.mixins import AssignmentTokenTestHelperMixin
 from api.v1.v1_profile.models import Levels, Administration
-from api.v1.v1_forms.models import FormApprovalAssignment, Forms, FormTypes
+from api.v1.v1_forms.models import FormApprovalAssignment, Forms
 from api.v1.v1_forms.constants import (
     SubmissionTypes, QuestionTypes, FormAccessTypes
 )
@@ -32,7 +32,7 @@ class DynamicDataApprovalFlowTestCase(
         call_command("fake_organisation_seeder")
         call_command("demo_approval_flow", "--test", True)
 
-        self.form = Forms.objects.filter(type=FormTypes.county).first()
+        self.form = Forms.objects.first()
         # Get the last level
         self.last_level = Levels.objects.last()
         # Get the first level

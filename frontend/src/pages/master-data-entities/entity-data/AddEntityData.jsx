@@ -18,7 +18,7 @@ import {
 } from "../../../components";
 import { useNavigate, useParams } from "react-router-dom";
 import { useNotification } from "../../../util/hooks";
-import { store, uiText } from "../../../lib";
+import { config, store, uiText } from "../../../lib";
 import { api } from "../../../lib";
 import "./style.scss";
 
@@ -38,16 +38,18 @@ const AddEntityData = () => {
   const administration = store.useState((s) => s.administration);
 
   const admLevels = store.useState((s) => s.levels);
+  const NATIONAL_LEVEL = admLevels?.find((l) => l.level === 0)?.id;
   const ADM_PERSIST = id ? true : false;
   const validLevels = useMemo(() => {
     return (
       admLevels
         ?.slice()
         ?.sort((a, b) => a?.level - b?.level)
-        ?.slice(2, admLevels.length) || []
+        ?.slice(config.minEntityLevel, admLevels.length) || []
     );
   }, [admLevels]);
-  const showAdm = validLevels.map((l) => l?.id).includes(level);
+  const showAdm =
+    level !== NATIONAL_LEVEL && validLevels.map((l) => l?.id).includes(level);
   const codeIsRequired = entity?.code ? true : false;
 
   const { language } = store.useState((s) => s);
@@ -101,7 +103,7 @@ const AddEntityData = () => {
     try {
       const admId = Array.isArray(values?.administration)
         ? values?.administration?.[0]
-        : values.administration;
+        : values?.administration || administration?.[0]?.id || null;
       const payload = {
         entity: values.entity,
         code: values.code,

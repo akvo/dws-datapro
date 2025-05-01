@@ -1,20 +1,16 @@
 import random
 import re
-from datetime import timedelta
-
 import pandas as pd
 from django.core.management import BaseCommand
-from django.utils import timezone
 from faker import Faker
 
 from iwsims.settings import COUNTRY_NAME
 from api.v1.v1_data.models import (
     PendingFormData,
-    PendingAnswers,
     PendingDataApproval,
     PendingDataBatch,
 )
-from api.v1.v1_forms.constants import QuestionTypes, FormTypes, SubmissionTypes
+from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_forms.models import FormApprovalAssignment
 from api.v1.v1_forms.models import Forms, UserForms
 from api.v1.v1_profile.constants import UserRoleTypes
@@ -24,80 +20,18 @@ from api.v1.v1_users.management.commands.demo_approval_flow import (
     create_approver,
 )
 from api.v1.v1_profile.functions import get_max_administration_level
+from api.v1.v1_data.functions import add_fake_answers
 
 fake = Faker()
 
 
-def set_answer_data(data, question):
-    name = None
-    value = None
-    option = None
-
-    if question.type == QuestionTypes.geo:
-        option = data.geo
-    elif question.type == QuestionTypes.administration:
-        name = data.administration.name
-        value = data.administration.id
-    elif question.type == QuestionTypes.text:
-        name = fake.company() if question.meta else fake.sentence(nb_words=3)
-    elif question.type == QuestionTypes.number:
-        value = fake.random_int(min=10, max=50)
-    elif question.type == QuestionTypes.option:
-        option = [question.options.order_by("?").first().value]
-    elif question.type == QuestionTypes.multiple_option:
-        option = list(
-            question.options.order_by("?").values_list("value", flat=True)[
-                0: fake.random_int(min=1, max=3)
-            ]
-        )
-    elif question.type == QuestionTypes.photo:
-        name = fake.image_url()
-    elif question.type == QuestionTypes.date:
-        name = fake.date_between_dates(
-            date_start=timezone.datetime.now().date() - timedelta(days=90),
-            date_end=timezone.datetime.now().date(),
-        ).strftime("%m/%d/%Y")
-    else:
-        pass
-    return name, value, option
-
-
-def add_fake_answers(data: PendingFormData):
-    form = data.form
-    meta_name = []
-    for question in form.form_questions.all().order_by("order"):
-        name, value, option = set_answer_data(data, question)
-        if question.meta:
-            if name:
-                meta_name.append(name)
-            elif option and question.type != QuestionTypes.geo:
-                meta_name.append(",".join(option))
-            elif value and question.type != QuestionTypes.administration:
-                meta_name.append(str(value))
-            else:
-                pass
-
-        if question.type == QuestionTypes.administration:
-            name = None
-
-        PendingAnswers.objects.create(
-            pending_data=data,
-            question=question,
-            name=name,
-            value=value,
-            options=option,
-            created_by=SystemUser.objects.order_by("?").first(),
-        )
-    data.name = " - ".join(meta_name)
-    data.save()
-
-
 def seed_data(form, fake_geo, repeat, created_by):
+    pendings = []
     for i in range(repeat):
         administration = created_by.user_access.administration
         mobile_assignment = created_by.mobile_assignments.order_by("?").first()
         geo = fake_geo.iloc[i].to_dict()
-        data = PendingFormData.objects.create(
+        pending_data = PendingFormData.objects.create(
             name=fake.pystr_format(),
             geo=[geo["X"], geo["Y"]],
             form=form,
@@ -106,7 +40,9 @@ def seed_data(form, fake_geo, repeat, created_by):
             submission_type=SubmissionTypes.registration,
             submitter=mobile_assignment.name if mobile_assignment else None,
         )
-        add_fake_answers(data)
+        add_fake_answers(pending_data)
+        pendings.append(pending_data)
+    return pendings
 
 
 def create_or_get_submitter(max_adm_level: int = 1):
@@ -204,20 +140,23 @@ class Command(BaseCommand):
         PendingFormData.objects.all().delete()
         fake_geo = pd.read_csv(f"./source/{COUNTRY_NAME}_random_points.csv")
         max_adm_level = get_max_administration_level()
-        forms = Forms.objects.filter(type=FormTypes.county).all()
+        forms = Forms.objects.all()
         for form in forms:
             submitter = create_or_get_submitter(
                 max_adm_level=max_adm_level
             )
             max_adm_level -= 1
-            seed_data(form, fake_geo, options.get("repeat"), submitter)
+            seed_data(
+                form=form,
+                fake_geo=fake_geo,
+                repeat=options.get("repeat"),
+                created_by=submitter
+            )
             administration = submitter.user_access.administration
             UserForms.objects.get_or_create(form=form, user=submitter)
             limit = options.get("batch")
             print_info(form, administration, submitter, limit, test)
             if limit:
-                if form.type == FormTypes.county and not test:
-                    print("Approvers:\n")
                 while PendingFormData.objects.filter(
                     batch__isnull=True, form=form
                 ).count():
@@ -234,9 +173,8 @@ class Command(BaseCommand):
                     for obj in objs:
                         obj.batch = batch
                     PendingFormData.objects.bulk_update(objs, fields=["batch"])
-                    if form.type == FormTypes.county:
-                        assign_batch_for_approval(
-                            batch=batch,
-                            user=submitter,
-                            test=test,
-                        )
+                    assign_batch_for_approval(
+                        batch=batch,
+                        user=submitter,
+                        test=test,
+                    )

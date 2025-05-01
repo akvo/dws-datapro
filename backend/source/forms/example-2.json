@@ -1,7 +1,6 @@
 {
   "id": 2,
   "form": "Test Form 2",
-  "type": 2,
   "approval_instructions": {
     "text": "test",
     "action": ["action #1"]

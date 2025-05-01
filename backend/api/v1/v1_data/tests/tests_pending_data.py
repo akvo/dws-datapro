@@ -7,7 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from api.v1.v1_data.constants import DataApprovalStatus
 from api.v1.v1_data.models import PendingFormData, PendingDataBatch
 from api.v1.v1_data.models import PendingDataApproval
-from api.v1.v1_forms.constants import FormTypes, QuestionTypes
+from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_forms.models import Questions
 from api.v1.v1_profile.constants import UserRoleTypes
@@ -70,9 +70,9 @@ class PendingDataTestCase(TestCase):
                     'geo', 'created_by', 'created'
                 ], list(response.json()[0]))
 
-        county_form = Forms.objects.filter(type=FormTypes.county).first()
+        user_form = Forms.objects.first()
         pending_form_data = PendingFormData.objects.filter(
-            form=county_form).all()
+            form=user_form).all()
         values = list(pending_form_data.values_list('id', flat=True))
         payload = {
             "name": "Test Batch",

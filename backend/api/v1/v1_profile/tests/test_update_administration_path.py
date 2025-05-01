@@ -125,7 +125,7 @@ class UpdateAdministrationPathTestCase(TestCase):
         for child in target.parent_administration.all():
             self.assertTrue(str(correct_parent.id) in child.path)
 
-    def test_update_parent_of_subcounty(self):
+    def test_update_parent_of_second_level(self):
         target = Administration.objects.filter(
             name="East Jakarta"
         ).first()

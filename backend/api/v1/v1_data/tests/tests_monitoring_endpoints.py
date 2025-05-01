@@ -4,7 +4,6 @@ from api.v1.v1_users.models import SystemUser
 from api.v1.v1_data.models import FormData
 from api.v1.v1_forms.models import Forms, UserForms
 from api.v1.v1_forms.constants import (
-    FormTypes,
     FormAccessTypes,
     SubmissionTypes,
 )
@@ -33,7 +32,7 @@ class MonitoringDataTestCase(TestCase):
             user=self.user, role=role, administration=self.administration
         )
         self.uuid = '1234567890'
-        form = Forms.objects.filter(type=FormTypes.county).first()
+        form = Forms.objects.first()
         user_form = UserForms.objects.create(
             user=self.user,
             form=form,
@@ -57,7 +56,7 @@ class MonitoringDataTestCase(TestCase):
             administration=self.adm_data,
             created_by=self.user,
         )
-        add_fake_answers(self.data, FormTypes.county)
+        add_fake_answers(self.data)
 
         # Login as an admin
         admin = {"email": self.user.email, "password": 'test1234'}
@@ -124,7 +123,7 @@ class MonitoringDataTestCase(TestCase):
             created_by=self.user,
             submission_type=SubmissionTypes.monitoring,
         )
-        add_fake_answers(monitoring, form_type=FormTypes.county)
+        add_fake_answers(monitoring)
 
         data = self.client.get(
             f"/api/v1/form-data/1/{self.form.id}?submission_type=1",
@@ -155,7 +154,7 @@ class MonitoringDataTestCase(TestCase):
                 administration=self.adm_data,
                 created_by=self.user,
             )
-            add_fake_answers(monitoring, form_type=FormTypes.county)
+            add_fake_answers(monitoring)
         lastest = FormData.objects.order_by('-created').first()
         data = self.client.get(
             f"/api/v1/form-data/1/{self.form.id}",

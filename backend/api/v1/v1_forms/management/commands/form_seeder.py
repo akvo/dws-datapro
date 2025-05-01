@@ -67,7 +67,6 @@ class Command(BaseCommand):
                     id=json_form["id"],
                     name=json_form["form"],
                     version=1,
-                    type=json_form["type"],
                     approval_instructions=json_form.get(
                         'approval_instructions'
                     ),
@@ -79,7 +78,6 @@ class Command(BaseCommand):
             else:
                 form.name = json_form["form"]
                 form.version += 1
-                form.type = json_form["type"]
                 form.submission_types = submission_types
                 if json_form.get("approval_instructions"):
                     form.approval_instructions = json_form.get(

@@ -325,7 +325,7 @@ class UserInvitationTestCase(TestCase):
     def test_add_admin_user(self):
         adm1, adm2 = Administration.objects.filter(level__level=1)[:2]
         payload = {
-            "first_name": "County",
+            "first_name": "User",
             "last_name": "Admin",
             "email": "admin@example.com",
             "administration": adm1.id,
@@ -361,7 +361,7 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(form_approval_assignment.user, user)
         # Add user for same form and administration
         payload = {
-            "first_name": "Second County",
+            "first_name": "Second User",
             "last_name": "Admin",
             "email": "admin2@example.com",
             "administration": adm1.id,
@@ -390,7 +390,7 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(add_response.status_code, 403)
         # Add user for different administration
         payload = {
-            "first_name": "Third County",
+            "first_name": "Third User",
             "last_name": "Admin",
             "email": "admin3@example.com",
             "administration": adm2.id,

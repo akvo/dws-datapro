@@ -64,8 +64,7 @@ const TypeCascade = ({
       });
     }
     const dropdownValues = updatedItems.filter((dd) => dd.value);
-    const finalValues =
-      updatedItems.length !== dropdownValues.length ? null : dropdownValues.map((dd) => dd.value);
+    const finalValues = dropdownValues.slice(-1).map((dd) => dd.value);
     onChange(id, finalValues);
     if (finalValues) {
       const { options: selectedOptions, value: selectedValue } = dropdownValues.pop();

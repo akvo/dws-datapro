@@ -24,16 +24,6 @@ class QuestionTypes:
     }
 
 
-class FormTypes:
-    county = 1
-    national = 2
-
-    FieldStr = {
-        county: "County",
-        national: "National",
-    }
-
-
 class SubmissionTypes:
     registration = 1
     monitoring = 2

@@ -5,7 +5,7 @@ import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { api, config, store, uiText } from "../../lib";
 import ApproverFilters from "../../components/filters/ApproverFilters";
 import { SteppedLineTo } from "react-lineto";
-import { take, takeRight } from "lodash";
+import { takeRight } from "lodash";
 import { useNotification } from "../../util/hooks";
 import { InfoCircleOutlined } from "@ant-design/icons";
 
@@ -52,13 +52,11 @@ const ApproversTree = () => {
       {
         id: 0,
         name: "Questionnaire",
-        children: forms
-          .filter((f) => f.type === 1)
-          .map((dt) => ({
-            ...dt,
-            user: null,
-            active: false,
-          })),
+        children: forms.map((dt) => ({
+          ...dt,
+          user: null,
+          active: false,
+        })),
       },
     ]);
   }, [forms]);
@@ -121,7 +119,7 @@ const ApproversTree = () => {
 
   const renderFormNodes = useMemo(() => {
     return nodes.map((nodeItem, i) => (
-      <Col key={i} span={6} className="tree-col-0" align="center">
+      <Col key={i} span={5} className="tree-col-0" align="center">
         {nodeItem.children.map((childItem, j) => (
           <div
             className={`tree-block tree-form-block-${childItem.id}
@@ -134,7 +132,15 @@ const ApproversTree = () => {
             onClick={() => {
               store.update((s) => {
                 s.selectedForm = childItem.id;
-                s.administration = take(administration);
+                if (administration.length === 1) {
+                  s.administration = administration.map((a) => ({
+                    ...a,
+                    childLevelName: a?.level_name,
+                    children: [a],
+                  }));
+                } else {
+                  s.administration = administration;
+                }
               });
             }}
           >
@@ -186,14 +192,15 @@ const ApproversTree = () => {
               <Col
                 onScroll={handleColScroll}
                 key={k}
-                span={6}
+                span={5}
                 className={`tree-col-${k + 1}`}
                 align="center"
               >
                 {adminItem.children?.map((childItem, l) => {
-                  const approver = dataset[k]?.children?.find(
-                    (c) => c.administration.id === childItem.id
-                  )?.user;
+                  const approver =
+                    dataset[k]?.children?.find(
+                      (c) => c.administration.id === childItem.id
+                    )?.user || childItem?.user;
                   const approverName = approver
                     ? `${approver.first_name} ${approver.last_name}`
                     : text.notAssigned;
@@ -364,14 +371,14 @@ const ApproversTree = () => {
               className={`tree-header ${loading ? "loading" : ""}`}
               justify="left"
             >
-              <Col span={6} align="center">
+              <Col span={5} align="center">
                 {text.questionnaireText}
               </Col>
               {selectedForm &&
                 dataset.map(
                   (aN, anI) =>
                     !!aN?.children?.length && (
-                      <Col key={anI} span={6} align="center">
+                      <Col key={anI} span={5} align="center">
                         {aN.childLevelName}
                         <div
                           className="shade"

@@ -5,9 +5,8 @@ from django.db import models
 # Create your models here.
 from api.v1.v1_forms.constants import (
     QuestionTypes,
-    FormTypes,
-    AttributeTypes,
     SubmissionTypes,
+    AttributeTypes,
     FormAccessTypes,
 )
 from api.v1.v1_profile.models import Administration
@@ -19,9 +18,6 @@ class Forms(models.Model):
     name = models.TextField()
     version = models.IntegerField(default=1)
     uuid = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
-    type = models.IntegerField(
-        choices=FormTypes.FieldStr.items(), default=None, null=True
-    )
     submission_types = ArrayField(
         models.IntegerField(choices=SubmissionTypes.FieldStr.items()),
         default=list,

@@ -393,7 +393,7 @@ class MobileAssignmentViewSet(ModelViewSet):
                 administrations__path__startswith=adm_path,
             )
         if user_adm.level.level > 2:
-            # Check if the user is under Sub-County
+            # Check if the user is under a level 2 administration
             user_form_subquery = UserForms.objects.filter(
                 user=user,
                 form_id=OuterRef("forms__pk"),

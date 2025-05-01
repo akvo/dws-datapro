@@ -23,7 +23,7 @@ class FormApprovalTestCase(TestCase):
         token = user.get("token")
         self.header = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
         self.org = Organisation.objects.order_by('?').first()
-        self.form = Forms.objects.filter(type=1).first()
+        self.form = Forms.objects.first()
 
     def test_add_approval(self):
         email = "test_approver@example.com"
@@ -68,18 +68,31 @@ class FormApprovalTestCase(TestCase):
             content_type='application/json',
             **self.header)
         self.assertEqual(approval_response.status_code, 200)
-        self.assertEqual(approval_response.json(), [{
-            'administration': {
-                'id': admin.id,
-                'name': admin.name,
-            },
-            'user': {
-                'id': user.id,
-                'email': email,
-                'first_name': 'Test',
-                'last_name': 'Approver',
-            }
-        }])
+        self.assertEqual(
+            approval_response.json(),
+            [
+                # Add admin parent
+                {
+                    'administration': {
+                        'id': admin.parent.id,
+                        'name': admin.parent.name,
+                    },
+                    'user': None
+                },
+                {
+                    'administration': {
+                        'id': admin.id,
+                        'name': admin.name,
+                    },
+                    'user': {
+                        'id': user.id,
+                        'email': email,
+                        'first_name': 'Test',
+                        'last_name': 'Approver',
+                    }
+                }
+            ]
+        )
 
         # check approver
         response = self.client.get(
