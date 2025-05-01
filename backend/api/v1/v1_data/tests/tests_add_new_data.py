@@ -20,6 +20,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
         call_command("demo_approval_flow", "--test", True)
+        self.form = Forms.objects.get(pk=1)
 
     def test_add_new_data_by_super_admin(self):
         adm = Administration.objects.filter(parent__isnull=True).first()
@@ -32,7 +33,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         t = RefreshToken.for_user(user)
         token = t.access_token
         self.assertTrue(token)
-        form = Forms.objects.first()
+        form = self.form
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
         form_id = form.id
@@ -116,7 +117,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         token = auth_res.json().get("token")
         self.assertTrue(token)
 
-        form = Forms.objects.first()
+        form = self.form
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
         form_id = form.id
@@ -247,7 +248,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         token = auth_res.json().get("token")
         self.assertTrue(token)
 
-        form = Forms.objects.first()
+        form = self.form
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
         form_id = form.id
@@ -313,7 +314,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         token = auth_res.json().get("token")
         self.assertTrue(token)
 
-        form = Forms.objects.first()
+        form = self.form
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
         form_id = form.id
