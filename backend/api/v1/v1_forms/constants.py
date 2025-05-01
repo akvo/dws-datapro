@@ -9,6 +9,7 @@ class QuestionTypes:
     photo = 8
     date = 9
     autofield = 10
+    attachment = 11
 
     FieldStr = {
         geo: "Geo",
@@ -21,6 +22,7 @@ class QuestionTypes:
         photo: "Photo",
         date: "Date",
         autofield: "Autofield",
+        attachment: "Attachment",
     }
 
 
