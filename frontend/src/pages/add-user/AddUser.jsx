@@ -273,7 +273,8 @@ const AddUser = () => {
           const allApproverAccess = editForms
             .flatMap((f) => f.access.map((fa) => ({ ...fa, form_id: f.id })))
             .filter((a) => a.id === FORM_APPROVER_ACCESS && a.value);
-          const isNationalApprover = allApproverAccess.length > 0;
+          const isNationalApprover =
+            allApproverAccess.length > 0 && res.data?.role === IS_SUPER_ADMIN;
           form.setFieldsValue({
             administration: res.data?.administration,
             designation: parseInt(res.data?.designation) || null,
