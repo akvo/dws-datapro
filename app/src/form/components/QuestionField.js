@@ -13,9 +13,11 @@ import {
   TypeGeo,
   TypeCascade,
   TypeAutofield,
+  TypeAttachment,
 } from '../fields';
 import styles from '../styles';
 import { FormState } from '../../store';
+import { QUESTION_TYPES } from '../../lib/constants';
 
 const QuestionField = ({ keyform, field: questionField, onChange, value = null }) => {
   const questionType = questionField?.type;
@@ -41,7 +43,7 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
         ? JSON.parse(selectedForm.json)?.question_group
         : {};
     switch (questionType) {
-      case 'date':
+      case QUESTION_TYPES.date:
         return (
           <TypeDate
             keyform={keyform}
@@ -50,7 +52,7 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
             {...questionField}
           />
         );
-      case 'photo':
+      case QUESTION_TYPES.photo:
         return (
           <TypeImage
             keyform={keyform}
@@ -59,7 +61,7 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
             {...questionField}
           />
         );
-      case 'multiple_option':
+      case QUESTION_TYPES.multiple_option:
         return (
           <TypeMultipleOption
             keyform={keyform}
@@ -68,7 +70,7 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
             {...questionField}
           />
         );
-      case 'option':
+      case QUESTION_TYPES.option:
         return (
           <TypeOption
             keyform={keyform}
@@ -77,7 +79,7 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
             {...questionField}
           />
         );
-      case 'text':
+      case QUESTION_TYPES.text:
         return (
           <TypeText
             keyform={keyform}
@@ -86,7 +88,7 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
             {...questionField}
           />
         );
-      case 'number':
+      case QUESTION_TYPES.number:
         return (
           <TypeNumber
             keyform={keyform}
@@ -95,9 +97,9 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
             {...questionField}
           />
         );
-      case 'geo':
+      case QUESTION_TYPES.geo:
         return <TypeGeo keyform={keyform} value={value} {...questionField} />;
-      case 'cascade':
+      case QUESTION_TYPES.cascade:
         return (
           <TypeCascade
             keyform={keyform}
@@ -106,12 +108,21 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
             {...questionField}
           />
         );
-      case 'autofield':
+      case QUESTION_TYPES.autofield:
         return (
           <TypeAutofield
             keyform={keyform}
             onChange={handleOnChangeField}
             questions={questions}
+            value={value}
+            {...questionField}
+          />
+        );
+      case QUESTION_TYPES.attachment:
+        return (
+          <TypeAttachment
+            keyform={keyform}
+            onChange={handleOnChangeField}
             value={value}
             {...questionField}
           />

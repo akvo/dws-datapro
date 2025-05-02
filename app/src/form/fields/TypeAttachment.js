@@ -60,7 +60,7 @@ const TypeAttachment = ({
         requiredSign={requiredSign}
         tooltip={tooltip}
       />
-      {selectedFile ? (
+      {selectedFile?.name ? (
         <View style={{ marginBottom: 10 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }}>
             <Icon name="document-text" size={20} color="black" style={styles.Icon} />
