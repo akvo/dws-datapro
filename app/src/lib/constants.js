@@ -18,3 +18,16 @@ export const SUBMISSION_TYPES = {
 export const DATABASE_NAME = 'app.db';
 
 export const DATABASE_VERSION = 2;
+
+export const QUESTION_TYPES = {
+  text: 'text',
+  number: 'number',
+  date: 'date',
+  photo: 'photo',
+  geo: 'geo',
+  option: 'option',
+  multiple_option: 'multiple_option',
+  cascade: 'cascade',
+  autofield: 'autofield',
+  attachment: 'attachment',
+};
