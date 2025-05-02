@@ -45,11 +45,16 @@
           "meta": false,
           "type": "attachment",
           "rule": {
-            "allowed_file_types": ["jpeg", "jpg", "png"]
+            "allowed_file_types": [
+              "jpeg",
+              "jpg",
+              "png"
+            ]
           },
           "api": {
-						"endpoint": "/api/v1/upload/images"
-					},
+            "endpoint": "/api/v1/upload/attachments",
+            "query_params": "?allowed_file_types=jpeg&allowed_file_types=jpg&allowed_file_types=png"
+          },
           "required": true
         },
         {
@@ -63,8 +68,28 @@
             "allowed_file_types": []
           },
           "api": {
-						"endpoint": "/api/v1/upload/files"
-					},
+            "endpoint": "/api/v1/upload/attachments"
+          },
+          "required": true
+        },
+        {
+          "id": 445,
+          "name": "letter_of_application",
+          "label": "Letter of application",
+          "meta": false,
+          "type": "attachment",
+          "rule": {
+            "allowed_file_types": [
+              "pdf",
+              "doc",
+              "docx",
+              "odt"
+            ]
+          },
+          "api": {
+            "endpoint": "/api/v1/upload/attachments",
+            "query_params": "?allowed_file_types=pdf&allowed_file_types=doc&allowed_file_types=docx&allowed_file_types=odt"
+          },
           "required": true
         }
       ]
