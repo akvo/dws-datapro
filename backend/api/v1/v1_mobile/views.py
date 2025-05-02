@@ -254,7 +254,10 @@ def download_sqlite_file(request, version, file_name):
     responses={
         (200, "application/json"): inline_serializer(
             "UploadImagesFromDevice",
-            fields={"task_id": serializers.CharField()},
+            fields={
+                "message": serializers.CharField(),
+                "file": serializers.CharField(),
+            },
         )
     },
 )
@@ -294,7 +297,7 @@ class UploadAttachmentsView(APIView):
                 description=(
                     "List of allowed file types for the attachment. "
                 ),
-                type=list,
+                type={"type": "array", "items": {"type": "string"}},
                 enum=[
                     "pdf", "docx", "xlsx", "pptx", "txt", "csv", "zip", "rar",
                     "jpg", "jpeg", "png", "gif", "bmp", "doc", "xls", "ppt",

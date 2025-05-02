@@ -79,7 +79,7 @@ class UploadAttachmentsView(APIView):
                 description=(
                     "List of allowed file types for the attachment. "
                 ),
-                type=list,
+                type={"type": "array", "items": {"type": "string"}},
                 enum=[
                     "pdf", "docx", "xlsx", "pptx", "txt", "csv", "zip", "rar",
                     "jpg", "jpeg", "png", "gif", "bmp", "doc", "xls", "ppt",
