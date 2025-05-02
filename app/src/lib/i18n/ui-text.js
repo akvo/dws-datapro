@@ -115,6 +115,8 @@ const uiText = {
     buttonUpdate: 'Update',
     noUpdateFound: 'No update found.',
     newVersionAvailable: 'New version available.',
+    attachButton: 'Attach File',
+    openFileButton: 'Open File',
   },
   fr: {
     latitude: 'Latitude',
@@ -223,6 +225,8 @@ const uiText = {
     buttonUpdate: 'Mise à jour',
     noUpdateFound: 'Pas de mise à jour trouvée.',
     newVersionAvailable: 'Une nouvelle version est disponible.',
+    attachButton: 'Joindre le fichier',
+    openFileButton: 'Ouvrir le fichier',
   },
 };
 
