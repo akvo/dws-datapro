@@ -10,10 +10,12 @@ import crudJobs, { jobStatus, MAX_ATTEMPT } from '../database/crud/crud-jobs';
 import { UIState } from '../store';
 import {
   DATABASE_NAME,
+  QUESTION_TYPES,
   SYNC_FORM_SUBMISSION_TASK_NAME,
   SYNC_FORM_VERSION_TASK_NAME,
   SYNC_STATUS,
 } from './constants';
+import MIME_TYPES from './mime_types';
 
 const syncFormVersion = async ({
   showNotificationOnly = true,
@@ -100,27 +102,32 @@ const backgroundTaskStatus = async (TASK_NAME) => {
   await TaskManager.isTaskRegisteredAsync(TASK_NAME);
 };
 
-const handleOnUploadPhotos = async (data) => {
-  const AllPhotos = data?.flatMap((d) => {
+const handleOnUploadFiles = async (
+  data,
+  apiURL = '/images',
+  questionTypes = [QUESTION_TYPES.photo],
+) => {
+  const allFiles = data?.flatMap((d) => {
     const answers = JSON.parse(d.json);
     const questions = JSON.parse(d.json_form)?.question_group?.flatMap((qg) => qg.question) || [];
-    const photos = questions
-      .filter((q) => q.type === 'photo')
+    const files = questions
+      .filter((q) => questionTypes.includes(q.type))
       .map((q) => ({ id: q.id, value: answers?.[q.id], dataID: d.id }))
-      .filter((p) => p.value);
-    return photos;
+      .filter((f) => f.value);
+    return files;
   });
 
-  if (AllPhotos?.length) {
-    const uploads = AllPhotos.map((p) => {
-      const fileType = p.value.split('.').slice(-1)?.[0];
+  if (allFiles?.length) {
+    const uploads = allFiles.map((f) => {
+      const extension = f.value.split('.').pop()?.toLowerCase();
+      const fileType = MIME_TYPES?.[extension] || 'application/octet-stream';
       const formData = new FormData();
       formData.append('file', {
-        uri: p.value,
-        name: `photo_${p.id}_${p.dataID}.${fileType}`,
-        type: `image/${fileType}`,
+        uri: f.value,
+        name: `file_${f.id}_${f.dataID}.${extension}`,
+        type: fileType,
       });
-      return api.post('/images', formData, {
+      return api.post(apiURL, formData, {
         headers: {
           Accept: 'application/json',
           'Content-Type': 'multipart/form-data',
@@ -133,11 +140,11 @@ const handleOnUploadPhotos = async (data) => {
       .filter(({ status }) => status === 'fulfilled')
       .map(({ value: resValue }) => {
         const { data: fileData } = resValue;
-        const findPhoto =
-          AllPhotos.find((ap) => fileData?.file?.includes(`${ap.id}_${ap.dataID}`)) || {};
+        const findFile =
+          allFiles.find((af) => fileData?.file?.includes(`${af.id}_${af.dataID}`)) || {};
         return {
           ...fileData,
-          ...findPhoto,
+          ...findFile,
         };
       })
       .filter((d) => d);
@@ -165,7 +172,10 @@ const syncFormSubmission = async (activeJob = {}) => {
     /**
      * Upload all photo of questions first
      */
-    const photos = await handleOnUploadPhotos(data);
+    const photos = await handleOnUploadFiles(data, '/images', [QUESTION_TYPES.photo]);
+    const attachments = await handleOnUploadFiles(data, '/attachments', [
+      QUESTION_TYPES.attachment,
+    ]);
     const syncProcess = data.map(async (d) => {
       const geo = d.geo ? d.geo.split('|')?.map((x) => parseFloat(x)) : [];
 
@@ -174,6 +184,11 @@ const syncFormSubmission = async (activeJob = {}) => {
         ?.filter((pt) => pt?.dataID === d.id)
         ?.forEach((pt) => {
           answerValues[pt?.id] = pt?.file;
+        });
+      attachments
+        ?.filter((at) => at?.dataID === d.id)
+        ?.forEach((at) => {
+          answerValues[at?.id] = at?.file;
         });
       const syncData = {
         formId: d.formId,
