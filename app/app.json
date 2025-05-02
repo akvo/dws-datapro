@@ -59,7 +59,8 @@
             "useSQLCipher": false
           }
         }
-      ]
+      ],
+      "expo-document-picker"
     ]
   }
 }
