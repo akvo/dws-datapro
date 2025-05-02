@@ -1,16 +1,27 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, ScrollView, StyleSheet } from 'react-native';
-import { ListItem, Image } from '@rneui/themed';
+import { View, Text, ScrollView, StyleSheet, Alert } from 'react-native';
+import { ListItem, Image, Button } from '@rneui/themed';
 import moment from 'moment';
+import * as Linking from 'expo-linking';
 import { FormState, UIState } from '../../store';
 import { cascades, i18n } from '../../lib';
 import { BaseLayout } from '../../components';
 import FormDataNavigation from './FormDataNavigation';
+import { QUESTION_TYPES } from '../../lib/constants';
 
 const SubtitleContent = ({ index, answers, type, id, source = null, option = [] }) => {
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
   const [cascadeValue, setCascadeValue] = useState(null);
+
+  const openFileManager = async (uri) => {
+    const supported = await Linking.canOpenURL(uri);
+    if (supported) {
+      await Linking.openURL(uri);
+    } else {
+      Alert.alert("Don't know how to open this URL:", uri);
+    }
+  };
 
   const fetchCascade = useCallback(async () => {
     if (source) {
@@ -25,7 +36,7 @@ const SubtitleContent = ({ index, answers, type, id, source = null, option = [] 
   }, [fetchCascade]);
 
   switch (type) {
-    case 'geo':
+    case QUESTION_TYPES.geo:
       return (
         <View testID={`text-type-geo-${index}`}>
           <Text>
@@ -36,22 +47,39 @@ const SubtitleContent = ({ index, answers, type, id, source = null, option = [] 
           </Text>
         </View>
       );
-    case 'cascade':
+    case QUESTION_TYPES.cascade:
       return <Text testID={`text-answer-${index}`}>{cascadeValue ? cascadeValue.name : '-'}</Text>;
-    case 'date':
+    case QUESTION_TYPES.date:
       return (
         <Text testID={`text-answer-${index}`}>
           {answers?.[id] ? moment(answers[id]).format('YYYY-MM-DD') : '-'}
         </Text>
       );
-    case 'option':
-    case 'multiple_option':
+    case QUESTION_TYPES.option:
+    case QUESTION_TYPES.multiple_option:
       return answers?.[id]
         ?.map((a) => {
           const findOption = option?.find((o) => o?.value === a);
           return findOption?.label;
         })
         ?.join(', ');
+    case QUESTION_TYPES.attachment:
+      return (
+        <View testID={`text-type-attachment-${index}`} style={{ width: '100%' }}>
+          <Text
+            testID={`text-answer-${index}`}
+            style={{ color: 'blue', textDecorationLine: 'underline' }}
+          >
+            {answers?.[id] ? answers[id].split('/').pop() : '-'}
+          </Text>
+          <Button
+            title={trans.openFileButton}
+            onPress={() => openFileManager(answers?.[id])}
+            testID={`open-file-button-${index}`}
+            buttonStyle={{ backgroundColor: '#1E90FF', marginTop: 8 }}
+          />
+        </View>
+      );
     default:
       return (
         <Text testID={`text-answer-${index}`}>
@@ -93,7 +121,7 @@ const FormDataDetails = ({ navigation, route }) => {
     <BaseLayout title={route?.params?.name} rightComponent={false}>
       <ScrollView>
         {questions?.map((q, i) =>
-          q.type === 'photo' && currentValues?.[q.id] ? (
+          q.type === QUESTION_TYPES.photo && currentValues?.[q.id] ? (
             <View key={q.id} style={styles.containerImage}>
               <Text style={styles.title} testID={`text-question-${i}`}>
                 {q.label}
