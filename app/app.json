@@ -3,7 +3,7 @@
     "newArchEnabled": true,
     "name": "iwsims-mobile",
     "slug": "iwsims-mobile",
-    "version": "4.0.11",
+    "version": "4.0.12",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -24,7 +24,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.akvo.iwsims",
-      "versionCode": 4011
+      "versionCode": 4012
     },
     "web": {
       "favicon": "./assets/favicon.png"
