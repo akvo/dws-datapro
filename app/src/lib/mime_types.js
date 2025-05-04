@@ -1,3 +1,17 @@
+export const IMAGE_EXTENSIONS = [
+  'jpg',
+  'jpeg',
+  'png',
+  'gif',
+  'bmp',
+  'tiff',
+  'webp',
+  'heif',
+  'heic',
+  'svg',
+  'ico',
+];
+
 const MIME_TYPES = {
   pdf: 'application/pdf',
   doc: 'application/msword',
