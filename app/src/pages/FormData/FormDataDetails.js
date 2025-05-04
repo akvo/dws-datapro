@@ -4,10 +4,19 @@ import { ListItem, Image, Button } from '@rneui/themed';
 import moment from 'moment';
 import * as Linking from 'expo-linking';
 import { FormState, UIState } from '../../store';
-import { cascades, i18n } from '../../lib';
+import { cascades, helpers, i18n } from '../../lib';
 import { BaseLayout } from '../../components';
 import FormDataNavigation from './FormDataNavigation';
 import { QUESTION_TYPES } from '../../lib/constants';
+
+const ImageView = ({ label, uri, textTestID, imageTestID }) => (
+  <View style={styles.containerImage}>
+    <Text style={styles.title} testID={textTestID}>
+      {label}
+    </Text>
+    <Image source={{ uri }} testID={imageTestID} style={styles.image} />
+  </View>
+);
 
 const SubtitleContent = ({ index, answers, type, id, source = null, option = [] }) => {
   const activeLang = UIState.useState((s) => s.lang);
@@ -120,19 +129,34 @@ const FormDataDetails = ({ navigation, route }) => {
   return (
     <BaseLayout title={route?.params?.name} rightComponent={false}>
       <ScrollView>
-        {questions?.map((q, i) =>
-          q.type === QUESTION_TYPES.photo && currentValues?.[q.id] ? (
-            <View key={q.id} style={styles.containerImage}>
-              <Text style={styles.title} testID={`text-question-${i}`}>
-                {q.label}
-              </Text>
-              <Image
-                source={{ uri: currentValues?.[q.id] }}
-                testID={`image-answer-${i}`}
-                style={{ width: '100%', height: 200, aspectRatio: 1 }}
+        {questions?.map((q, i) => {
+          if (q.type === QUESTION_TYPES.attachment && currentValues?.[q.id]) {
+            const fileName = currentValues[q.id].split('/').pop();
+            const fileExtension = fileName.split('.').pop();
+            if (helpers.isImageFile(fileExtension)) {
+              return (
+                <ImageView
+                  key={q.id}
+                  label={q.label}
+                  uri={currentValues[q.id]}
+                  textTestID={`text-question-${i}`}
+                  imageTestID={`image-question-${i}`}
+                />
+              );
+            }
+          }
+          if (q.type === QUESTION_TYPES.photo && currentValues?.[q.id]) {
+            return (
+              <ImageView
+                key={q.id}
+                label={q.label}
+                uri={currentValues[q.id]}
+                textTestID={`text-question-${i}`}
+                imageTestID={`image-question-${i}`}
               />
-            </View>
-          ) : (
+            );
+          }
+          return (
             <ListItem key={q.id} bottomDivider>
               <ListItem.Content>
                 <ListItem.Title style={styles.title} testID={`text-question-${i}`}>
@@ -150,8 +174,8 @@ const FormDataDetails = ({ navigation, route }) => {
                 </ListItem.Subtitle>
               </ListItem.Content>
             </ListItem>
-          ),
-        )}
+          );
+        })}
       </ScrollView>
       <FormDataNavigation
         totalPage={totalPage}
@@ -179,6 +203,11 @@ const styles = StyleSheet.create({
     borderLeftColor: 'transparent',
     borderRightColor: 'transparent',
     borderBottomColor: 'silver',
+  },
+  image: {
+    width: '100%',
+    height: 200,
+    aspectRatio: 1,
   },
 });
 
