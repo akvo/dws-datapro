@@ -107,50 +107,51 @@ const handleOnUploadFiles = async (
   apiURL = '/images',
   questionTypes = [QUESTION_TYPES.photo],
 ) => {
-  const allFiles = data?.flatMap((d) => {
-    const answers = JSON.parse(d.json);
-    const questions = JSON.parse(d.json_form)?.question_group?.flatMap((qg) => qg.question) || [];
-    const files = questions
-      .filter((q) => questionTypes.includes(q.type))
-      .map((q) => ({ id: q.id, value: answers?.[q.id], dataID: d.id }))
-      .filter((f) => f.value);
-    return files;
+  // Extract files from submissions
+  const allFiles = data.reduce((files, d) => {
+    try {
+      const answers = JSON.parse(d.json);
+      const questions = JSON.parse(d.json_form)?.question_group?.flatMap(qg => qg.question) || [];
+      questions.forEach(q => {
+        if (questionTypes.includes(q.type)) {
+          const file = answers[q.id];
+          if (file && file.startsWith('file://')) {
+            files.push({ id: q.id, value: file, dataID: d.id });
+          }
+        }
+      });
+      return files;
+    } catch {
+      return files;
+    }
+  }, []);
+
+  if (!allFiles.length) return [];
+
+  // Prepare file uploads
+  const uploads = allFiles.map(f => {
+    const extension = f.value.split('.').pop()?.toLowerCase();
+    const fileType = MIME_TYPES[extension] || 'application/octet-stream';
+    const formData = new FormData();
+    formData.append('file', {
+      uri: f.value,
+      name: `file_${f.id}_${f.dataID}.${extension}`,
+      type: fileType,
+    });
+    return api.post(apiURL, formData, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   });
 
-  if (allFiles?.length) {
-    const uploads = allFiles.map((f) => {
-      const extension = f.value.split('.').pop()?.toLowerCase();
-      const fileType = MIME_TYPES?.[extension] || 'application/octet-stream';
-      const formData = new FormData();
-      formData.append('file', {
-        uri: f.value,
-        name: `file_${f.id}_${f.dataID}.${extension}`,
-        type: fileType,
-      });
-      return api.post(apiURL, formData, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    });
-
-    const responses = await Promise.allSettled(uploads);
-    const results = responses
-      .filter(({ status }) => status === 'fulfilled')
-      .map(({ value: resValue }) => {
-        const { data: fileData } = resValue;
-        const findFile =
-          allFiles.find((af) => fileData?.file?.includes(`${af.id}_${af.dataID}`)) || {};
-        return {
-          ...fileData,
-          ...findFile,
-        };
-      })
-      .filter((d) => d);
-    return results;
-  }
-  return [];
+  // Upload all and return merged results
+  const results = await Promise.allSettled(uploads);
+  const responses = results
+    .filter(result => result.status === 'fulfilled')
+    .map(result => result.value);
+  return responses.map((res, i) => ({ ...allFiles[i], ...res.data }));
 };
 
 const syncFormSubmission = async (activeJob = {}) => {
