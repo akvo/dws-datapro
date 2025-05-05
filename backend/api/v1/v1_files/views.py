@@ -5,6 +5,7 @@ from .serializers import (
 )
 from rest_framework.views import APIView
 from rest_framework import serializers
+from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema,
     inline_serializer,
@@ -86,13 +87,20 @@ class UploadAttachmentsView(APIView):
                     "mp4", "avi", "mov", "mkv", "flv", "wmv", "mp3", "wav",
                     "ogg", "flac", "aac", "wma", "m4a", "opus", "webm", "3gp",
                 ],
-            )
+            ),
+            OpenApiParameter(
+                name="question_id",
+                required=False,
+                type=OpenApiTypes.NUMBER,
+                location=OpenApiParameter.QUERY,
+            ),
         ],
         description="Upload attachments to the server."
     )
     def post(self, request, version):
         # Get the allowed file types from the query parameter
         allowed_file_types = request.query_params.getlist("allowed_file_types")
+        question_id = request.query_params.get("question_id")
         serializer = AttachmentsSerializer(
             data=request.data,
             context={
@@ -106,10 +114,19 @@ class UploadAttachmentsView(APIView):
             )
         try:
             filename = handle_upload(request=request, folder="attachments")
+            if not question_id:
+                return Response(
+                    {
+                        "message": "File uploaded successfully",
+                        "file": f"{WEBDOMAIN}/attachments/{filename}",
+                    },
+                    status=status.HTTP_200_OK,
+                )
             return Response(
                 {
                     "message": "File uploaded successfully",
                     "file": f"{WEBDOMAIN}/attachments/{filename}",
+                    "question_id": question_id,
                 },
                 status=status.HTTP_200_OK,
             )
