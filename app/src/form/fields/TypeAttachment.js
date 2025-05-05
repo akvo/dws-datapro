@@ -23,7 +23,7 @@ const TypeAttachment = ({
   const [selectedFile, setSelectedFile] = useState({ name: value });
   const activeLang = FormState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
-  const { allowed_file_types: allowedFileRules } = rule || {};
+  const { allowedFileRules } = rule || {};
   const allowedFileTypes = allowedFileRules?.length
     ? allowedFileRules.map((type) => MIME_TYPES?.[type] || 'application/octet-stream')
     : '*/*';
@@ -81,6 +81,14 @@ const TypeAttachment = ({
       {value && helpers.isImageFile(fileType) && (
         <View style={{ marginBottom: 10 }}>
           <Image source={{ uri: value }} style={styles.image} />
+          <Button
+            icon={<Icon name="trash" size={20} color="white" style={styles.Icon} />}
+            title={trans.buttonRemove}
+            onPress={onRemovePress}
+            testID="remove-file-button"
+            accessibilityLabel="remove-file-button"
+            buttonStyle={styles.removeButton}
+          />
         </View>
       )}
       {selectedFile?.name && !helpers.isImageFile(fileType) && (
