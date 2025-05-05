@@ -384,6 +384,11 @@ const Forms = () => {
             }
             // EOL remove hidden question init value
 
+            // convert date string to date object for date question
+            if (q?.type === "date" && typeof value === "string") {
+              value = moment(value);
+            }
+            // EOL convert date string to date object for date question
             return {
               question: q?.id,
               value: value,
