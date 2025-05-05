@@ -49,6 +49,40 @@ class AttachmentUploadTest(TestCase):
         os.remove(f"{STORAGE_PATH}/attachments/{uploaded_filename}")
         os.remove(filename)
 
+    def test_attachment_upload_with_params_query_question_id(self):
+        filename = generate_file(filename="test", extension="pdf")
+        allowed_file_types = [
+            "pdf",
+            "docx",
+            "doc",
+        ]
+        params = "&".join(
+            f"allowed_file_types={ext}" for ext in allowed_file_types
+        )
+        response = self.client.post(
+            f"/api/v1/upload/attachments/?{params}&question_id=1",
+            {"file": open(filename, "rb")},
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            list(response.json()),
+            ["message", "file", "question_id"]
+        )
+        self.assertEqual(
+            response.json().get("question_id"),
+            "1",
+            "question_id is present in the response",
+        )
+        uploaded_filename = response.json().get("file")
+        uploaded_filename = uploaded_filename.split("/")[-1]
+        self.assertTrue(
+            storage.check(f"/attachments/{uploaded_filename}"),
+            "File exists",
+        )
+        os.remove(f"{STORAGE_PATH}/attachments/{uploaded_filename}")
+        os.remove(filename)
+
     def test_wrong_extension_upload(self):
         filename = generate_file(filename="test", extension="txt")
         allowed_file_types = [
