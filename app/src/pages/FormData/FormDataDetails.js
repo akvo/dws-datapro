@@ -85,7 +85,7 @@ const SubtitleContent = ({ index, answers, type, id, source = null, option = [] 
             title={trans.openFileButton}
             onPress={() => openFileManager(answers?.[id])}
             testID={`open-file-button-${index}`}
-            buttonStyle={{ backgroundColor: '#1E90FF', marginTop: 8 }}
+            buttonStyle={{ width: '100%', backgroundColor: '#1E90FF', marginTop: 8 }}
           />
         </View>
       );
@@ -162,7 +162,11 @@ const FormDataDetails = ({ navigation, route }) => {
                 <ListItem.Title style={styles.title} testID={`text-question-${i}`}>
                   {q.label}
                 </ListItem.Title>
-                <ListItem.Subtitle>
+                <ListItem.Subtitle
+                  style={{
+                    width: '100%',
+                  }}
+                >
                   <SubtitleContent
                     index={i}
                     answers={currentValues}
