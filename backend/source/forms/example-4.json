@@ -45,7 +45,7 @@
           "meta": false,
           "type": "attachment",
           "rule": {
-            "allowed_file_types": [
+            "allowedFileTypes": [
               "jpeg",
               "jpg",
               "png"
@@ -65,7 +65,7 @@
           "meta": false,
           "type": "attachment",
           "rule": {
-            "allowed_file_types": []
+            "allowedFileTypes": []
           },
           "api": {
             "endpoint": "/api/v1/upload/attachments"
@@ -79,7 +79,7 @@
           "meta": false,
           "type": "attachment",
           "rule": {
-            "allowed_file_types": [
+            "allowedFileTypes": [
               "pdf",
               "doc",
               "docx",
