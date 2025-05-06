@@ -110,10 +110,7 @@ describe('AuthFormPage', () => {
     );
 
     await waitFor(() => {
-      const {
-        id: userIdState,
-        name: userNameState,
-      } = userStateRef.current;
+      const { id: userIdState, name: userNameState } = userStateRef.current;
       expect(userIdState).toEqual(mockUser.id);
       expect(userNameState).toEqual(mockUser.name);
       expect(navigation.navigate).toHaveBeenCalledWith('Home', { newForms: true });
