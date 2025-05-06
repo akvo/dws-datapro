@@ -19,6 +19,7 @@ const NetworkStatusBar = () => {
     1: trans.syncingText,
     2: trans.reSyncingText,
     3: trans.doneText,
+    4: trans.syncErrorText,
   };
 
   const handleOnResetStatusBar = useCallback(() => {
