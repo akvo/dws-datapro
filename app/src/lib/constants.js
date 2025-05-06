@@ -8,6 +8,7 @@ export const SYNC_STATUS = {
   on_progress: 1,
   re_sync: 2,
   success: 3,
+  failed: 4,
 };
 
 export const SUBMISSION_TYPES = {

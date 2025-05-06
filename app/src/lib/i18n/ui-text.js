@@ -106,6 +106,7 @@ const uiText = {
     syncingSuccessText: 'Syncing successful...',
     reSyncingText: 'Re-syncing...',
     doneText: 'Done!',
+    syncErrorText: 'Sync error. Go to Edit Saved Forms to resync',
     about: 'About',
     autoSyncInProgress: 'Auto sync is in progress',
     connectToInternet: 'Connect to the internet to sync',
@@ -218,6 +219,8 @@ const uiText = {
     syncingText: 'Synchronisation...',
     reSyncingText: 'Resynchronisation...',
     doneText: 'Fait!',
+    syncErrorText:
+      'Erreur de synchronisation. Allez dans Modifier les formulaires enregistrés pour resynchroniser',
     autoSyncInProgress: 'La synchronisation automatique est en cours',
     loadMore: 'Charger plus',
     updateApp: "Met à jour l'application",
