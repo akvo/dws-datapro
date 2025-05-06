@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, waitFor } from 'react-native-testing-library';
-import { renderHook, fireEvent, act } from '@testing-library/react-native';
+import { renderHook, fireEvent, act, render, waitFor } from '@testing-library/react-native';
 import * as Location from 'expo-location';
 
 import TypeGeo from '../TypeGeo';

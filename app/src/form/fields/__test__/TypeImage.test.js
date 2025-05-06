@@ -1,8 +1,7 @@
 import React from 'react';
-import { render, fireEvent, waitFor, act } from 'react-native-testing-library';
 import * as ImagePicker from 'expo-image-picker';
 import { PermissionsAndroid } from 'react-native';
-import { renderHook } from '@testing-library/react-native';
+import { renderHook, render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import TypeImage from '../TypeImage';
 import { FormState } from '../../../store';
 

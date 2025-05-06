@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-native-testing-library';
+import { render } from '@testing-library/react-native';
 import FieldGroupHeader from '../FieldGroupHeader';
 
 describe('FieldGroupHeader component', () => {
@@ -7,7 +7,9 @@ describe('FieldGroupHeader component', () => {
     const name = 'Group Title';
     const description = 'Group description';
 
-    const { getByText,  } = render(<FieldGroupHeader label={name} description={description} index={0} />);
+    const { getByText } = render(
+      <FieldGroupHeader label={name} description={description} index={0} />,
+    );
 
     const nameOutput = `1. ${name}`;
     const nameElement = getByText(nameOutput);
