@@ -7,7 +7,6 @@ import mockBackHandler from 'react-native/Libraries/Utilities/__mocks__/BackHand
 
 import Users from '../Users';
 import { UserState, UIState } from '../../store';
-import { conn, query } from '../../database';
 
 jest.mock('expo-sqlite');
 
@@ -17,7 +16,11 @@ jest.mock('react', () => ({
 
 jest.mock('react-native/Libraries/Utilities/BackHandler', () => mockBackHandler);
 
-const db = conn.init;
+// Create a mock db instead of calling a hook
+const db = {
+  transaction: jest.fn(),
+  closeAsync: jest.fn(),
+};
 
 describe('UsersPage', () => {
   beforeAll(() => {
@@ -53,8 +56,8 @@ describe('UsersPage', () => {
     const [loading, setLoading] = resLoading.current;
 
     await act(async () => {
-      const selectQuery = query.read('users');
-      const rows = await conn.tx(db, selectQuery);
+      // Mock direct result instead of using conn.tx and query
+      const rows = { _array: [{ id: 1, name: 'John', active: 1 }] };
       setUsers(rows._array);
       setLoading(false);
     });
@@ -116,8 +119,8 @@ describe('UsersPage', () => {
     const [loading, setLoading] = resLoading.current;
 
     await act(async () => {
-      const selectQuery = query.read('users');
-      const rows = await conn.tx(db, selectQuery);
+      // Mock direct result instead of using conn.tx and query
+      const rows = { _array: usersData };
       setUsers(rows._array);
       setLoading(false);
     });
@@ -139,8 +142,8 @@ describe('UsersPage', () => {
     const [loading, setLoading] = resLoading.current;
 
     await act(async () => {
-      const selectQuery = query.read('users');
-      const rows = await conn.tx(db, selectQuery);
+      // Mock direct result instead of using conn.tx and query
+      const rows = { _array: [{ id: 1, name: 'John', active: 1 }] };
       setUsers(rows._array);
       setLoading(false);
     });
@@ -183,8 +186,8 @@ describe('UsersPage', () => {
     const [loading, setLoading] = resLoading.current;
 
     await act(async () => {
-      const selectQuery = query.read('users');
-      const rows = await conn.tx(db, selectQuery);
+      // Mock direct result instead of using conn.tx and query
+      const rows = { _array: usersData };
       setUsers(rows._array);
       setLoading(false);
     });

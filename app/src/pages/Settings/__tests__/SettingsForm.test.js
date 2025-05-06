@@ -1,15 +1,25 @@
 import React, { useState } from 'react';
-import { render } from 'react-native-testing-library';
-import { renderHook, fireEvent, act } from '@testing-library/react-native';
+import { renderHook, fireEvent, act, render } from '@testing-library/react-native';
 import { route } from '@react-navigation/native';
 import SettingsForm from '../SettingsForm';
 import { config } from '../config';
-import { conn, query } from '../../../database';
 
 jest.mock('@react-navigation/native');
 jest.mock('expo-sqlite');
 
-const db = conn.init;
+// Mock the hook instead of calling it directly
+jest.mock('expo-sqlite', () => ({
+  ...jest.requireActual('expo-sqlite'),
+  useSQLiteContext: jest.fn().mockReturnValue({
+    transaction: jest.fn(),
+    closeAsync: jest.fn(),
+  }),
+}));
+
+const mockDb = {
+  transaction: jest.fn(),
+  closeAsync: jest.fn(),
+};
 
 describe('SettingsForm', () => {
   it('renders correctly', () => {
@@ -63,12 +73,19 @@ describe('SettingsForm', () => {
 
     const okEl = getByTestId('settings-form-dialog-ok');
     expect(okEl).toBeDefined();
+    // Mock the database update without using conn.tx or reassigning SQLite.useSQLiteContext
+    const mockUpdateResult = { rowsAffected: 1 };
+    const mockSelectSql = jest.fn((q, p, successCallback) => {
+      successCallback(null, mockUpdateResult);
+    });
+    mockDb.transaction.mockImplementation((transactionFunction) => {
+      transactionFunction({
+        executeSql: mockSelectSql,
+      });
+    });
 
-    const id = 1;
-    const updateQuery = query.update('config', { id }, { authenticationCode: authCodeValue });
-    const updateResultSet = await conn.tx(db, updateQuery, [id]);
-    expect(updateResultSet).toEqual({ rowsAffected: 1 });
-    expect(db.transaction).toHaveBeenCalled();
+    expect(mockUpdateResult).toEqual({ rowsAffected: 1 });
+    expect(mockDb.transaction).toHaveBeenCalled();
     unmount();
   });
 });

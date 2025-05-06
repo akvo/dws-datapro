@@ -5,7 +5,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import AddUser from '../AddUser';
 import { UserState } from '../../store';
-import { conn } from '../../database';
 import api from '../../lib/api';
 import { crudForms, crudUsers } from '../../database/crud';
 
@@ -16,7 +15,19 @@ jest.mock('expo-crypto');
 jest.mock('../../lib/api');
 jest.mock('../../database/crud');
 
-const db = conn.init;
+// Mock the hook instead of calling it directly
+jest.mock('expo-sqlite', () => ({
+  ...jest.requireActual('expo-sqlite'),
+  useSQLiteContext: jest.fn().mockReturnValue({
+    transaction: jest.fn(),
+    closeAsync: jest.fn(),
+  }),
+}));
+
+const mockDb = {
+  transaction: jest.fn(),
+  closeAsync: jest.fn(),
+};
 
 describe('AddUserPage', () => {
   test('renders correctly', () => {
@@ -101,7 +112,7 @@ describe('AddUserPage', () => {
     const mockSelectSql = jest.fn((query, params, successCallback) => {
       successCallback(null, { rows: { length: allUsers.length, _array: allUsers } });
     });
-    db.transaction.mockImplementation((transactionFunction) => {
+    mockDb.transaction.mockImplementation((transactionFunction) => {
       transactionFunction({
         executeSql: mockSelectSql,
       });

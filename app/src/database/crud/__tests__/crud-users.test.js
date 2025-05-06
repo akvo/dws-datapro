@@ -1,9 +1,20 @@
 import crudUsers from '../crud-users';
-import conn from '../../conn';
 
 jest.mock('expo-sqlite');
 
-const db = conn.init;
+// Mock the hook instead of calling it directly
+jest.mock('expo-sqlite', () => ({
+  ...jest.requireActual('expo-sqlite'),
+  useSQLiteContext: jest.fn().mockReturnValue({
+    transaction: jest.fn(),
+    closeAsync: jest.fn(),
+  }),
+}));
+
+const mockDb = {
+  transaction: jest.fn(),
+  closeAsync: jest.fn(),
+};
 
 const users = [
   {
@@ -31,7 +42,7 @@ describe('crudUsers function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: mockData.length, _array: mockData } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
@@ -45,7 +56,7 @@ describe('crudUsers function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: mockData.length, _array: mockData } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
@@ -61,7 +72,7 @@ describe('crudUsers function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: mockData.length, _array: mockData } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
@@ -75,7 +86,7 @@ describe('crudUsers function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: mockData.length, _array: mockData } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });

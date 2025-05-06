@@ -1,10 +1,21 @@
 import { act } from '@testing-library/react-native';
 import crudDataPoints from '../crud-datapoints';
-import conn from '../../conn';
 
 jest.mock('expo-sqlite');
 
-const db = conn.init;
+// Mock the hook instead of calling it directly
+jest.mock('expo-sqlite', () => ({
+  ...jest.requireActual('expo-sqlite'),
+  useSQLiteContext: jest.fn().mockReturnValue({
+    transaction: jest.fn(),
+    closeAsync: jest.fn(),
+  }),
+}));
+
+const mockDb = {
+  transaction: jest.fn(),
+  closeAsync: jest.fn(),
+};
 
 const dataPoints = [
   {
@@ -76,10 +87,10 @@ describe('crudDataPoints function', () => {
     const mockData = dataPoints
       .filter((d) => d.id === 1)
       .map((d) => ({ ...d, json: JSON.stringify(d.json) }));
-    const mockSelectSql = jest.fn((query, params, successCallback) => {
+    const mockSelectSql = jest.fn((q, p, successCallback) => {
       successCallback(null, { rows: { length: mockData.length, _array: mockData } });
     });
-    db.transaction.mockImplementation((transactionFunction) => {
+    mockDb.transaction.mockImplementation((transactionFunction) => {
       transactionFunction({
         executeSql: mockSelectSql,
       });
@@ -93,7 +104,7 @@ describe('crudDataPoints function', () => {
     const mockSelectSql = jest.fn((query, params, successCallback) => {
       successCallback(null, { rows: { length: mockData.length, _array: mockData } });
     });
-    db.transaction.mockImplementation((transactionFunction) => {
+    mockDb.transaction.mockImplementation((transactionFunction) => {
       transactionFunction({
         executeSql: mockSelectSql,
       });
@@ -110,7 +121,7 @@ describe('crudDataPoints function', () => {
     const mockSelectSql = jest.fn((query, params, successCallback) => {
       successCallback(null, { rows: { length: mockData.length, _array: mockData } });
     });
-    db.transaction.mockImplementation((transactionFunction) => {
+    mockDb.transaction.mockImplementation((transactionFunction) => {
       transactionFunction({
         executeSql: mockSelectSql,
       });
@@ -127,7 +138,7 @@ describe('crudDataPoints function', () => {
     const mockSelectSql = jest.fn((query, params, successCallback) => {
       successCallback(null, { rows: { length: mockData.length, _array: mockData } });
     });
-    db.transaction.mockImplementation((transactionFunction) => {
+    mockDb.transaction.mockImplementation((transactionFunction) => {
       transactionFunction({
         executeSql: mockSelectSql,
       });
@@ -145,7 +156,7 @@ describe('crudDataPoints function', () => {
     const mockSelectSql = jest.fn((query, params, successCallback) => {
       successCallback(null, { rows: { length: mockData.length, _array: mockData } });
     });
-    db.transaction.mockImplementation((transactionFunction) => {
+    mockDb.transaction.mockImplementation((transactionFunction) => {
       transactionFunction({
         executeSql: mockSelectSql,
       });
@@ -159,7 +170,7 @@ describe('crudDataPoints function', () => {
     const mockSelectSql = jest.fn((query, params, successCallback) => {
       successCallback(null, { rows: { length: mockData.length, _array: mockData } });
     });
-    db.transaction.mockImplementation((transactionFunction) => {
+    mockDb.transaction.mockImplementation((transactionFunction) => {
       transactionFunction({
         executeSql: mockSelectSql,
       });

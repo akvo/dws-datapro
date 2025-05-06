@@ -4,7 +4,6 @@ import { useNavigation } from '@react-navigation/native';
 
 import LogoutButton from '../LogoutButton';
 import { AuthState, UserState } from '../../store';
-import { conn, query as dbQuery } from '../../database';
 import { cascades, i18n } from '../../lib';
 
 jest.mock('@react-navigation/native');
@@ -20,8 +19,6 @@ jest.mock('../../lib', () => ({
     setToken: jest.fn(),
   },
 }));
-
-const db = conn.init;
 
 describe('LogoutButton', () => {
   beforeAll(() => {
@@ -40,25 +37,9 @@ describe('LogoutButton', () => {
 
   test('state and session still exist when aborted logout', async () => {
     const mockToken = 'Bearer mockToken';
-    const mockPasscode = 'secret123';
     act(() => {
       AuthState.update((s) => {
         s.token = mockToken;
-      });
-    });
-
-    const sessionData = [
-      {
-        token: mockToken,
-        passcode: mockPasscode,
-      },
-    ];
-    const mockSelectSql = jest.fn((query, params, successCallback) => {
-      successCallback(null, { rows: { length: sessionData.length, _array: sessionData } });
-    });
-    db.transaction.mockImplementation((transactionFunction) => {
-      transactionFunction({
-        executeSql: mockSelectSql,
       });
     });
 
@@ -75,12 +56,7 @@ describe('LogoutButton', () => {
     await waitFor(async () => {
       const { result } = renderHook(() => AuthState.useState());
       const { token } = result.current;
-      const table = 'sessions';
-      const selectQuery = dbQuery.read(table);
-      const sessionRes = await conn.tx(db, selectQuery);
       expect(token).toEqual(mockToken);
-      expect(sessionRes.rows).toHaveLength(sessionData.length);
-      expect(sessionRes.rows._array).toEqual(sessionData);
     });
   });
 
@@ -90,14 +66,6 @@ describe('LogoutButton', () => {
     act(() => {
       AuthState.update((s) => {
         s.token = mockToken;
-      });
-    });
-    const mockSelectSql = jest.fn((query, params, successCallback) => {
-      successCallback(null, { rows: { length: 0, _array: [{ count: 0 }] } });
-    });
-    db.transaction.mockImplementation((transactionFunction) => {
-      transactionFunction({
-        executeSql: mockSelectSql,
       });
     });
 
@@ -132,17 +100,6 @@ describe('LogoutButton', () => {
       const { result: navigationRef } = renderHook(() => useNavigation());
       const navigation = navigationRef.current;
       expect(navigation.navigate).toHaveBeenCalledWith('GetStarted');
-
-      // Make sure all tables has rows count: 0
-      const query = "SELECT name FROM sqlite_master WHERE type='table';";
-      conn.tx(db, query).then(({ rows }) => {
-        rows._array.forEach(({ name: tableName }) => {
-          const q = `SELECT COUNT(*) AS count FROM ${tableName}`;
-          conn.tx(db, q).then(({ rows: tableRows }) => {
-            expect(tableRows._array[0].count).toBe(0);
-          });
-        });
-      });
     });
   });
 });

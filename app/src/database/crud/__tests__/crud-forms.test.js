@@ -1,8 +1,20 @@
 import crudForms from '../crud-forms';
-import conn from '../../conn';
 
 jest.mock('expo-sqlite');
-const db = conn.init;
+
+const mockDb = {
+  transaction: jest.fn(),
+  closeAsync: jest.fn(),
+};
+
+// Mock the hook instead of calling it directly
+jest.mock('expo-sqlite', () => ({
+  ...jest.requireActual('expo-sqlite'),
+  useSQLiteContext: jest.fn().mockReturnValue({
+    transaction: jest.fn(),
+    closeAsync: jest.fn(),
+  }),
+}));
 
 describe('crudForms function', () => {
   beforeEach(() => {
@@ -15,6 +27,14 @@ describe('crudForms function', () => {
 
   describe('addForm', () => {
     it('should insert the form', async () => {
+      const mockInsertSql = jest.fn((query, params, successCallback) => {
+        successCallback(null, { rowsAffected: 1 });
+      });
+      mockDb.transaction.mockImplementation((transactionFunction) => {
+        transactionFunction({
+          executeSql: mockInsertSql,
+        });
+      });
       const formId = 1;
       const version = 1;
       const formJSON = { id: 1, version: 1, name: 'Form 1' };
@@ -25,6 +45,14 @@ describe('crudForms function', () => {
 
   describe('updateForm', () => {
     it('should update the form, set latest to 0', async () => {
+      const mockUpdateSql = jest.fn((query, params, successCallback) => {
+        successCallback(null, { rowsAffected: 1 });
+      });
+      mockDb.transaction.mockImplementation((transactionFunction) => {
+        transactionFunction({
+          executeSql: mockUpdateSql,
+        });
+      });
       const formId = 1;
       const result = await crudForms.updateForm({ id: formId });
       expect(result).toEqual({ rowsAffected: 1 });
@@ -47,7 +75,7 @@ describe('crudForms function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: 0, _array: [] } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
@@ -61,7 +89,7 @@ describe('crudForms function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: mockData.length, _array: mockData } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
@@ -87,7 +115,7 @@ describe('crudForms function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: formTest.length, _array: formTest } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
@@ -101,7 +129,7 @@ describe('crudForms function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: mockData.length, _array: mockData } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
@@ -122,7 +150,7 @@ describe('crudForms function', () => {
       const mockSelectSql = jest.fn((query, params, successCallback) => {
         successCallback(null, { rows: { length: mockData.length, _array: mockData } });
       });
-      db.transaction.mockImplementation((transactionFunction) => {
+      mockDb.transaction.mockImplementation((transactionFunction) => {
         transactionFunction({
           executeSql: mockSelectSql,
         });
