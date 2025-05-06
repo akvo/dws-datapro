@@ -160,7 +160,7 @@ const syncFormSubmission = async (activeJob = {}) => {
   });
   const { isConnected } = await Network.getNetworkStateAsync();
   if (!isConnected) {
-    return;
+    return BackgroundFetch.BackgroundFetchResult.NoData;
   }
   try {
     let sendNotification = false;
@@ -278,6 +278,7 @@ const syncFormSubmission = async (activeJob = {}) => {
     }
 
     await db.closeAsync();
+    return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (error) {
     Sentry.captureMessage(`[background-task] syncFormSubmission failed`);
     Sentry.captureException(error);
