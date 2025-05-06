@@ -59,6 +59,7 @@ const dataPointsQuery = () => ({
     db,
     { id, name, geo, submitted, duration, submittedAt, syncedAt, json, submissionType },
   ) => {
+    const submittedVal = submitted !== undefined ? { submitted } : {};
     const res = await sql.updateRow(
       db,
       'datapoints',
@@ -66,12 +67,23 @@ const dataPointsQuery = () => ({
       {
         name,
         geo,
-        submitted,
+        ...submittedVal,
         duration,
         syncedAt,
         submittedAt: submitted && !submittedAt ? new Date().toISOString() : submittedAt,
         json: json ? JSON.stringify(json).replace(/'/g, "''") : null,
         submission_type: submissionType,
+      },
+    );
+    return res;
+  },
+  saveToDraft: async (db, id) => {
+    const res = await sql.updateRow(
+      db,
+      'datapoints',
+      { id },
+      {
+        submitted: 0,
       },
     );
     return res;
