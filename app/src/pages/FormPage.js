@@ -21,7 +21,7 @@ import { UserState, UIState, FormState } from '../store';
 import { generateDataPointName, getDurationInMinutes } from '../form/lib';
 import { i18n } from '../lib';
 import crudJobs, { jobStatus } from '../database/crud/crud-jobs';
-import { SYNC_FORM_SUBMISSION_TASK_NAME } from '../lib/constants';
+import { SYNC_FORM_SUBMISSION_TASK_NAME, QUESTION_TYPES } from '../lib/constants';
 
 const FormPage = ({ navigation, route }) => {
   const selectedForm = FormState.useState((s) => s.form);
@@ -212,13 +212,29 @@ const FormPage = ({ navigation, route }) => {
     setLoading(true);
     const dpValue = await crudDataPoints.selectDataPointById(db, { id: savedDataPointId });
     setCurrentDataPoint(dpValue);
-    if (dpValue?.json && Object.keys(dpValue.json)?.length) {
+    const jsonData = dpValue?.json;
+    if (jsonData && Object.keys(jsonData).length) {
+      let prevAdmAnswer = [];
+      // Process cascade questions
+      (formJSON?.question_group || [])
+        .flatMap((qg) => qg.question)
+        .filter((q) => q.type === QUESTION_TYPES.cascade)
+        .forEach((q) => {
+          const val = jsonData[q.id];
+          if (q?.source?.file === 'administrator.sqlite' && val) {
+            prevAdmAnswer = [val];
+          }
+          if (val && !Array.isArray(val)) {
+            jsonData[q.id] = [val];
+          }
+        });
       FormState.update((s) => {
-        s.currentValues = dpValue.json;
+        s.currentValues = jsonData;
+        s.prevAdmAnswer = prevAdmAnswer;
       });
     }
     setLoading(false);
-  }, [db, savedDataPointId]);
+  }, [db, savedDataPointId, formJSON]);
 
   useEffect(() => {
     if (!isNewSubmission) {

@@ -354,6 +354,7 @@ class Answers(models.Model):
             QuestionTypes.date,
             QuestionTypes.autofield,
             QuestionTypes.cascade,
+            QuestionTypes.attachment,
         ]:
             answer = self.name
         elif q.type == QuestionTypes.administration:
@@ -379,6 +380,7 @@ class Answers(models.Model):
             QuestionTypes.date,
             QuestionTypes.autofield,
             QuestionTypes.cascade,
+            QuestionTypes.attachment,
         ]:
             answer = self.name
         else:

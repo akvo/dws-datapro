@@ -30,11 +30,17 @@ class DataTestCase(TestCase):
         call_command(
             "fake_data_monitoring_seeder", "-r", 5, "-t", True, "-a", True
         )
+        self.form = (
+            Forms.objects
+            .filter(
+                form_form_data__gt=0,
+                pk=1,
+            )
+            .order_by("?").first()
+        )
 
     def test_list_form_data(self):
-        form = Forms.objects.filter(
-            form_form_data__gt=0
-        ).first()
+        form = self.form
 
         user = SystemUser.objects.create_user(
             email="test@test.org",
@@ -108,9 +114,7 @@ class DataTestCase(TestCase):
         self.assertEqual(data.status_code, 404)
 
     def test_unauthorized_access_list_form_data(self):
-        form = Forms.objects.filter(
-            form_form_data__gt=0
-        ).first()
+        form = self.form
 
         user = SystemUser.objects.create_user(
             email="test2@test.org",
@@ -165,9 +169,7 @@ class DataTestCase(TestCase):
         self.assertEqual(answers, 0)
 
     def test_datapoint_deletion_with_read_access(self):
-        form = Forms.objects.filter(
-            form_form_data__gt=0
-        ).first()
+        form = self.form
 
         user = SystemUser.objects.create_user(
             email="test3@test.org",
@@ -216,7 +218,7 @@ class DataTestCase(TestCase):
         if not exists:
             res = self.client.delete("/api/v1/data/1", follow=True, **header)
             self.assertEqual(res.status_code, 404)
-        form = Forms.objects.first()
+        form = Forms.objects.get(pk=1)
         self.assertEqual(form.id, 1)
         # Answer for UUID flag in question
         random_uuid = "xxxxx-xxxx-example-uuid"

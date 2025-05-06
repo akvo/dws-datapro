@@ -66,6 +66,8 @@ def set_answer_data(data, question):
         )
     elif question.type == QuestionTypes.photo:
         name = fake.image_url()
+    elif question.type == QuestionTypes.attachment:
+        name = fake.file_name()
     elif question.type == QuestionTypes.date:
         name = fake.date_between_dates(
             date_start=timezone.datetime.now().date() - timedelta(days=90),

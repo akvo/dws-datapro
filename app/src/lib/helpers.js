@@ -1,3 +1,5 @@
+import { IMAGE_EXTENSIONS } from './mime_types';
+
 const flipObject = (obj) =>
   Object.keys(obj).reduce((flipped, key) => {
     if (Object.prototype.hasOwnProperty.call(obj, key)) {
@@ -9,9 +11,12 @@ const flipObject = (obj) =>
 const capitalizeFirstLetter = (string) =>
   string ? string.charAt(0).toUpperCase() + string.slice(1) : string;
 
+const isImageFile = (fileExtension) => IMAGE_EXTENSIONS.includes(fileExtension.toLowerCase());
+
 const helpers = {
   flipObject,
   capitalizeFirstLetter,
+  isImageFile,
 };
 
 export default helpers;

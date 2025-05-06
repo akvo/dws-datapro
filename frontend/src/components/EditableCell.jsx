@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, DatePicker, Input, Select, Row, Col, Image } from "antd";
-import { config } from "../lib";
+import { config, IMAGE_EXTENSIONS } from "../lib";
 import { isEqual } from "lodash";
 const { Option } = Select;
 import { UndoOutlined, SaveOutlined } from "@ant-design/icons";
@@ -23,6 +23,11 @@ const EditableCell = ({
   const [locationName, setLocationName] = useState(null);
   const [value, setValue] = useState(null);
   const [oldValue, setOldValue] = useState(null);
+  const fileExtension =
+    record?.type === "attachment" ? value?.split(".").pop() : null;
+  const isImageType =
+    record?.type === "photo" ||
+    (fileExtension && IMAGE_EXTENSIONS.includes(fileExtension));
 
   useEffect(() => {
     if (
@@ -58,6 +63,7 @@ const EditableCell = ({
     record.type === "cascade" ||
     record.type === "geo" ||
     record.type === "photo" ||
+    record.type === "attachment" ||
     readonly;
   const edited =
     record &&
@@ -250,6 +256,10 @@ const EditableCell = ({
           cursor: !notEditable && !pendingData ? "pointer" : "not-allowed",
         }}
         onClick={() => {
+          // if type attachment, open file in new tab
+          if (record.type === "attachment" && value && !isImageType) {
+            window.open(value, "_blank");
+          }
           if (!notEditable && !pendingData && !isPublic) {
             setEditing(!editing);
           }
@@ -258,9 +268,9 @@ const EditableCell = ({
         <span className={lastValue ? null : "blue"}>
           {record.type === "cascade" && !record?.api ? (
             locationName
-          ) : record.type === "photo" && value && !lastValue ? (
+          ) : isImageType && value && !lastValue ? (
             <Image src={value} width={100} />
-          ) : record.type === "photo" && lastValue && oldValue ? (
+          ) : isImageType && lastValue && oldValue ? (
             <Image src={oldValue} width={100} />
           ) : lastValue ? (
             getLastAnswerValue()

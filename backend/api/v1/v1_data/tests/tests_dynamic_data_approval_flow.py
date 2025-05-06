@@ -32,7 +32,7 @@ class DynamicDataApprovalFlowTestCase(
         call_command("fake_organisation_seeder")
         call_command("demo_approval_flow", "--test", True)
 
-        self.form = Forms.objects.first()
+        self.form = Forms.objects.get(pk=1)
         # Get the last level
         self.last_level = Levels.objects.last()
         # Get the first level

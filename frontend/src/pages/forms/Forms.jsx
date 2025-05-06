@@ -75,6 +75,56 @@ const Forms = () => {
   };
 
   const onFinish = async ({ datapoint, ...values }, refreshForm) => {
+    // Get all Files objects to upload from values
+    const files = Object.keys(values)
+      .filter((v) => !isNaN(v))
+      .map((v) => {
+        const question = forms.question_group
+          .map((x) => x.question)
+          .flatMap((x) => x)
+          .find((q) => q.id === parseInt(v));
+        const val = values?.[v];
+        if (question?.type === "attachment" && val instanceof File) {
+          return {
+            question_id: question.id,
+            file: val,
+          };
+        }
+        return false;
+      })
+      .filter((x) => x);
+    // Bulk upload files
+    if (files.length) {
+      const promises = files.map((f) => {
+        const formData = new FormData();
+        formData.append("file", f.file);
+        return api.post(
+          `upload/attachments?question_id=${f.question_id}`,
+          formData
+        );
+      });
+      const res = await Promise.allSettled(promises);
+      const failedFiles = res.filter(({ status }) => status === "rejected");
+      if (failedFiles.length) {
+        notification.error({
+          message: text.errorSomething,
+          description: text.errorFileUpload,
+        });
+        setSubmit(false);
+        return;
+      }
+      const uploadedFiles = res
+        .filter(({ status }) => status === "fulfilled")
+        .map(({ value: v }) => v.data);
+      values = {
+        ...values,
+        ...uploadedFiles.reduce((acc, f) => {
+          acc[f.question_id] = f.file;
+          return acc;
+        }, {}),
+      };
+    }
+    // EOL Get all Files objects to upload from values
     setSubmit(true);
     const questions = forms.question_group
       .map((x) => x.question)
@@ -334,6 +384,11 @@ const Forms = () => {
             }
             // EOL remove hidden question init value
 
+            // convert date string to date object for date question
+            if (q?.type === "date" && typeof value === "string") {
+              value = moment(value);
+            }
+            // EOL convert date string to date object for date question
             return {
               question: q?.id,
               value: value,

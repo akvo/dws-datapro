@@ -30,6 +30,7 @@ from rest_framework.decorators import (
 from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser
+from rest_framework.views import APIView
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
@@ -52,8 +53,11 @@ from api.v1.v1_data.models import FormData
 from api.v1.v1_forms.serializers import WebFormDetailSerializer
 from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_data.serializers import SubmitPendingFormSerializer
-from api.v1.v1_files.serializers import UploadImagesSerializer
-from api.v1.v1_files.functions import process_image
+from api.v1.v1_files.serializers import (
+    UploadImagesSerializer,
+    AttachmentsSerializer,
+)
+from api.v1.v1_files.functions import handle_upload
 from utils.custom_helper import CustomPasscode
 from utils.default_serializers import DefaultResponseSerializer
 from utils.custom_serializer_fields import (
@@ -250,7 +254,10 @@ def download_sqlite_file(request, version, file_name):
     responses={
         (200, "application/json"): inline_serializer(
             "UploadImagesFromDevice",
-            fields={"task_id": serializers.CharField()},
+            fields={
+                "message": serializers.CharField(),
+                "file": serializers.CharField(),
+            },
         )
     },
 )
@@ -264,7 +271,7 @@ def upload_image_form_device(request, version):
             validate_serializers_message(serializer.errors),
             status=status.HTTP_400_BAD_REQUEST,
         )
-    filename = process_image(request)
+    filename = handle_upload(request=request, folder="images")
     return Response(
         {
             "message": "File uploaded successfully",
@@ -272,6 +279,74 @@ def upload_image_form_device(request, version):
         },
         status=status.HTTP_200_OK,
     )
+
+
+class UploadAttachmentsView(APIView):
+    permission_classes = [IsMobileAssignment]
+    parser_classes = [MultiPartParser]
+
+    @extend_schema(
+        tags=["Mobile Device Form"],
+        summary="Upload Attachments from Device",
+        request=AttachmentsSerializer,
+        parameters=[
+            OpenApiParameter(
+                name="allowed_file_types",
+                required=False,
+                location=OpenApiParameter.QUERY,
+                description=(
+                    "List of allowed file types for the attachment. "
+                ),
+                type={"type": "array", "items": {"type": "string"}},
+                enum=[
+                    "pdf", "docx", "xlsx", "pptx", "txt", "csv", "zip", "rar",
+                    "jpg", "jpeg", "png", "gif", "bmp", "doc", "xls", "ppt",
+                    "mp4", "avi", "mov", "mkv", "flv", "wmv", "mp3", "wav",
+                    "ogg", "flac", "aac", "wma", "m4a", "opus", "webm", "3gp",
+                ],
+            )
+        ],
+        responses={
+            (200, "application/json"): inline_serializer(
+                "UploadAttachmentsFromDevice",
+                fields={
+                    "message": serializers.CharField(),
+                    "file": serializers.CharField(),
+                },
+            )
+        },
+    )
+    def post(self, request, version):
+        allowed_file_types = request.GET.getlist("allowed_file_types")
+        serializer = AttachmentsSerializer(
+            data=request.data,
+            context={
+                "allowed_file_types": allowed_file_types,
+            },
+        )
+        if not serializer.is_valid():
+            return Response(
+                validate_serializers_message(serializer.errors),
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        try:
+
+            filename = handle_upload(request=request, folder="attachments")
+            return Response(
+                {
+                    "message": "File uploaded successfully",
+                    "file": f"{WEBDOMAIN}/attachments/{filename}",
+                },
+                status=status.HTTP_200_OK,
+            )
+        except Exception as e:
+            return Response(
+                {
+                    "message": "File upload failed.",
+                    "error": str(e),
+                },
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            )
 
 
 @extend_schema(tags=["Mobile APK"], summary="Get APK File")

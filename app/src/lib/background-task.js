@@ -6,14 +6,16 @@ import * as SQLite from 'expo-sqlite';
 import api from './api';
 import { crudForms, crudDataPoints, crudUsers, crudConfig } from '../database/crud';
 import notification from './notification';
-import crudJobs, { jobStatus, MAX_ATTEMPT } from '../database/crud/crud-jobs';
+import crudJobs from '../database/crud/crud-jobs';
 import { UIState } from '../store';
 import {
   DATABASE_NAME,
+  QUESTION_TYPES,
   SYNC_FORM_SUBMISSION_TASK_NAME,
   SYNC_FORM_VERSION_TASK_NAME,
   SYNC_STATUS,
 } from './constants';
+import MIME_TYPES from './mime_types';
 
 const syncFormVersion = async ({
   showNotificationOnly = true,
@@ -100,50 +102,56 @@ const backgroundTaskStatus = async (TASK_NAME) => {
   await TaskManager.isTaskRegisteredAsync(TASK_NAME);
 };
 
-const handleOnUploadPhotos = async (data) => {
-  const AllPhotos = data?.flatMap((d) => {
-    const answers = JSON.parse(d.json);
-    const questions = JSON.parse(d.json_form)?.question_group?.flatMap((qg) => qg.question) || [];
-    const photos = questions
-      .filter((q) => q.type === 'photo')
-      .map((q) => ({ id: q.id, value: answers?.[q.id], dataID: d.id }))
-      .filter((p) => p.value);
-    return photos;
+const handleOnUploadFiles = async (
+  data,
+  apiURL = '/images',
+  questionTypes = [QUESTION_TYPES.photo],
+) => {
+  // Extract files from submissions
+  const allFiles = data.reduce((files, d) => {
+    try {
+      const answers = JSON.parse(d.json);
+      const questions = JSON.parse(d.json_form)?.question_group?.flatMap((qg) => qg.question) || [];
+      questions.forEach((q) => {
+        if (questionTypes.includes(q.type)) {
+          const file = answers[q.id];
+          if (file && file.startsWith('file://')) {
+            files.push({ id: q.id, value: file, dataID: d.id });
+          }
+        }
+      });
+      return files;
+    } catch {
+      return files;
+    }
+  }, []);
+
+  if (!allFiles.length) return [];
+
+  // Prepare file uploads
+  const uploads = allFiles.map((f) => {
+    const extension = f.value.split('.').pop()?.toLowerCase();
+    const fileType = MIME_TYPES[extension] || 'application/octet-stream';
+    const formData = new FormData();
+    formData.append('file', {
+      uri: f.value,
+      name: `file_${f.id}_${f.dataID}.${extension}`,
+      type: fileType,
+    });
+    return api.post(apiURL, formData, {
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'multipart/form-data',
+      },
+    });
   });
 
-  if (AllPhotos?.length) {
-    const uploads = AllPhotos.map((p) => {
-      const fileType = p.value.split('.').slice(-1)?.[0];
-      const formData = new FormData();
-      formData.append('file', {
-        uri: p.value,
-        name: `photo_${p.id}_${p.dataID}.${fileType}`,
-        type: `image/${fileType}`,
-      });
-      return api.post('/images', formData, {
-        headers: {
-          Accept: 'application/json',
-          'Content-Type': 'multipart/form-data',
-        },
-      });
-    });
-
-    const responses = await Promise.allSettled(uploads);
-    const results = responses
-      .filter(({ status }) => status === 'fulfilled')
-      .map(({ value: resValue }) => {
-        const { data: fileData } = resValue;
-        const findPhoto =
-          AllPhotos.find((ap) => fileData?.file?.includes(`${ap.id}_${ap.dataID}`)) || {};
-        return {
-          ...fileData,
-          ...findPhoto,
-        };
-      })
-      .filter((d) => d);
-    return results;
-  }
-  return [];
+  // Upload all and return merged results
+  const results = await Promise.allSettled(uploads);
+  const responses = results
+    .filter((result) => result.status === 'fulfilled')
+    .map((result) => result.value);
+  return responses.map((res, i) => ({ ...allFiles[i], ...res.data }));
 };
 
 const syncFormSubmission = async (activeJob = {}) => {
@@ -165,82 +173,124 @@ const syncFormSubmission = async (activeJob = {}) => {
     /**
      * Upload all photo of questions first
      */
-    const photos = await handleOnUploadPhotos(data);
+    const photos = await handleOnUploadFiles(data, '/images', [QUESTION_TYPES.photo]);
+    const attachments = await handleOnUploadFiles(data, '/attachments', [
+      QUESTION_TYPES.attachment,
+    ]);
     const syncProcess = data.map(async (d) => {
-      const geo = d.geo ? d.geo.split('|')?.map((x) => parseFloat(x)) : [];
+      try {
+        const geo = d.geo ? d.geo.split('|')?.map((x) => parseFloat(x)) : [];
+        const answerValues = JSON.parse(d.json.replace(/''/g, "'"));
 
-      const answerValues = JSON.parse(d.json.replace(/''/g, "'"));
-      photos
-        ?.filter((pt) => pt?.dataID === d.id)
-        ?.forEach((pt) => {
-          answerValues[pt?.id] = pt?.file;
-        });
-      const syncData = {
-        formId: d.formId,
-        name: d.name,
-        duration: Math.round(d.duration),
-        submittedAt: d.submittedAt,
-        submitter: session.name,
-        geo,
-        answers: answerValues,
-        submission_type: d.submission_type,
-      };
-      const uuidv4Regex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-      if (uuidv4Regex.test(d?.uuid)) {
-        syncData.uuid = d.uuid;
+        // Add photos and attachments to answers
+        [...photos, ...attachments]
+          .filter((file) => file?.dataID === d.id)
+          .forEach((file) => {
+            answerValues[file?.id] = file?.file;
+          });
+
+        const syncData = {
+          formId: d.formId,
+          name: d.name,
+          duration: Math.round(d.duration),
+          submittedAt: d.submittedAt,
+          submitter: session.name,
+          geo,
+          answers: answerValues,
+          submission_type: d.submission_type,
+        };
+
+        // Handle UUID
+        const uuidv4Regex =
+          /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        if (uuidv4Regex.test(d?.uuid)) {
+          syncData.uuid = d.uuid;
+        } else if (uuidv4Regex.test(activeJob?.info)) {
+          syncData.uuid = activeJob.info;
+        }
+
+        // sync data point
+        const res = await api.post('/sync', syncData);
+        if (res.status === 200) {
+          // update data point
+          await crudDataPoints.updateDataPoint(db, {
+            ...d,
+            submissionType: d?.submission_type,
+            syncedAt: new Date().toISOString(),
+          });
+          sendNotification = true;
+        }
+        return {
+          datapoint: d.id,
+          status: res.status,
+          success: true,
+        };
+      } catch (error) {
+        Sentry.captureException(error);
+        // Mark datapoint as not submitted
+        await crudDataPoints.saveToDraft(db, d.id);
+        return {
+          datapoint: d.id,
+          status: 'error',
+          message: error.message,
+          success: false,
+        };
       }
-      if (!syncData?.uuid && uuidv4Regex.test(activeJob?.info)) {
-        syncData.uuid = activeJob.info;
-      }
-      // sync data point
-      const res = await api.post('/sync', syncData);
-      if (res.status === 200) {
-        // update data point
-        await crudDataPoints.updateDataPoint(db, {
-          ...d,
-          submissionType: d?.submission_type,
-          syncedAt: new Date().toISOString(),
-        });
-        sendNotification = true;
-      }
-      return {
-        datapoint: d.id,
-        status: res.status,
-      };
     });
-    await Promise.all(syncProcess);
 
-    UIState.update((s) => {
-      // TODO: rename isManualSynced w/ isSynced to refresh the Homepage stats
-      s.isManualSynced = true;
-      s.statusBar = {
-        type: SYNC_STATUS.success,
-        bgColor: '#16a34a',
-        icon: 'checkmark-done',
-      };
-    });
+    const results = await Promise.allSettled(syncProcess);
+    const hasFailures = results.some(
+      (result) =>
+        result.status === 'rejected' ||
+        (result.status === 'fulfilled' && result.value?.success === false),
+    );
+    if (hasFailures) {
+      // Delete job on any failure
+      if (activeJob?.id) {
+        await crudJobs.deleteJob(db, activeJob.id);
+      }
+      UIState.update((s) => {
+        s.statusBar = {
+          type: SYNC_STATUS.failed,
+          bgColor: '#ec003f',
+          icon: 'alert-sharp',
+        };
+      });
+    } else {
+      // All succeeded
+      UIState.update((s) => {
+        s.isManualSynced = true;
+        s.statusBar = {
+          type: SYNC_STATUS.success,
+          bgColor: '#16a34a',
+          icon: 'checkmark-done',
+        };
+      });
 
-    if (sendNotification) {
-      notification.sendPushNotification('sync-form-submission');
+      if (sendNotification) {
+        notification.sendPushNotification('sync-form-submission');
+      }
+
+      if (activeJob?.id) {
+        // delete the job when it's succeed
+        await crudJobs.deleteJob(db, activeJob.id);
+      }
     }
-    sendNotification = false;
-    if (activeJob?.id) {
-      // delete the job when it's succeed
-      await crudJobs.deleteJob(db, activeJob.id);
-    }
+
     await db.closeAsync();
   } catch (error) {
     Sentry.captureMessage(`[background-task] syncFormSubmission failed`);
     Sentry.captureException(error);
-    const { status: errorCode } = error?.response || {};
+
     if (activeJob?.id) {
-      const updatePayload =
-        activeJob.attempt < MAX_ATTEMPT
-          ? { status: jobStatus.FAILED, attempt: activeJob.attempt + 1 }
-          : { status: jobStatus.ON_PROGRESS, info: String(error) };
-      crudJobs.updateJob(db, activeJob.id, updatePayload);
+      // Delete job immediately on error
+      await crudJobs.deleteJob(db, activeJob.id);
     }
-    Promise.reject(new Error({ errorCode, message: error?.message }));
+
+    await db.closeAsync();
+    return Promise.reject(
+      new Error({ errorCode: error?.response?.status, message: error?.message }),
+    );
   }
 };
 

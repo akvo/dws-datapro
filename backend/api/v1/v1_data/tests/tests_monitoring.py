@@ -32,7 +32,7 @@ class MonitoringDataTestCase(TestCase):
             user=self.user, role=role, administration=self.administration
         )
         self.uuid = '1234567890'
-        self.form = Forms.objects.first()
+        self.form = Forms.objects.get(pk=1)
         self.data = FormData.objects.create(
             parent=None,
             uuid=self.uuid,

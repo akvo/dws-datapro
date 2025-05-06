@@ -70,7 +70,7 @@ class PendingDataTestCase(TestCase):
                     'geo', 'created_by', 'created'
                 ], list(response.json()[0]))
 
-        user_form = Forms.objects.first()
+        user_form = Forms.objects.get(pk=1)
         pending_form_data = PendingFormData.objects.filter(
             form=user_form).all()
         values = list(pending_form_data.values_list('id', flat=True))

@@ -64,6 +64,7 @@ const uiText = {
     errorFileList: "Could not fetch File list",
     errorSomething: "Something went wrong",
     errorMandatoryFields: "Please answer all the mandatory questions",
+    errorFileUpload: "Could not upload file",
     // Footer
     footerAboutTitle: "About Data",
     footerAboutDescription: "",

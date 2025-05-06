@@ -20,6 +20,7 @@ class FormDataUpdateTestCase(TestCase):
         self.adm = Administration.objects.filter(
             level__level=2
         ).order_by("?").first()
+        self.form = Forms.objects.get(pk=1)
 
     def test_update_datapoint_by_superadmin(self):
         # Login as super admin
@@ -35,7 +36,7 @@ class FormDataUpdateTestCase(TestCase):
         su_user.user_access.role = UserRoleTypes.super_admin
         su_user.user_access.save()
 
-        form = Forms.objects.first()
+        form = self.form
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
         # Add data to edit
@@ -151,7 +152,7 @@ class FormDataUpdateTestCase(TestCase):
                 self.assertEqual(history[0]['created_by'], 'Admin RUSH')
 
     def test_update_datapoint_by_editor_access(self):
-        form = Forms.objects.first()
+        form = self.form
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
 

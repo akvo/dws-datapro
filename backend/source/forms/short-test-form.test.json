@@ -1092,6 +1092,61 @@
           "options": null
         }
       ]
+    },
+    {
+      "id": 17030862700008,
+      "order": 8,
+      "name": "attachments",
+      "label": "Attachments",
+      "description": "Please upload the required documents to finalize your submission.",
+      "repeatable": false,
+      "translations": null,
+      "questions": [
+        {
+          "id": 17030862700081,
+          "name": "upload_screenshot_proof",
+          "label": "Upload a screenshot proving you have followed",
+          "short_label": "Upload a screenshot",
+          "meta": false,
+          "type": "attachment",
+          "rule": {
+            "allowedFileTypes": [
+              "jpeg",
+              "jpg",
+              "png"
+            ]
+          },
+          "required": false
+        },
+        {
+          "id": 17030862700082,
+          "name": "upload_work",
+          "label": "Upload your work to get a chance to win a prize",
+          "short_label": "Upload your work",
+          "meta": false,
+          "type": "attachment",
+          "rule": {
+            "allowedFileTypes": []
+          },
+          "required": true
+        },
+        {
+          "id": 17030862700083,
+          "name": "letter_of_application",
+          "label": "Letter of application",
+          "meta": false,
+          "type": "attachment",
+          "rule": {
+            "allowedFileTypes": [
+              "pdf",
+              "doc",
+              "docx",
+              "odt"
+            ]
+          },
+          "required": true
+        }
+      ]
     }
   ]
 }

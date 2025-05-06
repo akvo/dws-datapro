@@ -34,7 +34,7 @@ class UpdatePendingDataTestCase(TestCase, ProfileTestHelperMixin):
         token = auth_res.json().get("token")
         self.assertTrue(token)
 
-        form = Forms.objects.first()
+        form = Forms.objects.get(pk=1)
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
         form_id = form.id

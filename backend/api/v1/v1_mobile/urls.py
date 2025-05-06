@@ -10,6 +10,7 @@ from .views import (
     get_datapoint_download_list,
     MobileAssignmentViewSet,
     check_apk_version,
+    UploadAttachmentsView,
 )
 
 urlpatterns = [
@@ -47,5 +48,9 @@ urlpatterns = [
     re_path(
         r"^(?P<version>(v1))/device/apk/version/(?P<current_version>[^/]+)",
         check_apk_version,
+    ),
+    re_path(
+        r"^(?P<version>(v1))/device/attachments",
+        UploadAttachmentsView.as_view(),
     ),
 ]

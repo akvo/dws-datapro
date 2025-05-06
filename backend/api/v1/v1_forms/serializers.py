@@ -110,6 +110,8 @@ class ListQuestionSerializer(serializers.ModelSerializer):
             }
         if instance.type == QuestionTypes.cascade:
             return instance.api
+        if instance.type == QuestionTypes.attachment:
+            return instance.api
         return None
 
     @extend_schema_field(GeoFormatSerializer)
