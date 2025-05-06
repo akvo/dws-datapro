@@ -67,12 +67,12 @@ const dataPointsQuery = () => ({
       {
         name,
         geo,
-        ...submittedVal,
         duration,
         syncedAt,
         submittedAt: submitted && !submittedAt ? new Date().toISOString() : submittedAt,
         json: json ? JSON.stringify(json).replace(/'/g, "''") : null,
         submission_type: submissionType,
+        ...submittedVal,
       },
     );
     return res;
