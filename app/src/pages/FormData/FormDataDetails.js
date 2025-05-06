@@ -73,13 +73,16 @@ const SubtitleContent = ({ index, answers, type, id, source = null, option = [] 
         })
         ?.join(', ');
     case QUESTION_TYPES.attachment:
+      if (!answers?.[id]) {
+        return <Text testID={`text-type-attachment-${index}`}>-</Text>;
+      }
       return (
         <View testID={`text-type-attachment-${index}`} style={{ width: '100%' }}>
           <Text
             testID={`text-answer-${index}`}
             style={{ color: 'blue', textDecorationLine: 'underline' }}
           >
-            {answers?.[id] ? answers[id].split('/').pop() : '-'}
+            {answers[id].split('/').pop()}
           </Text>
           <Button
             title={trans.openFileButton}
