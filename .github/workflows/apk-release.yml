@@ -30,7 +30,7 @@ jobs:
         run: |
           cd ./app/
           cp ./src/build.testing.js ./src/build.js
-          npm install
+          npm install --legacy-peer-deps
 
       - name: 🚀 Release to Expo Dev
         id: eas_release
