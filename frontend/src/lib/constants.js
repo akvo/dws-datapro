@@ -16,3 +16,17 @@ export const IMAGE_EXTENSIONS = [
   "svg",
   "ico",
 ];
+export const QUESTION_TYPES = {
+  text: "text",
+  number: "number",
+  date: "date",
+  photo: "photo",
+  geo: "geo",
+  option: "option",
+  multiple_option: "multiple_option",
+  cascade: "cascade",
+  entity: "entity",
+  autofield: "autofield",
+  attachment: "attachment",
+  signature: "signature",
+};
