@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Button, DatePicker, Input, Select, Row, Col, Image } from "antd";
-import { config, IMAGE_EXTENSIONS } from "../lib";
+import { config, IMAGE_EXTENSIONS, QUESTION_TYPES } from "../lib";
 import { isEqual } from "lodash";
 const { Option } = Select;
 import { UndoOutlined, SaveOutlined } from "@ant-design/icons";
@@ -24,9 +24,9 @@ const EditableCell = ({
   const [value, setValue] = useState(null);
   const [oldValue, setOldValue] = useState(null);
   const fileExtension =
-    record?.type === "attachment" ? value?.split(".").pop() : null;
+    record?.type === QUESTION_TYPES.attachment ? value?.split(".").pop() : null;
   const isImageType =
-    ["photo", "signature"].includes(record?.type) ||
+    [QUESTION_TYPES.photo, QUESTION_TYPES.signature].includes(record?.type) ||
     (fileExtension && IMAGE_EXTENSIONS.includes(fileExtension));
 
   useEffect(() => {
@@ -43,16 +43,16 @@ const EditableCell = ({
           : record.value;
 
       setValue(
-        record.type === "date"
+        record.type === QUESTION_TYPES.date
           ? moment(newValue).format("YYYY-MM-DD")
-          : record.type === "geo"
+          : record.type === QUESTION_TYPES.geo
           ? newValue?.join(", ")
           : newValue
       );
       setOldValue(
-        record?.lastValue && record.type === "date"
+        record?.lastValue && record.type === QUESTION_TYPES.date
           ? moment(record.lastValue).format("YYYY-MM-DD")
-          : record.type === "geo"
+          : record.type === QUESTION_TYPES.geo
           ? record?.lastValue?.join(", ")
           : record.lastValue
       );
@@ -60,12 +60,13 @@ const EditableCell = ({
   }, [record]);
 
   const notEditable =
-    record.type === "cascade" ||
-    record.type === "geo" ||
-    record.type === "photo" ||
-    record.type === "attachment" ||
-    record.type === "signature" ||
-    readonly;
+    [
+      QUESTION_TYPES.cascade,
+      QUESTION_TYPES.geo,
+      QUESTION_TYPES.photo,
+      QUESTION_TYPES.attachment,
+      QUESTION_TYPES.signature,
+    ].includes(record?.type) || readonly;
   const edited =
     record &&
     (record.newValue || record.newValue === 0) &&
@@ -74,7 +75,7 @@ const EditableCell = ({
   useEffect(() => {
     if (
       record &&
-      record.type === "cascade" &&
+      record.type === QUESTION_TYPES.cascade &&
       !record?.api &&
       !locationName &&
       !lastValue
@@ -97,7 +98,7 @@ const EditableCell = ({
     }
     if (
       record &&
-      record.type === "cascade" &&
+      record.type === QUESTION_TYPES.cascade &&
       !record?.api &&
       !locationName &&
       lastValue
@@ -122,9 +123,9 @@ const EditableCell = ({
 
   const getAnswerValue = () => {
     switch (record.type) {
-      case "date":
+      case QUESTION_TYPES.date:
         return value ? moment(value).format("YYYY-MM-DD") : "-";
-      case "multiple_option":
+      case QUESTION_TYPES.multiple_option:
         return value?.length
           ? value
               ?.map((v) => {
@@ -133,7 +134,7 @@ const EditableCell = ({
               })
               ?.join(", ") || "-"
           : "-";
-      case "option":
+      case QUESTION_TYPES.option:
         return value?.length
           ? record?.option?.find((o) => o.value === value[0])?.label || "-"
           : "-";
@@ -144,7 +145,7 @@ const EditableCell = ({
 
   const getLastAnswerValue = () => {
     switch (record.type) {
-      case "multiple_option":
+      case QUESTION_TYPES.multiple_option:
         return oldValue?.length
           ? oldValue
               ?.map((v) => {
@@ -153,7 +154,7 @@ const EditableCell = ({
               })
               ?.join(", ") || "-"
           : "-";
-      case "option":
+      case QUESTION_TYPES.option:
         return oldValue?.length
           ? record?.option?.find((o) => o.value === oldValue[0])?.label || "-"
           : "-";
@@ -163,7 +164,7 @@ const EditableCell = ({
   };
 
   const renderAnswerInput = () => {
-    return record.type === "option" ? (
+    return record.type === QUESTION_TYPES.option ? (
       <Select
         style={{ width: "100%" }}
         value={value?.length ? value[0] : null}
@@ -178,7 +179,7 @@ const EditableCell = ({
           </Option>
         ))}
       </Select>
-    ) : record.type === "multiple_option" ? (
+    ) : record.type === QUESTION_TYPES.multiple_option ? (
       <Select
         mode="multiple"
         style={{ width: "100%" }}
@@ -194,7 +195,7 @@ const EditableCell = ({
           </Option>
         ))}
       </Select>
-    ) : record.type === "date" ? (
+    ) : record.type === QUESTION_TYPES.date ? (
       <DatePicker
         size="small"
         value={moment(value)}
@@ -210,7 +211,7 @@ const EditableCell = ({
     ) : (
       <Input
         autoFocus
-        type={record.type === "number" ? "number" : "text"}
+        type={record.type === QUESTION_TYPES.number ? "number" : "text"}
         value={value}
         onChange={(e) => {
           setValue(e.target.value);
@@ -258,7 +259,11 @@ const EditableCell = ({
         }}
         onClick={() => {
           // if type attachment, open file in new tab
-          if (record.type === "attachment" && value && !isImageType) {
+          if (
+            record.type === QUESTION_TYPES.attachment &&
+            value &&
+            !isImageType
+          ) {
             window.open(value, "_blank");
           }
           if (!notEditable && !pendingData && !isPublic) {
@@ -267,7 +272,7 @@ const EditableCell = ({
         }}
       >
         <span className={lastValue ? null : "blue"}>
-          {record.type === "cascade" && !record?.api ? (
+          {record.type === QUESTION_TYPES.cascade && !record?.api ? (
             locationName
           ) : isImageType && value && !lastValue ? (
             <Image src={value} width={100} />

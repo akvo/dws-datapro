@@ -21,7 +21,14 @@ import {
   Modal,
 } from "antd";
 import axios from "axios";
-import { api, config, IS_ADMIN, store, uiText } from "../../lib";
+import {
+  api,
+  config,
+  IS_ADMIN,
+  QUESTION_TYPES,
+  store,
+  uiText,
+} from "../../lib";
 import { pick, isEmpty } from "lodash";
 import { PageLoader, Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
@@ -85,7 +92,8 @@ const Forms = () => {
         const question = forms.question_group
           .flatMap((group) => group.question)
           .find((q) => q.id === questionId);
-        return question?.type === "attachment" && val instanceof File
+        return question?.type === QUESTION_TYPES.attachment &&
+          val instanceof File
           ? { question_id: questionId, file: val }
           : null;
       })
@@ -131,8 +139,8 @@ const Forms = () => {
     const entityPromises = questions
       .filter(
         (q) =>
-          q.type === "cascade" &&
-          q.extra?.type === "entity" &&
+          q.type === QUESTION_TYPES.cascade &&
+          q.extra?.type === QUESTION_TYPES.entity &&
           typeof values[q.id] === "string"
       )
       .map((q) => {
@@ -168,11 +176,14 @@ const Forms = () => {
           return false;
         }
         let answerValue = val;
-        if (question.type === "option") {
+        if (question.type === QUESTION_TYPES.option) {
           answerValue = [val];
-        } else if (question.type === "geo") {
+        } else if (question.type === QUESTION_TYPES.geo) {
           answerValue = [val.lat, val.lng];
-        } else if (question.type === "cascade" && !question.extra) {
+        } else if (
+          question.type === QUESTION_TYPES.cascade &&
+          !question.extra
+        ) {
           answerValue = Array.isArray(val) ? val.slice(-1)[0] : val;
         }
         return {
@@ -188,13 +199,21 @@ const Forms = () => {
       .filter(Boolean);
 
     const names = answers
-      .filter((x) => x.meta && !["geo", "cascade"].includes(x.type))
+      .filter(
+        (x) =>
+          x.meta &&
+          ![QUESTION_TYPES.geo, QUESTION_TYPES.cascade].includes(x.type)
+      )
       .map((x) => x.value)
       .flat()
       .join(" - ");
-    const geo = answers.find((x) => x.type === "geo" && x.meta)?.value;
+    const geo = answers.find(
+      (x) => x.type === QUESTION_TYPES.geo && x.meta
+    )?.value;
     const administration = answers.find(
-      (x) => (x.type === "cascade" && x.meta) || x.type === "administration"
+      (x) =>
+        (x.type === QUESTION_TYPES.cascade && x.meta) ||
+        x.type === QUESTION_TYPES.administration
     )?.value;
 
     const datapointName =
@@ -298,7 +317,11 @@ const Forms = () => {
   );
 
   const transformValue = (type, value) => {
-    if (type === "option" && Array.isArray(value) && value.length) {
+    if (
+      type === QUESTION_TYPES.option &&
+      Array.isArray(value) &&
+      value.length
+    ) {
       return value[0];
     }
     if (type === "geo" && Array.isArray(value) && value.length === 2) {
@@ -325,8 +348,8 @@ const Forms = () => {
         const cascadeAPIs = questions
           ?.filter(
             (q) =>
-              q?.type === "cascade" &&
-              q?.extra?.type !== "entity" &&
+              q?.type === QUESTION_TYPES.cascade &&
+              q?.extra?.type !== QUESTION_TYPES.entity &&
               q?.api?.endpoint
           )
           ?.map((q) => getCascadeAnswerId(q.id, q.api, answers?.[q.id]));
@@ -481,7 +504,7 @@ const Forms = () => {
                 if (qVal?.type === "entity") {
                   qVal = {
                     ...qVal,
-                    type: "cascade",
+                    type: QUESTION_TYPES.cascade,
                     extra: q?.extra,
                   };
                 }
