@@ -26,7 +26,7 @@ const EditableCell = ({
   const fileExtension =
     record?.type === "attachment" ? value?.split(".").pop() : null;
   const isImageType =
-    record?.type === "photo" ||
+    ["photo", "signature"].includes(record?.type) ||
     (fileExtension && IMAGE_EXTENSIONS.includes(fileExtension));
 
   useEffect(() => {
@@ -64,6 +64,7 @@ const EditableCell = ({
     record.type === "geo" ||
     record.type === "photo" ||
     record.type === "attachment" ||
+    record.type === "signature" ||
     readonly;
   const edited =
     record &&
