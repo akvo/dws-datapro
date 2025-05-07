@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from 'react-native-testing-library';
-import { act } from '@testing-library/react-native';
+import { act, render, fireEvent, waitFor } from '@testing-library/react-native';
 import FormNavigation from '../FormNavigation';
 import { FormState } from '../../../store';
 

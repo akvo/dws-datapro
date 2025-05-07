@@ -74,11 +74,7 @@ describe('SaveDialogMenu component', () => {
     const mockHandleExitWithoutSaving = jest.fn();
 
     const wrapper = render(
-      <SaveDialogMenu
-        visible
-        setVisible={jest.fn()}
-        handleOnExit={mockHandleExitWithoutSaving}
-      />,
+      <SaveDialogMenu visible setVisible={jest.fn()} handleOnExit={mockHandleExitWithoutSaving} />,
     );
 
     const dialogElement = wrapper.queryByTestId('save-dialog-menu');

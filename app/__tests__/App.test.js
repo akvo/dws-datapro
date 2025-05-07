@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, waitFor } from 'react-native-testing-library';
+import { render, waitFor } from '@testing-library/react-native';
 import { act, renderHook } from '@testing-library/react-native';
 import mockRNCNetInfo from '@react-native-community/netinfo/jest/netinfo-mock';
 import NetInfo from '@react-native-community/netinfo';

@@ -6,12 +6,4 @@ import crudMonitoring from './crud-monitoring';
 import crudSessions from './crud-sessions';
 import crudUsers from './crud-users';
 
-export {
-  crudDataPoints,
-  crudForms,
-  crudUsers,
-  crudConfig,
-  crudSessions,
-  crudMonitoring,
-  crudJobs,
-};
+export { crudDataPoints, crudForms, crudUsers, crudConfig, crudSessions, crudMonitoring, crudJobs };

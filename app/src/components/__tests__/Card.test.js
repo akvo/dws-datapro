@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-native-testing-library';
+import { render } from '@testing-library/react-native';
 import Card from '../Card';
 import { SUBMISSION_TYPES } from '../../lib/constants';
 

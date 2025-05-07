@@ -2,7 +2,7 @@ import React from 'react';
 import { View, StyleSheet } from 'react-native';
 import { Image as RneImage } from '@rneui/themed';
 
-const Image = ({ src = "", style = {} }) =>
+const Image = ({ src = '', style = {} }) =>
   src ? (
     <RneImage
       source={{ uri: src }}

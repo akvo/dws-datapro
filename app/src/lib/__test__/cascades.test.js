@@ -1,6 +1,6 @@
 import * as FileSystem from 'expo-file-system';
 import * as SQLite from 'expo-sqlite';
-import { act, waitFor } from 'react-native-testing-library';
+import { act, waitFor } from '@testing-library/react-native';
 
 import cascades from '../cascades';
 
