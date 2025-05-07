@@ -215,6 +215,7 @@ Object {
     "errorEntityData": [Function],
     "errorEntityNotExists": [Function],
     "errorFileList": "Could not fetch File list",
+    "errorFileUpload": "Could not upload file",
     "errorMandatoryFields": "Please answer all the mandatory questions",
     "errorPageNA": "Oops, this page is not available",
     "errorSomething": "Something went wrong",
