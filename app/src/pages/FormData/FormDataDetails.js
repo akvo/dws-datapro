@@ -148,7 +148,10 @@ const FormDataDetails = ({ navigation, route }) => {
               );
             }
           }
-          if (q.type === QUESTION_TYPES.photo && currentValues?.[q.id]) {
+          if (
+            [QUESTION_TYPES.photo, QUESTION_TYPES.signature].includes(q.type) &&
+            currentValues?.[q.id]
+          ) {
             return (
               <ImageView
                 key={q.id}
