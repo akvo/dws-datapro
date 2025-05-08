@@ -136,14 +136,17 @@ const Forms = () => {
     const questions = forms.question_group.flatMap((group) => group.question);
 
     // Process entity cascade questions
-    const entityPromises = questions
-      .filter(
-        (q) =>
-          q.type === QUESTION_TYPES.cascade &&
-          q.extra?.type === QUESTION_TYPES.entity &&
-          typeof values[q.id] === "string"
-      )
-      .map((q) => {
+    // Step 1: Filter out cascade questions of type entity where the value is a string
+    const entityQuestions = questions.filter(
+      (q) =>
+        q.type === QUESTION_TYPES.cascade &&
+        q.extra?.type === QUESTION_TYPES.entity &&
+        typeof values[q.id] === "string"
+    );
+
+    if (entityQuestions.length) {
+      // Step 2: Map each filtered question to a promise to retrieve the entity ID
+      const entityPromises = entityQuestions.map((q) => {
         const parent = questions.find((subq) => subq.id === q.extra.parentId);
         const parentVal = values[parent?.id];
         const pid = Array.isArray(parentVal)
@@ -155,22 +158,26 @@ const Forms = () => {
           apiURL: `${q.api.endpoint}${pid}`,
         });
       });
-
-    const settledEntities = await Promise.allSettled(entityPromises);
-    settledEntities.forEach(({ value: entity }) => {
-      if (entity?.value && values[entity.id]) {
-        values[entity.id] = entity.value;
-      }
-    });
+      // Wait for all promises to settle and update the form values accordingly
+      const settledEntities = await Promise.allSettled(entityPromises);
+      // Step 3: Update the values object with the resolved entity IDs
+      settledEntities.forEach(({ value: entity }) => {
+        if (entity?.value && values[entity.id]) {
+          values[entity.id] = entity.value;
+        }
+      });
+    }
+    // EOL Process entity cascade questions
 
     // Build answers array
     const answers = Object.entries(values)
       .filter(([key, val]) => {
         const questionId = parseInt(key, 10);
         const question = questions?.find((q) => q.id === questionId);
-        const dateValue =
-          question?.type === QUESTION_TYPES.date ? moment(val).isValid() : true;
-        return !isNaN(key) && dateValue && question?.required;
+        if (question?.type === QUESTION_TYPES.date) {
+          return moment(val).isValid();
+        }
+        return !isNaN(key);
       })
       .map(([key, val]) => {
         const qid = parseInt(key, 10);
