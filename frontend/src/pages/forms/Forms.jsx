@@ -165,7 +165,13 @@ const Forms = () => {
 
     // Build answers array
     const answers = Object.entries(values)
-      .filter(([key]) => !isNaN(key))
+      .filter(([key, val]) => {
+        const questionId = parseInt(key, 10);
+        const question = questions?.find((q) => q.id === questionId);
+        const dateValue =
+          question?.type === QUESTION_TYPES.date ? moment(val).isValid() : true;
+        return !isNaN(key) && dateValue && question?.required;
+      })
       .map(([key, val]) => {
         const qid = parseInt(key, 10);
         if (hiddenQIds.includes(qid)) {
