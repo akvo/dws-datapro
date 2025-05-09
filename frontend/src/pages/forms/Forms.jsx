@@ -239,7 +239,7 @@ const Forms = () => {
           question: qid,
           type:
             question?.source?.file === "administrator.sqlite"
-              ? "administration"
+              ? QUESTION_TYPES.administration
               : question.type,
           value: answerValue,
           meta: question.meta,
@@ -259,9 +259,7 @@ const Forms = () => {
       (x) => x.type === QUESTION_TYPES.geo && x.meta
     )?.value;
     const administration = answers.find(
-      (x) =>
-        (x.type === QUESTION_TYPES.cascade && x.meta) ||
-        x.type === QUESTION_TYPES.administration
+      (x) => x.type === QUESTION_TYPES.administration
     )?.value;
 
     const datapointName =
@@ -343,13 +341,17 @@ const Forms = () => {
         );
         const apiData = await res.json();
         if (endpoint.includes("administration")) {
-          const parents = apiData?.path?.split(".");
-          const startLevel = authUser?.administration?.level;
+          const parents = apiData?.path
+            ?.split(".")
+            ?.filter((a) => a !== "")
+            .slice(1);
+          const userLevel = authUser?.administration?.level;
+          const startLevel = userLevel ? userLevel - 1 : 0;
+          const admValues = [...parents, apiData?.id]
+            .map((a) => parseInt(a, 10))
+            .slice(startLevel);
           return {
-            [id]: [...parents, apiData?.id]
-              .filter((a) => a !== "" && a !== "1")
-              .map((a) => parseInt(a, 10))
-              .slice(startLevel),
+            [id]: admValues,
           };
         }
         return { [id]: [apiData?.id] };
@@ -393,15 +395,17 @@ const Forms = () => {
         /**
          * Transform cascade answers
          */
-        const cascadeAPIs = questions
-          ?.filter(
-            (q) =>
-              q?.type === QUESTION_TYPES.cascade &&
-              q?.extra?.type !== QUESTION_TYPES.entity &&
-              q?.api?.endpoint
-          )
-          ?.map((q) => getCascadeAnswerId(q.id, q.api, answers?.[q.id]));
-        const cascadeResponses = await Promise.allSettled(cascadeAPIs);
+        const cascadeQuestions = questions.filter(
+          (q) =>
+            q?.type === QUESTION_TYPES.cascade &&
+            q?.extra?.type !== QUESTION_TYPES.entity &&
+            q?.api?.endpoint
+        );
+
+        const cascadePromises = cascadeQuestions.map((q) =>
+          getCascadeAnswerId(q.id, q.api, answers?.[q.id])
+        );
+        const cascadeResponses = await Promise.allSettled(cascadePromises);
         const cascadeValues = cascadeResponses
           .filter(({ status }) => status === "fulfilled")
           .map(({ value }) => value)
