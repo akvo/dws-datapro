@@ -574,6 +574,7 @@ Object {
     "realTime": "Real-Time Monitoring and Information System (IWSIMS)",
     "reportText": "Report generation and visualizations.",
     "reports": "Reports",
+    "requiredError": "{{field}} is required",
     "resetHint": <React.Fragment>
       Please set your password for the platform.
       <br />
