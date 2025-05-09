@@ -204,7 +204,7 @@ const Forms = () => {
         const questionId = parseInt(key, 10);
         const question = questions?.find((q) => q.id === questionId);
         if (question?.type === QUESTION_TYPES.date) {
-          return moment(val).isValid();
+          return typeof val !== "undefined" && moment(val).isValid();
         }
         // Check hidden questions
         if (hiddenQIds.includes(questionId)) {
@@ -306,8 +306,7 @@ const Forms = () => {
       setHiddenQIds([]);
       setTimeout(() => setShowSuccess(true), 3000);
     } catch (error) {
-      console.error("error  ", error?.response);
-      // notification.error({ message: text.errorSomething });
+      notification.error({ message: text.errorSomething });
     } finally {
       setTimeout(() => setSubmit(false), 2000);
     }
@@ -420,6 +419,16 @@ const Forms = () => {
             let value = Object.keys(cascadeValues).includes(`${q?.id}`)
               ? cascadeValues[q.id]
               : transformValue(q?.type, answers?.[q.id]);
+            // if question required is false and value is empty then return false
+            if (
+              !q?.required &&
+              (value === null ||
+                typeof value === "undefined" ||
+                (typeof value === "string" && value.trim() === ""))
+            ) {
+              return false;
+            }
+
             // set default answer by default_value for new_or_monitoring question
             if (
               q?.default_value &&
