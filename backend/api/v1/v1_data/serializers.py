@@ -1066,7 +1066,7 @@ class SubmitPendingFormDataAnswerSerializer(serializers.ModelSerializer):
         question = attrs.get("question")
         value = attrs.get("value")
 
-        if value == "":
+        if (value is None or value == "") and question.required:
             raise ValidationError(
                 f"Value is required for Question: {question.id}"
             )
