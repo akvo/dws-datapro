@@ -82,6 +82,35 @@ const Forms = () => {
   };
 
   const onFinish = async ({ datapoint, ...values }, refreshForm) => {
+    const qs = forms.question_group.flatMap((group) => group.question);
+    // get all questions ids from values
+    const questionIds = Object.keys(values).map((id) => parseInt(id, 10));
+    const requiredQuestions = qs
+      .filter((q) => questionIds.includes(q?.id))
+      .filter((q) => q.required);
+    const hasEmptyRequired = requiredQuestions.some((q) => {
+      const questionId = q.id;
+      const questionValue = values[questionId];
+      const isEmptyValue =
+        questionValue === null ||
+        typeof questionValue === "undefined" ||
+        (typeof questionValue === "string" && questionValue.trim() === "");
+      if (isEmptyValue) {
+        webformRef.current.setFields([
+          {
+            name: questionId,
+            errors: [text.requiredError.replace("{{field}}", q.label)],
+          },
+        ]);
+        return true;
+      }
+      return false;
+    });
+
+    if (hasEmptyRequired) {
+      setSubmit(false);
+      return;
+    }
     // Get all Files objects to upload from values
     const files = Object.entries(values)
       .map(([key, val]) => {
@@ -177,17 +206,24 @@ const Forms = () => {
         if (question?.type === QUESTION_TYPES.date) {
           return moment(val).isValid();
         }
+        // Check hidden questions
+        if (hiddenQIds.includes(questionId)) {
+          return false;
+        }
+        // Check if the question is not required and the value is empty
+        if (
+          !question?.required &&
+          (val === null ||
+            typeof val === "undefined" ||
+            (typeof val === "string" && val.trim() === ""))
+        ) {
+          return false;
+        }
         return !isNaN(key);
       })
       .map(([key, val]) => {
         const qid = parseInt(key, 10);
-        if (hiddenQIds.includes(qid)) {
-          return false;
-        }
         const question = questions.find((q) => q.id === qid);
-        if (typeof val === "undefined" || val === null) {
-          return false;
-        }
         let answerValue = val;
         if (question.type === QUESTION_TYPES.option) {
           answerValue = [val];
@@ -208,8 +244,7 @@ const Forms = () => {
           value: answerValue,
           meta: question.meta,
         };
-      })
-      .filter(Boolean);
+      });
 
     const names = answers
       .filter(
@@ -270,8 +305,9 @@ const Forms = () => {
       }
       setHiddenQIds([]);
       setTimeout(() => setShowSuccess(true), 3000);
-    } catch {
-      notification.error({ message: text.errorSomething });
+    } catch (error) {
+      console.error("error  ", error?.response);
+      // notification.error({ message: text.errorSomething });
     } finally {
       setTimeout(() => setSubmit(false), 2000);
     }
