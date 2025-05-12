@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Input } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
@@ -26,9 +26,33 @@ const checkDirty = (fnString) =>
 
 // convert fn string to array
 const fnToArray = (fnString) => {
-  // eslint-disable-next-line no-useless-escape
-  const regex = /\#\d+|[(),?;&.'":()+\-*/.!]|<=|<|>|>=|!=|==|[||]{2}|=>|\w+| /g;
-  return fnString.match(regex);
+  // First handle hex color codes by temporarily replacing them
+  const hexColorPattern = /"#[0-9A-Fa-f]{6}"/g;
+  const hexColors = [];
+  let modifiedString = fnString;
+
+  // Extract and replace hex colors with placeholders
+  let index = 0;
+  let match = hexColorPattern.exec(fnString);
+  while (match !== null) {
+    const placeholder = `__HEX_COLOR_${index}__`;
+    hexColors.push({ placeholder, value: match[0] });
+    modifiedString = modifiedString.replace(match[0], placeholder);
+    index += 1;
+    match = hexColorPattern.exec(fnString);
+  }
+
+  // Normal tokenization
+  const regex =
+    // eslint-disable-next-line no-useless-escape
+    /\#\d+|[(),?;&.'":()+\-*/.!]|<=|<|>|>=|!=|==|[||]{2}|=>|__HEX_COLOR_[0-9]+__|\w+| /g;
+  const tokens = modifiedString.match(regex) || [];
+
+  // Restore hex colors
+  return tokens.map((token) => {
+    const hexColor = hexColors.find((hc) => hc.placeholder === token);
+    return hexColor ? hexColor.value : token;
+  });
 };
 
 const handeNumericValue = (val) => {
@@ -40,9 +64,19 @@ const handeNumericValue = (val) => {
   return val;
 };
 
-const generateFnBody = (fnMetadata, values) => {
+const generateFnBody = (fnMetadata, values, questions = []) => {
   if (!fnMetadata) {
     return false;
+  }
+
+  // Create a map of question names to IDs for faster lookup
+  const questionMap = {};
+  if (questions && questions.length) {
+    questions.forEach((q) => {
+      if (q.name && q.id) {
+        questionMap[q.name] = q.id;
+      }
+    });
   }
 
   let defaultVal = null;
@@ -62,17 +96,17 @@ const generateFnBody = (fnMetadata, values) => {
 
   const fnMetadataTemp = fnToArray(fnMetadata);
 
-  // save defined condition to detect how many condition on fn
-  // or save the total of condition inside fn string
-  const fnBodyTemp = [];
-
   // generate the fnBody
   const fnBody = fnMetadataTemp.map((f) => {
-    const meta = f.match(/#([0-9]*)/);
-    if (meta) {
-      fnBodyTemp.push(f); // save condition
-      let val = values?.[meta[1]];
-      if (!val) {
+    // First check for literal hex color codes in quotes - don't process them
+    if (f.startsWith('"#') && f.endsWith('"') && /^"#[0-9A-Fa-f]{6}"$/.test(f)) {
+      return f; // Return hex color as-is
+    }
+    // Check if the token is a number or a string
+    if (questionMap?.[f]) {
+      let val = values?.[questionMap[f]];
+
+      if (!val && val !== 0) {
         return defaultVal;
       }
       if (typeof val === 'object') {
@@ -90,10 +124,7 @@ const generateFnBody = (fnMetadata, values) => {
       if (typeof val === 'string') {
         val = `"${val}"`;
       }
-      const fnMatch = f.match(/#([0-9]*|[0-9]*\..+)+/);
-      if (fnMatch) {
-        val = fnMatch[1] === meta[1] ? val : val + fnMatch[1];
-      }
+
       return val;
     }
     return f;
@@ -107,12 +138,6 @@ const generateFnBody = (fnMetadata, values) => {
       .replace(/(?:^|\s)\.includes\(['"][^'"]+['"]\)/g, "''$1")
       .replace(/''\s*\./g, "''.");
   }
-
-  // return false if generated fnBody contains null align with fnBodyTemp
-  // or meet the total of condition inside fn string
-  // if (fnBody.filter((x) => !x).length === fnBodyTemp.length) {
-  //   return false;
-  // }
 
   // remap fnBody if only one fnBody meet the requirements
   return fnBody
@@ -141,10 +166,10 @@ const fixIncompleteMathOperation = (expression) => {
   return expression;
 };
 
-const strToFunction = (fnString, values) => {
+const strToFunction = (fnString, values, questions = []) => {
   try {
     const fnStr = checkDirty(fnString);
-    const fnBody = fixIncompleteMathOperation(generateFnBody(fnStr, values));
+    const fnBody = fixIncompleteMathOperation(generateFnBody(fnStr, values, questions));
     // eslint-disable-next-line no-new-func
     return new Function(`return ${fnBody}`);
   } catch {
@@ -166,17 +191,6 @@ const TypeAutofield = ({
   const [fieldColor, setFieldColor] = useState(null);
   const { fnString: nameFnString, fnColor } = fn;
 
-  const fnString = useMemo(() => {
-    const allQuestions = questions.flatMap((q) => q.question);
-    return nameFnString.replace(/#([a-zA-Z0-9_]+)+#/g, (match, token) => {
-      const foundQuestion = allQuestions.find((q) => q.name === token);
-      if (foundQuestion) {
-        return `#${foundQuestion.id}`;
-      }
-      return `'${match}'`;
-    });
-  }, [nameFnString, questions]);
-
   useEffect(() => {
     const unsubsValues = FormState.subscribe(({ currentValues, surveyStart }) => {
       if (!surveyStart) {
@@ -186,13 +200,30 @@ const TypeAutofield = ({
         return;
       }
       try {
-        const automateValue = strToFunction(fnString, currentValues);
+        // Extract all questions from the question groups
+        const allQuestions = questions.flatMap((q) => q.question);
+
+        // Pass the original fnString and allQuestions to strToFunction
+        const automateValue = strToFunction(nameFnString, currentValues, allQuestions);
         if (typeof automateValue === 'function') {
           const answer = automateValue();
           if (answer !== value && (answer || answer === 0)) {
             setValue(answer);
-            if (fnColor?.[answer]) {
+
+            // Handle fnColor - supports both string-based function and object lookup
+            if (typeof fnColor === 'string') {
+              // Use the original fnColor string with allQuestions
+              const fnColorFunction = strToFunction(fnColor, currentValues, allQuestions);
+              if (typeof fnColorFunction === 'function') {
+                const fnColorValue = fnColorFunction();
+                if (fnColorValue && fnColorValue !== fieldColor) {
+                  setFieldColor(fnColorValue);
+                }
+              }
+            } else if (typeof fnColor === 'object' && fnColor?.[answer]) {
               setFieldColor(fnColor[answer]);
+            } else {
+              setFieldColor(null);
             }
           }
         }
@@ -205,7 +236,7 @@ const TypeAutofield = ({
     return () => {
       unsubsValues();
     };
-  }, [fnColor, fnString, id, value]);
+  }, [fnColor, nameFnString, id, value, fieldColor, questions]);
 
   useEffect(() => {
     if (value !== null && value !== autofieldValue && !displayOnly) {
