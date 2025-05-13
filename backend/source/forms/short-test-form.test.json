@@ -1157,6 +1157,39 @@
           "meta": false,
           "type": "signature",
           "required": true
+        },
+        {
+          "id": 17030862700085,
+          "name": "satisfaction_level",
+          "label": "From 1 to 10, how satisfied are you with this form?",
+          "short_label": "Your satisfaction level",
+          "tooltip": {
+            "text": "Please rate your satisfaction level from 1 to 10, where 1 is the lowest and 10 is the highest."
+          },
+          "meta": false,
+          "type": "number",
+          "rule": {
+            "min": 1,
+            "max": 10
+          },
+          "required": true
+        },
+        {
+          "id": 17030862700086,
+          "name": "satisfaction_level_results",
+          "label": "Satisfaction level results",
+          "short_label": "Satisfaction level results",
+          "tooltip": {
+            "text": "This field will show the results based on your satisfaction level."
+          },
+          "meta": false,
+          "type": "autofield",
+          "fn": {
+            "multiline": false,
+            "fnString": "#satisfaction_level# > 5 ? \"Good\" : \"Bad\"",
+            "fnColor": "#satisfaction_level# > 5 ? \"#38A15A\" : \"#DB3B3B\""
+          },
+          "required": false
         }
       ]
     }
