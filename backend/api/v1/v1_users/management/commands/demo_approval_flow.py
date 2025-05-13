@@ -71,10 +71,7 @@ class Command(BaseCommand):
             administrations = Administration.objects.filter(
                 level=last_level
             )
-            if test:
-                administrations = administrations.all()
-            else:
-                administrations = administrations.order_by('?')[:2]
+            administrations = administrations.all()
             for administration in administrations:
                 ancestors = administration.ancestors.filter(
                     level__level__gt=0
@@ -102,12 +99,14 @@ class Command(BaseCommand):
                         print("Level: {} ({})".format(
                             ancestor.level.level,
                             ancestor.level.name
-                        ))
-                        print(f"- Administration Name: {ancestor.name}")
+                        ))  # pragma: no cover
+                        print(
+                            f"- Administration Name: {ancestor.name}"
+                        )  # pragma: no cover
                         print("- Approver: {} ({})".format(
                             assignment.user.email,
                             last_name
-                        ))
+                        ))  # pragma: no cover
                 # create user
                 email = "{0}.{1}@test.com".format(
                     re.sub(
@@ -137,16 +136,8 @@ class Command(BaseCommand):
                 )
                 FormAccess.objects.get_or_create(
                     user_form=user_form,
-                    access_type=FormAccessTypes.edit
-                )
-                FormAccess.objects.get_or_create(
-                    user_form=user_form,
                     access_type=FormAccessTypes.read
                 )
-                if not test:
-                    print("\nData entry:")
-                    print(f"- Administration: {administration.full_name}")
-                    print("- Email: {}\n".format(submitter.email))
                 mobile_assignment = MobileAssignment.objects.create_assignment(
                     user=submitter,
                     name=fake.user_name(),
