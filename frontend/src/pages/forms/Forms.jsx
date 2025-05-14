@@ -505,9 +505,17 @@ const Forms = () => {
     ) {
       return value[0];
     }
-    if (type === "geo" && Array.isArray(value) && value.length === 2) {
+    if (
+      type === QUESTION_TYPES.geo &&
+      Array.isArray(value) &&
+      value.length === 2
+    ) {
       const [lat, lng] = value;
       return { lat, lng };
+    }
+    // convert date string to date object for date question
+    if (type === QUESTION_TYPES.date && typeof value === "string") {
+      return moment(value);
     }
     return typeof value === "undefined" ? "" : value;
   };
@@ -549,30 +557,19 @@ const Forms = () => {
          * Transform answers to Webform format
          */
         const submissionType = uuid ? "monitoring" : "registration";
-        const initialValue = questions
-          .map((q) => {
-            let value = Object.keys(cascadeValues).includes(`${q?.id}`)
-              ? cascadeValues[q.id]
-              : transformValue(q?.type, answers?.[q.id]);
+        const initialValue = Object.entries(answers)
+          .filter(([key, val]) => {
+            const questionId = parseInt(key, 10);
+            const q = questions?.find((q) => q?.id === questionId);
             // if question required is false and value is empty then return false
             if (
               !q?.required &&
-              (value === null ||
-                typeof value === "undefined" ||
-                (typeof value === "string" && value.trim() === ""))
+              (val === null ||
+                typeof val === "undefined" ||
+                (typeof val === "string" && val.trim() === ""))
             ) {
               return false;
             }
-
-            // set default answer by default_value for new_or_monitoring question
-            if (
-              q?.default_value &&
-              q?.default_value?.submission_type?.monitoring
-            ) {
-              value = q.default_value.submission_type.monitoring;
-            }
-            // EOL set default answer by default_value for new_or_monitoring question
-
             // remove hidden question init value
             if (
               q?.hidden?.submission_type &&
@@ -581,19 +578,19 @@ const Forms = () => {
             ) {
               return false;
             }
-            // EOL remove hidden question init value
-
-            // convert date string to date object for date question
-            if (q?.type === "date" && typeof value === "string") {
-              value = moment(value);
-            }
-            // EOL convert date string to date object for date question
-            return {
-              question: q?.id,
-              value: value,
-            };
+            return true;
           })
-          .filter((x) => x);
+          .map(([key, val]) => {
+            const questionId = parseInt(key, 10);
+            const q = questions?.find((q) => q?.id === questionId);
+            const value = Object.keys(cascadeValues).includes(`${q?.id}`)
+              ? cascadeValues[q.id]
+              : transformValue(q?.type, val);
+            return {
+              question: key,
+              value,
+            };
+          });
         store.update((s) => {
           s.initialValue = initialValue;
         });
