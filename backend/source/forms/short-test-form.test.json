@@ -1200,7 +1200,7 @@
       "description": "Grab all the testimonials you can get from your clients and add them here.",
       "order": 9,
       "repeatable": true,
-      "repeatText": "Add more",
+      "repeatText": "Client testimonial",
       "questions": [
         {
           "id": 17030862700091,
@@ -1220,6 +1220,23 @@
               "content": "Please write at least 10 words"
             }
           ]
+        },
+        {
+          "id": 17030862700092,
+          "name": "upload_testimonial",
+          "label": "Upload a screenshot of your testimonial",
+          "short_label": "Upload a screenshot",
+          "meta": false,
+          "type": "attachment",
+          "rule": {
+            "allowedFileTypes": [
+              "jpeg",
+              "jpg",
+              "png",
+              "gif"
+            ]
+          },
+          "required": false
         }
       ]
     }
