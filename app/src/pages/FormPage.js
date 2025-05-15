@@ -68,6 +68,9 @@ const FormPage = ({ navigation, route }) => {
       s.visitedQuestionGroup = [];
       s.cascades = {};
       s.surveyDuration = 0;
+      s.forceUpdateToken = null;
+      s.repeats = {};
+      s.currentGroup = null;
     });
   }, [formJSON]);
 
