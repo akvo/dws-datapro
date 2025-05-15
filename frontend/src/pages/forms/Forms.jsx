@@ -84,7 +84,11 @@ const Forms = () => {
   const processFileUploads = async (questions = [], values) => {
     const files = Object.entries(values)
       .filter(([key, val]) => {
-        const questionId = parseInt(key, 10);
+        // Parse the key to handle both standard and repeatable question formats
+        // For repeatable questions, key format is "questionID-repeatIndex"
+        const [baseKey] = key.split("-");
+        const questionId = parseInt(baseKey, 10);
+
         if (isNaN(questionId)) {
           return false;
         }
@@ -93,10 +97,16 @@ const Forms = () => {
           question?.type === QUESTION_TYPES.attachment && val instanceof File
         );
       })
-      .map(([key, val]) => ({
-        question_id: parseInt(key, 10),
-        file: val,
-      }));
+      .map(([key, val]) => {
+        // Keep the original key format to maintain the repeatable structure
+        const [baseKey] = key.split("-");
+        const questionId = parseInt(baseKey, 10);
+        return {
+          question_id: questionId,
+          file: val,
+          original_key: key, // Preserve the original key for mapping back
+        };
+      });
 
     if (!files.length) {
       return values;
@@ -122,17 +132,19 @@ const Forms = () => {
       return;
     }
 
-    const uploadedFiles = results
-      .filter((result) => result.status === "fulfilled")
-      .map((result) => result.value.data);
+    // Create a new values object with the uploaded files
+    const updatedValues = { ...values };
 
-    return {
-      ...values,
-      ...uploadedFiles.reduce((acc, data) => {
-        acc[data.question_id] = data.file;
-        return acc;
-      }, {}),
-    };
+    // Process each successfully uploaded file
+    results.forEach((result, index) => {
+      if (result.status === "fulfilled") {
+        const data = result.value.data;
+        const originalKey = files[index].original_key;
+        updatedValues[originalKey] = data.file;
+      }
+    });
+
+    return updatedValues;
   };
 
   const processEntityCascades = async (questions, values) => {
@@ -231,41 +243,12 @@ const Forms = () => {
       repeatableMap[baseId]
         .sort((a, b) => a.index - b.index)
         .forEach((item) => {
-          // Use the same formatting helper as non-repeatable questions
-          repeatableAnswers.push(formatAnswerValue(question, item.value));
+          // Use our enhanced transformValue function with forApi=true
+          repeatableAnswers.push(transformValue(question, item.value, true));
         });
     });
 
     return repeatableAnswers;
-  };
-
-  const formatAnswerValue = (question, value) => {
-    let formattedValue = value;
-
-    if (question.type === QUESTION_TYPES.option) {
-      formattedValue = Array.isArray(value) ? value : [value];
-    } else if (
-      question.type === QUESTION_TYPES.geo &&
-      typeof value === "object"
-    ) {
-      formattedValue = [value.lat, value.lng];
-    } else if (
-      question.type === QUESTION_TYPES.cascade &&
-      !question.extra &&
-      Array.isArray(value)
-    ) {
-      formattedValue = value.slice(-1)[0];
-    }
-
-    return {
-      question: question.id,
-      type:
-        question?.source?.file === "administrator.sqlite"
-          ? QUESTION_TYPES.administration
-          : question.type,
-      value: formattedValue,
-      meta: question.meta,
-    };
   };
 
   const submitFormData = async ({ datapoint, ...values }, refreshForm) => {
@@ -311,8 +294,13 @@ const Forms = () => {
 
     setSubmit(true);
 
-    // Process file uploads
+    // Process non-repeatable File Uploads
     values = await processFileUploads(nonRepeatableQuestions, values);
+    if (!values) {
+      return; // Upload failed, function already showed error
+    }
+    // Process repeatable File Uploads
+    values = await processFileUploads(repeatableQuestions, values);
     if (!values) {
       return; // Upload failed, function already showed error
     }
@@ -362,7 +350,7 @@ const Forms = () => {
         const question = nonRepeatableQuestions.find(
           (q) => q.id === questionId
         );
-        return formatAnswerValue(question, val);
+        return transformValue(question, val, true);
       });
 
     // Process repeatable questions and add them to answers
@@ -497,27 +485,79 @@ const Forms = () => {
     [authUser?.administration?.level]
   );
 
-  const transformValue = (type, value) => {
+  const transformValue = (question, value, forApi = false) => {
+    // Type can be either a string or an object with type property
+    const type = typeof question === "string" ? question : question?.type;
+    let transformedValue = value;
+
+    // Handle option type values
+    if (type === QUESTION_TYPES.option) {
+      if (forApi) {
+        // For API submission - always return as array
+        transformedValue = Array.isArray(value) ? value : [value];
+      } else {
+        // For UI display - extract first value from array if it exists
+        transformedValue =
+          Array.isArray(value) && value.length ? value[0] : value;
+      }
+    }
+
+    // Handle geo type values
+    if (type === QUESTION_TYPES.geo) {
+      if (forApi && typeof value === "object") {
+        // For API submission - convert {lat, lng} to array
+        transformedValue = [value.lat, value.lng];
+      }
+      if (!forApi && Array.isArray(value) && value.length === 2) {
+        // For UI display - convert array to {lat, lng} object
+        const [lat, lng] = value;
+        transformedValue = { lat, lng };
+      }
+    }
+
+    // Handle cascade type values
     if (
-      type === QUESTION_TYPES.option &&
-      Array.isArray(value) &&
-      value.length
+      type === QUESTION_TYPES.cascade &&
+      !forApi &&
+      typeof question === "object" &&
+      !question.extra &&
+      Array.isArray(value)
     ) {
-      return value[0];
+      // For UI display - take last cascaded value
+      transformedValue = value.slice(-1)[0];
     }
-    if (
-      type === QUESTION_TYPES.geo &&
-      Array.isArray(value) &&
-      value.length === 2
-    ) {
-      const [lat, lng] = value;
-      return { lat, lng };
+
+    if (type === QUESTION_TYPES.cascade && forApi && Array.isArray(value)) {
+      // For API submission - take last value from array
+      transformedValue = value.slice(-1)[0];
     }
-    // convert date string to date object for date question
-    if (type === QUESTION_TYPES.date && typeof value === "string") {
-      return moment(value);
+
+    // Handle date type values
+    if (type === QUESTION_TYPES.date && typeof value === "string" && !forApi) {
+      // For UI display - convert string to moment object
+      transformedValue = moment(value);
     }
-    return typeof value === "undefined" ? "" : value;
+
+    // Default case - handle undefined values
+    if (typeof transformedValue === "undefined" && !forApi) {
+      transformedValue = "";
+    }
+
+    // For API submission, return an object with metadata
+    if (forApi && typeof question === "object") {
+      return {
+        question: question.id,
+        type:
+          question?.source?.file === "administrator.sqlite"
+            ? QUESTION_TYPES.administration
+            : question.type,
+        value: transformedValue,
+        meta: question.meta,
+      };
+    }
+
+    // For UI display or when question is just a type string, return only the transformed value
+    return transformedValue;
   };
 
   const fetchInitialMonitoringData = useCallback(
