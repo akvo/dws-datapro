@@ -1172,6 +1172,9 @@
             "min": 1,
             "max": 10
           },
+          "fn": {
+            "fnColor": "#satisfaction_level# > 5 ? \"#38A15A\" : \"#DB3B3B\""
+          },
           "required": true
         },
         {
