@@ -621,13 +621,13 @@ const Forms = () => {
             return true;
           })
           .map(([key, val]) => {
-            const questionId = parseInt(key, 10);
+            const questionId = isNaN(key) ? key : parseInt(key, 10);
             const q = questions?.find((q) => q?.id === questionId);
             const value = Object.keys(cascadeValues).includes(`${q?.id}`)
               ? cascadeValues[q.id]
               : transformValue(q?.type, val);
             return {
-              question: key,
+              question: questionId,
               value,
             };
           });
