@@ -10,7 +10,6 @@ import { helpers } from '../lib';
 import { SUBMISSION_TYPES } from '../lib/constants';
 
 // TODO:: Allow other not supported yet
-// TODO:: Repeat group not supported yet
 
 const checkValuesBeforeCallback = ({ values, hiddenQIds = [] }) =>
   Object.keys(values)
@@ -66,6 +65,8 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
     route.params.submission_type,
   );
   const activeQuestions = formDefinition?.question_group?.flatMap((qg) => qg?.question);
+  const currentGroup =
+    FormState.useState((s) => s.currentGroup) || formDefinition?.question_group?.[activeGroup];
 
   const hiddenQIds = useMemo(
     () =>
@@ -81,11 +82,6 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
         })
         .filter((x) => x),
     [forms, route.params.submission_type],
-  );
-
-  const currentGroup = useMemo(
-    () => formDefinition?.question_group?.[activeGroup] || {},
-    [formDefinition, activeGroup],
   );
 
   const handleOnSubmitForm = () => {
@@ -131,6 +127,9 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
     } else {
       setActiveGroup(page);
     }
+    FormState.update((s) => {
+      s.currentGroup = formDefinition?.question_group?.[page] || {};
+    });
   };
 
   const handleOnDefaultValue = useCallback(() => {
