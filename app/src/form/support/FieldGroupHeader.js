@@ -14,16 +14,11 @@ const FieldGroupHeader = ({ description, index, label, repeatable, id }) => {
 
         // Add next repeat index (which is the current max + 1)
         const nextRepeatIndex = Math.max(...groupRepeats) + 1;
-
-        // Add forcing re-render token to ensure immediate UI update
-        const timestamp = new Date().getTime();
-
         // Update the state with the new repeat
         s.repeats = {
           ...s.repeats,
           [id]: [...groupRepeats, nextRepeatIndex],
         };
-        s.forceUpdateToken = timestamp;
       });
     }
   };

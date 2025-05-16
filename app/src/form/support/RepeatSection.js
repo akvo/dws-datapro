@@ -18,27 +18,9 @@ const RepeatSection = ({ group, repeatIndex }) => {
 
       // Filter out this repeat index
       const updatedRepeats = groupRepeats.filter((idx) => idx !== repeatIndex);
-
-      // Also remove any answers associated with this repeat
-      const updatedValues = { ...s.currentValues };
-      group.question.forEach((q) => {
-        const repeatKey = `${q.id}-${repeatIndex}`;
-        if (updatedValues[repeatKey] !== undefined) {
-          delete updatedValues[repeatKey];
-        }
-      });
-
-      // Add forcing re-render token to ensure the UI updates
-      const timestamp = new Date().getTime();
-
-      return {
-        ...s,
-        repeats: {
-          ...currentRepeats,
-          [group.id]: updatedRepeats,
-        },
-        currentValues: updatedValues,
-        forceUpdateToken: timestamp, // This will trigger re-render in components that listen to FormState
+      s.repeats = {
+        ...currentRepeats,
+        [group.id]: updatedRepeats,
       };
     });
   };
