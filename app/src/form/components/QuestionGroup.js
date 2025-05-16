@@ -24,7 +24,7 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
         data: group.question.map((q, qx) => ({
           ...q,
           id: repeatIndex === 0 ? q.id : `${q.id}-${repeatIndex}`,
-          keyform: repeatIndex === 0 ? q.id : `${repeatIndex}.${qx + 1}`,
+          keyform: `${repeatIndex + 1}.${qx + 1}`,
         })),
       })),
     [repeats, group],
