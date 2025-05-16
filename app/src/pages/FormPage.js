@@ -29,6 +29,7 @@ const FormPage = ({ navigation, route }) => {
   const surveyStart = FormState.useState((s) => s.surveyStart);
   const currentValues = FormState.useState((s) => s.currentValues);
   const cascades = FormState.useState((s) => s.cascades);
+  const repeats = FormState.useState((s) => s.repeats);
   const userId = UserState.useState((s) => s.id);
   const [showDialogMenu, setShowDialogMenu] = useState(false);
   const [showDropdownMenu, setShowDropdownMenu] = useState(false);
@@ -100,6 +101,7 @@ const FormPage = ({ navigation, route }) => {
         ...currentDataPoint,
         ...saveData,
         duration: duration === 0 ? 1 : duration,
+        repeats: Object.keys(repeats).length ? JSON.stringify(repeats) : null,
       };
       if (isNewSubmission) {
         await crudDataPoints.saveDataPoint(db, payload);
