@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
+import * as Crypto from 'expo-crypto';
 import { BaseLayout } from '../components';
 import { FormNavigation, QuestionGroupList } from './support';
 import QuestionGroup from './components/QuestionGroup';
@@ -139,8 +140,14 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
     if (!isDefaultFilled) {
       setIsDefaultFilled(true);
       const defaultValues = activeQuestions
-        .filter((aq) => aq?.default_value)
+        .filter((aq) => aq?.default_value || aq?.meta_uuid)
         .map((aq) => {
+          if (aq?.meta_uuid) {
+            const UUID = Crypto.randomUUID();
+            return {
+              [aq.id]: UUID,
+            };
+          }
           const submissionType = route.params?.submission_type || SUBMISSION_TYPES.registration;
           const subTypeName = helpers.flipObject(SUBMISSION_TYPES)[submissionType];
           const defaultValue = aq?.default_value?.submission_type?.[subTypeName];
