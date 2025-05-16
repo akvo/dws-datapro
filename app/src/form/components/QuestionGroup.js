@@ -10,7 +10,10 @@ import styles from '../styles';
 const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] }) => {
   // Get the repeats state for this group from FormState
   const repeatState = FormState.useState((s) => s.repeats);
-  const repeats = useMemo(() => repeatState?.[group.id] || [0], [repeatState, group.id]);
+  const repeats = useMemo(
+    () => repeatState?.[group.id] || repeatState?.[group?.name] || [0],
+    [repeatState, group.id, group?.name],
+  );
   const values = FormState.useState((s) => s.currentValues);
   const prevAdmAnswer = FormState.useState((s) => s.prevAdmAnswer);
   const listRef = useRef(null);
