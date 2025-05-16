@@ -24,7 +24,7 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
         data: group.question.map((q, qx) => ({
           ...q,
           id: repeatIndex === 0 ? q.id : `${q.id}-${repeatIndex}`,
-          keyform: repeatIndex === 0 ? q.id : `${qx + 1}.${repeatIndex}`,
+          keyform: repeatIndex === 0 ? q.id : `${repeatIndex}.${qx + 1}`,
         })),
       })),
     [repeats, group],
@@ -58,7 +58,6 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
     // Handle dependencies with dependantQuestions
     FormState.update((s) => {
       s.currentValues = { ...s.currentValues, [id]: value };
-      s.forceUpdateToken = new Date().getTime();
     });
   };
 
