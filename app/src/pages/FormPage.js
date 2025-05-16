@@ -70,7 +70,6 @@ const FormPage = ({ navigation, route }) => {
       s.cascades = {};
       s.surveyDuration = 0;
       s.repeats = {};
-      s.currentGroup = null;
     });
   }, [formJSON]);
 

@@ -66,8 +66,10 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
     route.params.submission_type,
   );
   const activeQuestions = formDefinition?.question_group?.flatMap((qg) => qg?.question);
-  const currentGroup =
-    FormState.useState((s) => s.currentGroup) || formDefinition?.question_group?.[activeGroup];
+  const currentGroup = useMemo(
+    () => formDefinition?.question_group?.[activeGroup],
+    [activeGroup, formDefinition?.question_group],
+  );
 
   const hiddenQIds = useMemo(
     () =>
@@ -131,9 +133,6 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
     } else {
       setActiveGroup(page);
     }
-    FormState.update((s) => {
-      s.currentGroup = formDefinition?.question_group?.[page] || {};
-    });
   };
 
   const handleOnDefaultValue = useCallback(() => {

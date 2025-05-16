@@ -13,7 +13,6 @@ const FormState = new Store({
   prevAdmAnswer: null,
   entityOptions: {},
   repeats: {}, // to store repeatable question groups: { groupId: [0, 1, 2, ...] }
-  currentGroup: null, // to store the currently active question group
   forceUpdateToken: null, // to force re-render when needed
 });
 
