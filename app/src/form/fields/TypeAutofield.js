@@ -8,7 +8,6 @@ import styles from '../styles';
 import { FormState } from '../../store';
 import { strToFunction } from '../lib';
 
-
 const TypeAutofield = ({
   keyform,
   id,

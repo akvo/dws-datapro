@@ -39,7 +39,7 @@ const TypeNumber = ({
         }
       } catch (error) {
         // eslint-disable-next-line no-console
-        console.error("Error in fnColor function:", error);
+        console.error('Error in fnColor function:', error);
       }
     }
   }, [fnColor, fieldColor, id, value, questions]);
