@@ -86,7 +86,10 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
 
   const handleOnSubmitForm = () => {
     const validValues = Object.keys(currentValues)
-      .filter((qkey) => activeQuestions.map((q) => `${q.id}`).includes(qkey))
+      .filter((key) => {
+        const [questionId] = `${key}`.split('-');
+        return activeQuestions.map((q) => `${q.id}`).includes(questionId);
+      })
       .reduce((prev, current) => ({ [current]: currentValues[current], ...prev }), {});
     const results = checkValuesBeforeCallback({ values: validValues, hiddenQIds });
     if (onSubmit) {
