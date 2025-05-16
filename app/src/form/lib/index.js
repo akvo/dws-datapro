@@ -304,13 +304,21 @@ export const transformMonitoringData = (formDataJson, lastValues) => {
     ?.filter((q) => lastValues?.[q?.id] && q?.pre)
     ?.filter((q) => lastValues[q.id] === q.pre.answer || lastValues[q.id].includes(q.pre.answer))
     ?.flatMap((q) => q?.pre?.fill || []);
-  const currentValues = allQuestions?.reduce(
-    (prev, current) => ({
-      [current.id]: transformValue(current, lastValues?.[current.id], prefilled),
-      ...prev,
-    }),
-    {},
-  );
+
+  // Initialize with an empty object
+  const currentValues = {};
+
+  // Loop through the lastValues object keys
+  if (lastValues && Object.keys(lastValues).length) {
+    Object.keys(lastValues).forEach((key) => {
+      const [questionId] = key.split('-');
+      const question = allQuestions?.find((q) => `${q?.id}` === questionId);
+      if (question) {
+        currentValues[key] = transformValue(question, lastValues[key], prefilled);
+      }
+    });
+  }
+
   const admQuestion = allQuestions.find(
     (q) => q?.type === 'cascade' && q?.source?.file === 'administrator.sqlite',
   );
