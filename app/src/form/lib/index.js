@@ -120,7 +120,12 @@ export const transformForm = (
           ?.sort((a, b) => a.order - b.order)
           ?.map((q) => transformed.find((t) => t.id === q.id))
           ?.filter((q) => q)
-          ?.filter((q) => onFilterDependency(qg, currentValues, q));
+          ?.filter((q) => onFilterDependency(qg, currentValues, q))
+          ?.map((q) => ({
+            ...q,
+            group_id: qg?.id,
+            group_name: qg?.name,
+          }));
 
         if (transformedQuestions.length > 0) {
           return {
