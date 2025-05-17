@@ -14,7 +14,7 @@ import { SUBMISSION_TYPES } from '../lib/constants';
 
 const checkValuesBeforeCallback = ({ values, hiddenQIds = [] }) =>
   Object.keys(values)
-    .map((key) => {
+    .filter((key) => {
       // remove value where question is hidden
       if (hiddenQIds.includes(Number(key))) {
         return false;
@@ -35,9 +35,12 @@ const checkValuesBeforeCallback = ({ values, hiddenQIds = [] }) =>
       if (!value && value !== 0) {
         return false;
       }
+      return true;
+    })
+    .map((key) => {
+      const value = values[key];
       return { [key]: value };
     })
-    .filter((v) => v)
     .reduce((res, current) => ({ ...res, ...current }), {});
 
 const style = {
@@ -51,6 +54,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
   const currentValues = FormState.useState((s) => s.currentValues);
   const cascades = FormState.useState((s) => s.cascades);
   const activeLang = FormState.useState((s) => s.lang);
+  const repeats = FormState.useState((s) => s.repeats);
   const route = useRoute();
 
   const dependantQuestions =
@@ -88,12 +92,77 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
   );
 
   const handleOnSubmitForm = () => {
-    const validValues = Object.keys(currentValues)
+    // Use currentValues directly as our base to ensure we preserve all values
+    const reIndexedValues = { ...currentValues };
+
+    // Find all questions that belong to repeatable groups
+    const repeatableGroups = formDefinition?.question_group?.filter((qg) => qg.repeatable) || [];
+
+    // Process each repeatable question group
+    repeatableGroups.forEach((group) => {
+      const groupId = group.id || group.name;
+      const groupRepeats = repeats[groupId] || [0];
+
+      if (!groupRepeats || groupRepeats.length <= 1) {
+        // No repeats to re-index
+        return;
+      }
+
+      // Get all questions in this group
+      const questions = group.question || [];
+
+      // Process each question in the repeatable group
+      questions.forEach((question) => {
+        const questionId = question.id;
+
+        // Find all repeat instances of this question in currentValues
+        // This would match both `123` and `123-0`, `123-1`, etc.
+        const questionEntries = Object.entries(currentValues)
+          .filter(([key]) => {
+            const [qId, repeatIndex] = key.includes('-') ? key.split('-') : [key, null];
+            return qId === `${questionId}` && repeatIndex !== null;
+          })
+          .sort(([keyA], [keyB]) => {
+            // Sort by repeat index
+            const [, indexA] = keyA.split('-');
+            const [, indexB] = keyB.split('-');
+            return parseInt(indexA, 10) - parseInt(indexB, 10);
+          });
+
+        // If there are entries to re-index
+        if (questionEntries.length > 0) {
+          // First, remove all the existing entries from reIndexedValues
+          questionEntries.forEach(([key]) => {
+            delete reIndexedValues[key];
+          });
+
+          // Now add back the entries with sequential indices
+          // Skip index 0 in groupRepeats as it's the base non-repeat
+          const repeatsExcludingBase = groupRepeats.slice(1);
+
+          // Map each actual repeat value to a new sequential index
+          repeatsExcludingBase.forEach((actualIndex, newIndex) => {
+            // Find the matching entry for this repeat
+            questionEntries.forEach(([key, value]) => {
+              const [baseId, repeatIndex] = key.split('-');
+              if (parseInt(repeatIndex, 10) === actualIndex) {
+                // Re-add with a sequential index
+                reIndexedValues[`${baseId}-${newIndex + 1}`] = value;
+              }
+            });
+          });
+        }
+      });
+    });
+
+    // Filter and process values as before, but with the re-indexed values
+    const validValues = Object.keys(reIndexedValues)
       .filter((key) => {
         const [questionId] = `${key}`.split('-');
         return activeQuestions.map((q) => `${q.id}`).includes(questionId);
       })
-      .reduce((prev, current) => ({ [current]: currentValues[current], ...prev }), {});
+      .reduce((prev, current) => ({ ...prev, [current]: reIndexedValues[current] }), {});
+
     const results = checkValuesBeforeCallback({ values: validValues, hiddenQIds });
     if (onSubmit) {
       const { dpName, dpGeo } = generateDataPointName(forms, validValues, cascades);
