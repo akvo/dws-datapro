@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { View, SectionList, FlatList } from 'react-native';
 
 import QuestionField from './QuestionField';
@@ -8,55 +8,15 @@ import { FormState } from '../../store';
 import styles from '../styles';
 
 const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] }) => {
-  // Get the repeats state for this group from FormState
-  const repeatState = FormState.useState((s) => s.repeats);
-  const repeats = useMemo(
-    () => repeatState?.[group.id] || repeatState?.[group?.name] || [0],
-    [repeatState, group.id, group?.name],
-  );
   const values = FormState.useState((s) => s.currentValues);
-  const prevAdmAnswer = FormState.useState((s) => s.prevAdmAnswer);
   const listRef = useRef(null);
 
-  // Prepare sections data for SectionList when group is repeatable
-  const sections = useMemo(
-    () =>
-      repeats.map((repeatIndex) => ({
-        repeatIndex,
-        title: repeatIndex !== 0 ? `${group.label || group.name} #${repeatIndex + 1}` : null,
-        data: group.question.map((q, qx) => ({
-          ...q,
-          id: repeatIndex === 0 ? q.id : `${q.id}-${repeatIndex}`,
-          keyform: `${repeatIndex + 1}.${qx + 1}`,
-        })),
-      })),
-    [repeats, group],
-  );
+  // For non-repeatable groups, get questions that belong to this group
+  const questions = !group?.repeatable
+    ? activeQuestions.filter((q) => q.group_id === group.id || q.group_name === group.name)
+    : [];
 
-  // For non-repeatable groups, use the same question filtering and preparation as in Question component
-  const questions = useMemo(() => {
-    if (group?.question?.length) {
-      const questionList = group.question.filter(
-        (q) => (q?.extra?.type === 'entity' && prevAdmAnswer) || !q?.extra?.type,
-      );
-      const questionWithNumber = questionList.reduce((curr, q, i) => {
-        if (q?.default_value && i === 0) {
-          return [{ ...q, keyform: 0 }];
-        }
-        if (q?.default_value && i > 0) {
-          return [...curr, { ...q, keyform: curr[i - 1].keyform }];
-        }
-        if (i === 0) {
-          return [{ ...q, keyform: 1 }];
-        }
-        return [...curr, { ...q, keyform: curr[i - 1].keyform + 1 }];
-      }, []);
-      return questionWithNumber;
-    }
-    return [];
-  }, [group, prevAdmAnswer]);
-
-  // Handle onChange for non-repeatable groups
+  // Handle onChange for all questions
   const handleOnChange = (id, value) => {
     // Handle dependencies with dependantQuestions
     FormState.update((s) => {
@@ -86,17 +46,17 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
     return null;
   };
 
-  // If group is repeatable, use SectionList with sections
-  if (group?.repeatable) {
+  // If group is repeatable, use SectionList with sections directly from the group object
+  if (group?.repeatable && group.sections) {
     return (
       <View style={{ paddingBottom: 48 }}>
         <FieldGroupHeader index={index} {...group} />
 
         <SectionList
           ref={listRef}
-          sections={sections}
+          sections={group.sections}
           keyExtractor={(item, itemIndex) => `question-${item.id}-${itemIndex}`}
-          renderItem={({ item, section }) => {
+          renderItem={({ item }) => {
             const fieldValue = values?.[item.id];
 
             return (
@@ -106,7 +66,7 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
                   field={item}
                   onChange={handleOnChange}
                   value={fieldValue}
-                  questions={section.data}
+                  questions={activeQuestions}
                 />
               </View>
             );
