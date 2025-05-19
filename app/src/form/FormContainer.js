@@ -55,6 +55,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
   const cascades = FormState.useState((s) => s.cascades);
   const activeLang = FormState.useState((s) => s.lang);
   const repeats = FormState.useState((s) => s.repeats);
+  const prevAdmAnswer = FormState.useState((s) => s.prevAdmAnswer);
   const route = useRoute();
 
   const dependantQuestions =
@@ -68,6 +69,8 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
     currentValues,
     activeLang,
     route.params.submission_type,
+    repeats,
+    prevAdmAnswer,
   );
   const activeQuestions = formDefinition?.question_group?.flatMap((qg) => qg?.question);
   const currentGroup = useMemo(
