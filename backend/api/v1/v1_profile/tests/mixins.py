@@ -31,6 +31,9 @@ class ProfileTestHelperMixin:
         administration: Administration = None,
         form: Forms = None,
     ) -> SystemUser:
+        user = SystemUser.objects.filter(email=email).first()
+        if user:
+            return user
         profile = fake.profile()
         name = profile.get("name")
         name = name.split(" ")
