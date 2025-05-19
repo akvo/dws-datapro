@@ -202,6 +202,15 @@ const Forms = () => {
         return;
       }
 
+      // Skip empty values, null values, or undefined values
+      if (
+        value === null ||
+        typeof value === "undefined" ||
+        (typeof value === "string" && value.trim() === "")
+      ) {
+        return;
+      }
+
       // Parse the key to get question ID and repetition index
       const [baseId, repetitionIndex] = key.includes("-")
         ? key.split("-")
