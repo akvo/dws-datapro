@@ -2,7 +2,7 @@ import React, { useMemo } from 'react';
 import { View } from 'react-native';
 import { Text, Divider } from '@rneui/themed';
 import QuestionGroupListItem from './QuestionGroupListItem';
-import { validateDependency, modifyDependency, generateDataPointName } from '../lib';
+import { onFilterDependency, generateDataPointName } from '../lib';
 import styles from '../styles';
 import { FormState } from '../../store';
 
@@ -13,13 +13,9 @@ export const checkCompleteQuestionGroup = (form, values) =>
       filteredQuestions
         .map((question) => {
           if (question?.dependency) {
-            const repeat = 0;
-            const modifiedDependency = modifyDependency(questionGroup, question, repeat);
-            const unmatches = modifiedDependency
-              .map((x) => validateDependency(x, values?.[x.id]))
-              .filter((x) => x === false);
-            if (unmatches.length) {
-              return true;
+            // Use onFilterDependency instead of modifyDependency
+            if (!onFilterDependency(questionGroup, values, question)) {
+              return true; // Skip this question for completion check
             }
           }
           if (values?.[question.id] || values?.[question.id] === 0) {
