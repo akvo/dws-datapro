@@ -1230,6 +1230,7 @@
           "label": "Upload a screenshot of your testimonial",
           "short_label": "Upload a screenshot",
           "meta": false,
+          "order": 2,
           "type": "attachment",
           "rule": {
             "allowedFileTypes": [
@@ -1240,6 +1241,58 @@
             ]
           },
           "required": false
+        },
+        {
+          "id": 17030862700093,
+          "name": "occupation",
+          "label": "What is your occupation?",
+          "tooltip": {
+            "text": "Please select your occupation"
+          },
+          "short_label": "Your occupation",
+          "options": [
+            {
+              "label": "Doctor",
+              "value": "doctor"
+            },
+            {
+              "label": "Engineer",
+              "value": "engineer"
+            },
+            {
+              "label": "Teacher",
+              "value": "teacher"
+            },
+            {
+              "label": "Other",
+              "value": "other"
+            }
+          ],
+          "meta": false,
+          "order": 3,
+          "type": "option",
+          "required": true
+        },
+        {
+          "id": 17030862700094,
+          "name": "other_occupation",
+          "label": "If you selected 'Other', please specify",
+          "tooltip": {
+            "text": "If you selected 'Other', please specify"
+          },
+          "short_label": "Specify other",
+          "meta": false,
+          "order": 4,
+          "type": "text",
+          "required": true,
+          "dependency": [
+            {
+              "id": 17030862700093,
+              "options": [
+                "other"
+              ]
+            }
+          ]
         }
       ]
     }
