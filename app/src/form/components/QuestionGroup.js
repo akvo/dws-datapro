@@ -66,7 +66,6 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
                   field={item}
                   onChange={handleOnChange}
                   value={fieldValue}
-                  questions={activeQuestions}
                 />
               </View>
             );
