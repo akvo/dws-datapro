@@ -160,10 +160,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
 
     // Filter and process values as before, but with the re-indexed values
     const validValues = Object.keys(reIndexedValues)
-      .filter((key) => {
-        const [questionId] = `${key}`.split('-');
-        return activeQuestions.map((q) => `${q.id}`).includes(questionId);
-      })
+      .filter((key) => activeQuestions.filter((q) => `${q.id}` === `${key}`).length > 0)
       .reduce((prev, current) => ({ ...prev, [current]: reIndexedValues[current] }), {});
 
     const results = checkValuesBeforeCallback({ values: validValues, hiddenQIds });
