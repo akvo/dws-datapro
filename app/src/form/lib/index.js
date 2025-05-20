@@ -30,11 +30,22 @@ const getDependencyAncestors = (questions, current, dependencies) => {
   return current;
 };
 
-export const onFilterDependency = (currentGroup, values, q) => {
+export const onFilterDependency = (currentGroup, values, q, repeat = 0) => {
   if (q?.dependency) {
-    const modifiedDependency = modifyDependency(currentGroup, q, 0);
-    const unmatches = modifiedDependency
-      .map((x) => validateDependency(x, values?.[x.id]))
+    // Handle dependency checking directly without using modifyDependency
+    const unmatches = q.dependency
+      .map((d) => {
+        // Check if this is a dependency on a question in the same group and needs modification for repeats
+        let dependencyId = d.id;
+        const questions = currentGroup.question.map((question) => question.id);
+
+        // For repeat questions, modify the dependency id to include the repeat suffix
+        if (questions.includes(d.id) && repeat) {
+          dependencyId = `${d.id}-${repeat}`;
+        }
+
+        return validateDependency(d, values?.[dependencyId]);
+      })
       .filter((x) => x === false);
     if (unmatches.length) {
       return false;
@@ -48,6 +59,8 @@ export const transformForm = (
   currentValues,
   lang = 'en',
   submissionType = SUBMISSION_TYPES.registration,
+  repeatState = {},
+  prevAdmAnswer = null,
 ) => {
   const nonEnglish = lang !== 'en';
   const currentForm = nonEnglish ? i18n.transform(lang, forms) : forms;
@@ -104,53 +117,145 @@ export const transformForm = (
     };
   });
 
-  return {
-    ...forms,
-    question_group: forms.question_group
-      .sort((a, b) => a.order - b.order)
-      .map((qg, qgi) => {
-        let repeat = {};
-        let repeats = {};
-        if (qg?.repeatable) {
-          repeat = { repeat: 1 };
-          repeats = { repeats: [0] };
-        }
-        const translatedQg = nonEnglish ? i18n.transform(lang, qg) : qg;
-        const transformedQuestions = qg.question
-          ?.sort((a, b) => a.order - b.order)
-          ?.map((q) => transformed.find((t) => t.id === q.id))
-          ?.filter((q) => q)
-          ?.filter((q) => onFilterDependency(qg, currentValues, q))
-          ?.map((q) => ({
-            ...q,
-            group_id: qg?.id,
-            group_name: qg?.name,
-          }));
+  // Transform question groups
+  const questionGroups = forms.question_group
+    .sort((a, b) => a.order - b.order)
+    .map((qg, qgi) => {
+      const translatedQg = nonEnglish ? i18n.transform(lang, qg) : qg;
 
+      // Get repeats array but don't add them as properties
+      const repeatsArray = repeatState?.[qgi] || repeatState?.[qg?.name] || [0];
+
+      // Transform questions based on whether the group is repeatable or not
+      const transformedQuestions = [];
+
+      if (qg?.repeatable) {
+        // Handle repeatable groups - prepare sections data
+        const sectionData = repeatsArray.map((repeatIndex) => ({
+          repeatIndex,
+          title: repeatIndex !== 0 ? `${qg.label || qg.name} #${repeatIndex + 1}` : null,
+          data: qg.question
+            .map((q, qx) => {
+              const transformedQuestion = transformed.find((t) => t.id === q.id);
+              if (!transformedQuestion) {
+                return null;
+              }
+
+              // Filter out questions based on dependencies, etc.
+              // Pass the repeatIndex to handle repeat-specific dependencies
+              if (!onFilterDependency(qg, currentValues, transformedQuestion, repeatIndex)) {
+                return null;
+              }
+
+              return {
+                ...transformedQuestion,
+                id:
+                  repeatIndex === 0
+                    ? transformedQuestion.id
+                    : `${transformedQuestion.id}-${repeatIndex}`,
+                keyform: `${repeatIndex + 1}.${qx + 1}`, // Ensure keyform is defined
+                group_id: qg?.id,
+                group_name: qg?.name,
+              };
+            })
+            .filter((q) => q),
+        }));
+
+        // Flatten sections data into questions
+        sectionData.forEach((section) => {
+          transformedQuestions.push(...section.data);
+        });
+
+        // Return both the sections data and transformed questions
         if (transformedQuestions.length > 0) {
           return {
             ...translatedQg,
-            ...repeat,
-            ...repeats,
             id: qg?.id || qgi,
+            sections: sectionData, // Include sections data
             question: transformedQuestions,
           };
         }
-        return undefined;
-      })
-      .filter((qg) => qg)
-      .filter((qg) => qg.question.length),
-  };
-};
+      } else {
+        // Handle non-repeatable groups
+        const questionList = qg.question.filter(
+          (q) => (q?.extra?.type === 'entity' && prevAdmAnswer?.length > 0) || !q?.extra?.type,
+        );
 
-export const modifyDependency = ({ question }, { dependency }, repeat) => {
-  const questions = question.map((q) => q.id);
-  return dependency.map((d) => {
-    if (questions.includes(d.id) && repeat) {
-      return { ...d, id: `${d.id}-${repeat}` };
-    }
-    return d;
-  });
+        // Process questions with numbering
+        const questionWithNumber = questionList.reduce((curr, q, i) => {
+          const transformedQuestion = transformed.find((t) => t.id === q.id);
+          if (!transformedQuestion) return curr;
+
+          // Filter out questions based on dependencies, etc.
+          if (!onFilterDependency(qg, currentValues, transformedQuestion)) {
+            return curr;
+          }
+
+          if (q?.default_value && i === 0) {
+            return [
+              {
+                ...transformedQuestion,
+                keyform: 0,
+                group_id: qg?.id,
+                group_name: qg?.name,
+              },
+            ];
+          }
+          if (q?.default_value && i > 0 && curr.length > 0) {
+            // Only access curr[i-1] if curr has elements
+            return [
+              ...curr,
+              {
+                ...transformedQuestion,
+                keyform: curr[i - 1]?.keyform || i, // Fallback to index if keyform is undefined
+                group_id: qg?.id,
+                group_name: qg?.name,
+              },
+            ];
+          }
+          if (i === 0) {
+            return [
+              {
+                ...transformedQuestion,
+                keyform: 1,
+                group_id: qg?.id,
+                group_name: qg?.name,
+              },
+            ];
+          }
+
+          // Add a safety check to prevent undefined keyform
+          const prevKeyform = curr[i - 1]?.keyform;
+          return [
+            ...curr,
+            {
+              ...transformedQuestion,
+              keyform: prevKeyform !== undefined ? prevKeyform + 1 : i + 1, // Fallback to index+1 if undefined
+              group_id: qg?.id,
+              group_name: qg?.name,
+            },
+          ];
+        }, []);
+
+        transformedQuestions.push(...questionWithNumber);
+      }
+
+      if (transformedQuestions.length > 0) {
+        return {
+          ...translatedQg,
+          id: qg?.id || qgi,
+          question: transformedQuestions,
+        };
+      }
+      return undefined;
+    })
+    .filter((qg) => qg)
+    .filter((qg) => qg.question.length);
+
+  return {
+    ...forms,
+    question_group: questionGroups,
+  };
 };
 
 export const validateDependency = (dependency, value) => {

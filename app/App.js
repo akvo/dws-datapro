@@ -205,9 +205,9 @@ const App = () => {
       currentDbVersion = 2;
     }
 
-    if (currentDbVersion === 3) {
+    if (currentDbVersion === 2) {
       await m03.up(db);
-      currentDbVersion = 4;
+      currentDbVersion = 3;
     }
 
     // eslint-disable-next-line no-console
