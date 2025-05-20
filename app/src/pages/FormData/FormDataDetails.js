@@ -155,9 +155,9 @@ const FormDataDetails = ({ navigation, route }) => {
             <Text style={styles.sectionTitle}>{section.title}</Text>
             {section.data.map((q, qIndex) => {
               const { id, label, type, source, option } = q;
-              const answer = currentValues[id] || currentValues[`${id}-${section.repeatIndex}`];
+              const answer = currentValues?.[id];
 
-              if (q.type === QUESTION_TYPES.attachment && currentValues?.[q.id]) {
+              if (q.type === QUESTION_TYPES.attachment && answer) {
                 const fileName = answer.split('/').pop();
                 const fileExtension = fileName.split('.').pop();
                 if (helpers.isImageFile(fileExtension)) {
@@ -172,10 +172,7 @@ const FormDataDetails = ({ navigation, route }) => {
                   );
                 }
               }
-              if (
-                [QUESTION_TYPES.photo, QUESTION_TYPES.signature].includes(q.type) &&
-                currentValues?.[q.id]
-              ) {
+              if ([QUESTION_TYPES.photo, QUESTION_TYPES.signature].includes(q.type) && answer) {
                 return (
                   <ImageView
                     key={q.id}
