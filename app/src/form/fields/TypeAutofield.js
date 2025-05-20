@@ -31,11 +31,8 @@ const TypeAutofield = ({
         return;
       }
       try {
-        // Extract all questions from the question groups
-        const allQuestions = questions.flatMap((q) => q.question);
-
         // Pass the original fnString and allQuestions to strToFunction
-        const automateValue = strToFunction(nameFnString, currentValues, allQuestions);
+        const automateValue = strToFunction(nameFnString, currentValues, questions);
         if (typeof automateValue === 'function') {
           const answer = automateValue();
           if (answer !== value && (answer || answer === 0)) {
@@ -44,7 +41,7 @@ const TypeAutofield = ({
             // Handle fnColor - supports both string-based function and object lookup
             if (typeof fnColor === 'string') {
               // Use the original fnColor string with allQuestions
-              const fnColorFunction = strToFunction(fnColor, currentValues, allQuestions);
+              const fnColorFunction = strToFunction(fnColor, currentValues, questions);
               if (typeof fnColorFunction === 'function') {
                 const fnColorValue = fnColorFunction();
                 if (fnColorValue && fnColorValue !== fieldColor) {
@@ -93,6 +90,7 @@ const TypeAutofield = ({
         style={{
           fontWeight: 'bold',
           opacity: 1,
+          color: fieldColor ? 'white' : 'black',
         }}
       />
     </View>
