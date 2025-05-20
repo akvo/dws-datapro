@@ -65,7 +65,7 @@ const BatchDetail = ({
               for (let i = 0; i < maxCount; i++) {
                 const questionGroupCopy = {
                   ...qg,
-                  label: i ? `${qg.label} #${i + 1}` : qg.label,
+                  label: `${qg.label} #${i + 1}`,
                 };
                 questionGroupCopy.question = qg.question
                   .filter((q) => {
