@@ -3,6 +3,7 @@ import SubmissionEditing from "./SubmissionEditing";
 import { api, QUESTION_TYPES, store, uiText } from "../../lib";
 import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
+import { validateDependency } from "../../util";
 
 const BatchDetail = ({
   expanded,
@@ -37,31 +38,98 @@ const BatchDetail = ({
       api
         .get(`pending-data/${expanded.id}`)
         .then((res) => {
-          const data = questionGroups.map((qg) => {
-            return {
-              ...qg,
-              question: qg.question
-                .filter((item) => !item?.display_only)
-                .map((q) => {
-                  const findValue = res.data.find(
-                    (d) => d.question === q.id
-                  )?.value;
-                  const findOldValue = res.data.find(
-                    (d) => d.question === q.id
-                  )?.last_value;
-                  return {
-                    ...q,
-                    value: findValue || findValue === 0 ? findValue : null,
-                    lastValue:
-                      findOldValue || findOldValue === 0 ? findOldValue : null,
-                    history:
-                      res.data.find((d) => d.question === q.id)?.history ||
-                      false,
-                  };
-                }),
-            };
+          // Process the data differently for repeatable and non-repeatable question groups
+          const transformedData = [];
+
+          // Process each question group
+          questionGroups.forEach((qg) => {
+            if (qg?.repeatable) {
+              // For repeatable groups, we need to find how many instances of each question exist
+              // Group the response data by question ID
+              const questionOccurrences = {};
+              qg.question.forEach((q) => {
+                // Find all responses for this question
+                const responses = res.data.filter((r) => r.question === q.id);
+                // Track the maximum number of responses for any question in this group
+                const count = responses.length;
+                questionOccurrences[q.id] = count;
+              });
+
+              // Find the maximum count of responses for any question in this group
+              const maxCount = Math.max(
+                ...Object.values(questionOccurrences),
+                0
+              );
+
+              // Create copies of the question group for each response instance
+              for (let i = 0; i < maxCount; i++) {
+                const questionGroupCopy = {
+                  ...qg,
+                  label: i ? `${qg.label} #${i + 1}` : qg.label,
+                };
+                questionGroupCopy.question = qg.question
+                  .filter((q) => {
+                    if (q?.dependency) {
+                      const isValid = q.dependency.some((d) => {
+                        const value = res.data.filter(
+                          (r) => r.question === d.id
+                        )?.[i]?.value;
+                        return validateDependency(d, value);
+                      });
+                      return isValid;
+                    }
+                    return q;
+                  })
+                  .map((q) => {
+                    // Get all responses for this question
+                    const responses = res.data.filter(
+                      (r) => r.question === q.id
+                    );
+
+                    // If the question has a dependency, then get the response
+                    // for the current instance (i) or the first instance (0)
+                    let response = responses?.[i];
+                    if (q?.dependency) {
+                      response = responses?.[i] ||
+                        responses?.[0] || {
+                          value: null,
+                          history: false,
+                        };
+                    }
+                    if (q?.type === QUESTION_TYPES.attachment) {
+                      response = responses.find((r) =>
+                        r.value?.includes(`${q.id}-${i}`)
+                      );
+                    }
+
+                    return {
+                      ...q,
+                      id: i > 0 ? `${q.id}-${i}` : q.id, // Add suffix for duplicate questions
+                      value: response?.value,
+                      history: response?.history || false,
+                    };
+                  });
+                transformedData.push(questionGroupCopy);
+              }
+            } else {
+              // For non-repeatable groups, process as before
+              transformedData.push({
+                ...qg,
+                question: qg.question.flatMap((q) =>
+                  res.data
+                    .filter((r) => r.question === q.id)
+                    .map((d, dx) => ({
+                      ...q,
+                      id: dx ? `${q.id}-${dx}` : q.id,
+                      value: d?.value,
+                      history: d?.history || false,
+                    }))
+                ),
+              });
+            }
           });
-          setRawValue({ ...expanded, data, loading: false });
+
+          setRawValue({ ...expanded, data: transformedData, loading: false });
         })
         .catch((e) => {
           console.error(e);
