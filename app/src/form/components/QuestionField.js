@@ -20,13 +20,18 @@ import styles from '../styles';
 import { FormState } from '../../store';
 import { QUESTION_TYPES } from '../../lib/constants';
 
-const QuestionField = ({ keyform, field: questionField, onChange, value = null }) => {
+const QuestionField = ({
+  keyform,
+  field: questionField,
+  onChange,
+  value = null,
+  questions = [],
+}) => {
   const questionType = questionField?.type;
   const defaultValQuestion = questionField?.default_value || {};
   const displayValue =
     questionField?.hidden || Object.keys(defaultValQuestion).length ? 'none' : 'flex';
   const formFeedback = FormState.useState((s) => s.feedback);
-  const selectedForm = FormState.useState((s) => s.form);
 
   const handleOnChangeField = useCallback(
     (id, val) => {
@@ -39,10 +44,6 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
   );
 
   const renderField = useCallback(() => {
-    const questions =
-      selectedForm && Object.keys(selectedForm).length > 0
-        ? JSON.parse(selectedForm.json)?.question_group
-        : {};
     switch (questionType) {
       case QUESTION_TYPES.date:
         return (
@@ -148,7 +149,7 @@ const QuestionField = ({ keyform, field: questionField, onChange, value = null }
           />
         );
     }
-  }, [selectedForm, questionField, questionType, keyform, value, handleOnChangeField]);
+  }, [questionType, keyform, handleOnChangeField, value, questionField, questions]);
 
   return (
     <View testID="question-view" style={{ display: displayValue }}>
