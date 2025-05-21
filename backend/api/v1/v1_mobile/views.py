@@ -51,7 +51,6 @@ from api.v1.v1_forms.models import Forms, Questions, QuestionTypes, UserForms
 from api.v1.v1_profile.models import Access
 from api.v1.v1_data.models import FormData
 from api.v1.v1_forms.serializers import WebFormDetailSerializer
-from api.v1.v1_forms.constants import SubmissionTypes
 from api.v1.v1_data.serializers import SubmitPendingFormSerializer
 from api.v1.v1_files.serializers import (
     UploadImagesSerializer,
@@ -62,7 +61,6 @@ from utils.custom_helper import CustomPasscode
 from utils.default_serializers import DefaultResponseSerializer
 from utils.custom_serializer_fields import (
     validate_serializers_message,
-    CustomChoiceField,
 )
 from utils import storage
 
@@ -156,10 +154,6 @@ def get_raw_token(request):
             "submittedAt": serializers.DateTimeField(),
             "submitter": serializers.CharField(),
             "geo": serializers.ListField(child=serializers.IntegerField()),
-            "submission_type": CustomChoiceField(
-                choices=SubmissionTypes.FieldStr,
-                required=True,
-            ),
             "answers": serializers.DictField(),
         },
     ),
@@ -210,7 +204,6 @@ def sync_pending_form_data(request, version):
         "geo": request.data.get("geo"),
         "submitter": assignment.name,
         "duration": request.data.get("duration"),
-        "submission_type": request.data.get("submission_type"),
     }
     if request.data.get("uuid"):
         payload["uuid"] = request.data["uuid"]
@@ -540,10 +533,6 @@ def get_datapoint_download_list(request, version):
         FormData.objects.filter(
             administration_id__in=administrations,
             form_id__in=forms,
-            submission_type__in=[
-                SubmissionTypes.registration,
-                SubmissionTypes.monitoring,
-            ],
         )
         .values("uuid")
         .annotate(latest_id=Max("id"))

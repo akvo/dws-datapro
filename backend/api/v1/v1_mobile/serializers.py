@@ -140,7 +140,10 @@ class FormsAndEntityValidation(serializers.PrimaryKeyRelatedField):
 
 
 class MobileAssignmentSerializer(serializers.ModelSerializer):
-    forms = FormsAndEntityValidation(queryset=Forms.objects.all(), many=True)
+    forms = FormsAndEntityValidation(
+        queryset=Forms.objects.filter(parent__isnull=True).all(),
+        many=True
+    )
     administrations = IdAndNameRelatedField(
         queryset=Administration.objects.all(), many=True
     )
