@@ -220,3 +220,14 @@ class FormSeederTestCase(TestCase):
         self.assertEqual(
             question_group["repeat_text"], "Add more"
         )
+
+    def test_form_seeder_with_children(self):
+        seed_administration_test()
+        self.call_command("--test")
+        form_1 = Forms.objects.get(pk=1)
+        form_2 = Forms.objects.get(pk=2)
+
+        self.assertEqual(form_1.name, "Test Form")
+        self.assertEqual(form_2.name, "Test Form 2")
+        self.assertEqual(form_1.children.count(), 1)
+        self.assertEqual(form_2.children.count(), 0)

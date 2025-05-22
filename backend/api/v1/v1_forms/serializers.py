@@ -296,9 +296,16 @@ class ListAdministrationCascadeSerializer(serializers.ModelSerializer):
         fields = ["value", "label", "children"]
 
 
+class FormChildrenSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Forms
+        fields = ["id", "version", "name"]
+
+
 class WebFormDetailSerializer(serializers.ModelSerializer):
     question_group = serializers.SerializerMethodField()
     cascades = serializers.SerializerMethodField()
+    children = FormChildrenSerializer(many=True)
 
     @extend_schema_field(ListQuestionGroupSerializer(many=True))
     def get_question_group(self, instance: Forms):
@@ -337,6 +344,7 @@ class WebFormDetailSerializer(serializers.ModelSerializer):
             "approval_instructions",
             "parent",
             "question_group",
+            "children",
         ]
 
 
