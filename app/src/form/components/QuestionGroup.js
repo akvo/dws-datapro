@@ -56,7 +56,7 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
           ref={listRef}
           sections={group.sections}
           keyExtractor={(item, itemIndex) => `question-${item.id}-${itemIndex}`}
-          renderItem={({ item }) => {
+          renderItem={({ item, section }) => {
             const fieldValue = values?.[item.id];
 
             return (
@@ -66,6 +66,7 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
                   field={item}
                   onChange={handleOnChange}
                   value={fieldValue}
+                  questions={section.data}
                 />
               </View>
             );
@@ -99,7 +100,7 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
                 field={field}
                 onChange={handleOnChange}
                 value={fieldValue}
-                questions={questions}
+                questions={activeQuestions}
               />
             </View>
           );

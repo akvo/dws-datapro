@@ -29,8 +29,7 @@ const TypeNumber = ({
   useEffect(() => {
     if (typeof fnColor === 'string') {
       try {
-        const allQuestions = questions.flatMap((q) => q.question);
-        const fnColorFunction = strToFunction(fnColor, { [id]: value }, allQuestions);
+        const fnColorFunction = strToFunction(fnColor, { [id]: value }, questions);
         if (typeof fnColorFunction === 'function') {
           const fnColorValue = fnColorFunction();
           if (fnColorValue && fnColorValue !== fieldColor) {
@@ -42,7 +41,7 @@ const TypeNumber = ({
         console.error('Error in fnColor function:', error);
       }
     }
-  }, [fnColor, fieldColor, id, value, questions]);
+  }, [fnColor, fieldColor, id, value, questions, keyform]);
 
   return (
     <View>
@@ -51,6 +50,9 @@ const TypeNumber = ({
         inputContainerStyle={{
           ...styles.inputFieldContainer,
           backgroundColor: fieldColor || 'white',
+        }}
+        style={{
+          color: fieldColor ? 'white' : 'black',
         }}
         keyboardType="numeric"
         onChangeText={(val) => {

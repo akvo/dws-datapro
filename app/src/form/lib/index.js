@@ -154,7 +154,7 @@ export const transformForm = (
                     ? transformedQuestion.id
                     : `${transformedQuestion.id}-${repeatIndex}`,
                 keyform: `${repeatIndex + 1}.${qx + 1}`, // Ensure keyform is defined
-                group_id: qg?.id,
+                group_id: qgi,
                 group_name: qg?.name,
               };
             })
