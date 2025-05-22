@@ -133,6 +133,7 @@ class MobileAssignmentApiTest(TestCase):
                 'approval_instructions',
                 'parent',
                 'question_group',
+                'children',
             ],
         )
 

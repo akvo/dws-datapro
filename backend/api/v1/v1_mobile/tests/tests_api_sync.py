@@ -27,7 +27,7 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
         ).all()[:2]
         self.administration = adm1
         self.administration2 = adm2
-        self.form = Forms.objects.first()
+        self.form = Forms.objects.filter(parent__isnull=True).first()
 
         role = UserRoleTypes.admin
         self.user_access = Access.objects.create(
