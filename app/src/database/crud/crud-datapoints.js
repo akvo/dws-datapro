@@ -37,29 +37,32 @@ const dataPointsQuery = () => ({
   },
   saveDataPoint: async (
     db,
-    { form, user, name, geo, submitted, duration, json, submissionType, repeats },
+    { uuid, form, user, name, geo, submitted, duration, json, repeats, syncedAt },
   ) => {
     const repeatsVal = repeats ? { repeats } : {};
     const submittedAt = submitted ? { submittedAt: new Date().toISOString() } : {};
     const geoVal = geo ? { geo } : {};
+    const uuidVal = uuid ? { uuid } : {};
+    const syncedAtVal = syncedAt ? { syncedAt } : {};
     const res = await sql.insertRow(db, 'datapoints', {
       form,
       user,
       name,
-      ...geoVal,
       submitted,
       duration,
       createdAt: new Date().toISOString(),
       json: json ? JSON.stringify(json).replace(/'/g, "''") : null,
-      submission_type: submissionType,
+      ...geoVal,
       ...submittedAt,
       ...repeatsVal,
+      ...uuidVal,
+      ...syncedAtVal,
     });
     return res;
   },
   updateDataPoint: async (
     db,
-    { id, name, geo, submitted, duration, submittedAt, syncedAt, json, submissionType, repeats },
+    { id, name, geo, submitted, duration, submittedAt, syncedAt, json, repeats },
   ) => {
     const repeatsVal = repeats ? { repeats } : {};
     const submittedVal = submitted !== undefined ? { submitted } : {};
@@ -74,7 +77,6 @@ const dataPointsQuery = () => ({
         syncedAt,
         submittedAt: submitted && !submittedAt ? new Date().toISOString() : submittedAt,
         json: json ? JSON.stringify(json).replace(/'/g, "''") : null,
-        submission_type: submissionType,
         ...submittedVal,
         ...repeatsVal,
       },
@@ -88,6 +90,25 @@ const dataPointsQuery = () => ({
       { id },
       {
         submitted: 0,
+      },
+    );
+    return res;
+  },
+  getByUUID: async (db, { uuid }) => {
+    const res = await sql.getFirstRow(db, 'datapoints', { uuid });
+    return res;
+  },
+  updateByUUID: async (db, { uuid, json, syncedAt }) => {
+    if (!json || typeof json !== 'object') {
+      return false;
+    }
+    const res = await sql.updateRow(
+      db,
+      'datapoints',
+      { uuid },
+      {
+        json: JSON.stringify(json).replace(/'/g, "''"),
+        syncedAt: syncedAt || new Date().toISOString(),
       },
     );
     return res;
