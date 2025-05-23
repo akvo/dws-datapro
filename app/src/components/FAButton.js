@@ -37,19 +37,20 @@ const FAButton = ({
       testID={testID}
       disabled={disabled}
       style={[
-        styles.floatingButton, 
+        styles.floatingButton,
         { backgroundColor: disabled ? '#cccccc' : backgroundColor },
         disabled && styles.disabledButton,
-        customStyle
+        customStyle,
       ]}
     >
-      <View style={[
-        styles.contentContainer,
-        iconPosition === 'right' && styles.contentReverse
-      ]}>
+      <View style={[styles.contentContainer, iconPosition === 'right' && styles.contentReverse]}>
         {icon?.name && iconPosition === 'left' && (
           <View style={styles.iconContainerLeft}>
-            <Icon name={icon.name} size={icon?.size || 18} color={disabled ? '#999999' : (icon?.color || 'white')} />
+            <Icon
+              name={icon.name}
+              size={icon?.size || 18}
+              color={disabled ? '#999999' : icon?.color || 'white'}
+            />
           </View>
         )}
         <Text
@@ -61,7 +62,11 @@ const FAButton = ({
         </Text>
         {icon?.name && iconPosition === 'right' && (
           <View style={styles.iconContainerRight}>
-            <Icon name={icon.name} size={icon?.size || 18} color={disabled ? '#999999' : (icon?.color || 'white')} />
+            <Icon
+              name={icon.name}
+              size={icon?.size || 18}
+              color={disabled ? '#999999' : icon?.color || 'white'}
+            />
           </View>
         )}
       </View>
