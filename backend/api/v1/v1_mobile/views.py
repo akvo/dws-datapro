@@ -18,7 +18,7 @@ from iwsims.settings import (
 )
 from django.http import HttpResponse
 from django.utils import timezone
-from django.db.models import Max, Q, OuterRef, Exists
+from django.db.models import Q, OuterRef, Exists
 
 from rest_framework import status, serializers
 from rest_framework.response import Response
@@ -32,7 +32,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.parsers import MultiPartParser
 from rest_framework.views import APIView
 
-from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     OpenApiParameter,
     extend_schema,
@@ -502,22 +501,6 @@ class MobileAssignmentViewSet(ModelViewSet):
             },
         )
     },
-    parameters=[
-        # parameter for data type
-        # certification = true, default false
-        OpenApiParameter(
-            name="certification",
-            required=False,
-            description="If true, only return certified datapoints",
-            type=OpenApiTypes.BOOL,
-        ),
-        OpenApiParameter(
-            name="page",
-            required=True,
-            type=OpenApiTypes.NUMBER,
-            location=OpenApiParameter.QUERY,
-        ),
-    ],
     tags=["Mobile Device Form"],
     summary="GET Download List for Syncing Datapoints",
 )
@@ -529,20 +512,9 @@ def get_datapoint_download_list(request, version):
     administrations = assignment.administrations.values("id")
     paginator = Pagination()
 
-    latest_ids_per_uuid = (
-        FormData.objects.filter(
-            administration_id__in=administrations,
-            form_id__in=forms,
-        )
-        .values("uuid")
-        .annotate(latest_id=Max("id"))
-        .values_list("latest_id", flat=True)
-    )
-
     queryset = FormData.objects.filter(
         administration_id__in=administrations,
         form_id__in=forms,
-        pk__in=latest_ids_per_uuid,
     )
     if assignment.last_synced_at:
         queryset = queryset.filter(
