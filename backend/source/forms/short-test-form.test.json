@@ -86,19 +86,6 @@
           "meta": true,
           "options": null,
           "fn": null
-        },
-        {
-          "id": 17029148037321,
-          "order": 5,
-          "name": "household_code",
-          "label": "Household Code",
-          "short_label": "Code",
-          "type": "text",
-          "tooltip": null,
-          "required": false,
-          "meta": false,
-          "options": null,
-          "dependency": null
         }
       ]
     },

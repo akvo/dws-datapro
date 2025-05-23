@@ -17,32 +17,8 @@
   },
   "question_groups": [
     {
-      "id": 169935391538211,
-      "order": 1,
-      "name": "household_location",
-      "label": "HOUSEHOLD: Location",
-      "description": null,
-      "repeatable": false,
-      "translations": null,
-      "questions": [
-        {
-          "id": 170291480373211,
-          "order": 1,
-          "name": "household_code",
-          "label": "Household Code",
-          "short_label": "Code",
-          "type": "text",
-          "tooltip": null,
-          "required": false,
-          "meta": false,
-          "options": null,
-          "dependency": null
-        }
-      ]
-    },
-    {
       "id": 169941795874711,
-      "order": 2,
+      "order": 1,
       "name": "interview_household_primary_information",
       "label": "INTERVIEW: Household Primary information",
       "description": null,
@@ -322,7 +298,7 @@
     },
     {
       "id": 169942228609011,
-      "order": 3,
+      "order": 2,
       "name": "observation_toilet_outcomes",
       "label": "OBSERVATION: TOILET OUTCOMES",
       "description": null,
@@ -763,7 +739,7 @@
     },
     {
       "id": 170308627025311,
-      "order": 4,
+      "order": 3,
       "name": "summary_of_outcomes",
       "label": "Summary of Outcomes",
       "description": "This section shows the summary of the outcomes for all toilet and hand washing indicators",
@@ -939,7 +915,7 @@
     },
     {
       "id": 170308627000081,
-      "order": 5,
+      "order": 4,
       "name": "attachments",
       "label": "Attachments",
       "description": "Please upload the required documents to finalize your submission.",
@@ -1045,7 +1021,7 @@
       "name": "testimonials",
       "label": "Testimonials",
       "description": "Grab all the testimonials you can get from your clients and add them here.",
-      "order": 6,
+      "order": 5,
       "repeatable": true,
       "repeatText": "Client testimonial",
       "questions": [
