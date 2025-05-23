@@ -13,8 +13,10 @@ const selectDataPointById = async (db, { id }) => {
 
 const dataPointsQuery = () => ({
   selectDataPointById,
-  selectDataPointsByFormAndSubmitted: async (db, { form, submitted, user }) => {
-    const columns = user ? { form, submitted, user } : { form, submitted };
+  selectDataPointsByFormAndSubmitted: async (db, { form, submitted, user, uuid }) => {
+    const uuidVal = uuid ? { uuid } : {};
+    const userVal = user ? { user } : {};
+    const columns = { form, submitted, ...userVal, ...uuidVal };
     const rows = sql.getFilteredRows(db, 'datapoints', { ...columns }, 'syncedAt', 'DESC', true);
     return rows;
   },
@@ -37,13 +39,14 @@ const dataPointsQuery = () => ({
   },
   saveDataPoint: async (
     db,
-    { uuid, form, user, name, geo, submitted, duration, json, repeats, syncedAt },
+    { uuid, form, user, name, geo, submitted, duration, json, repeats, syncedAt, administrationId },
   ) => {
     const repeatsVal = repeats ? { repeats } : {};
     const submittedAt = submitted ? { submittedAt: new Date().toISOString() } : {};
     const geoVal = geo ? { geo } : {};
     const uuidVal = uuid ? { uuid } : {};
     const syncedAtVal = syncedAt ? { syncedAt } : {};
+    const admVal = administrationId ? { administrationId } : {};
     const res = await sql.insertRow(db, 'datapoints', {
       form,
       user,
@@ -57,6 +60,7 @@ const dataPointsQuery = () => ({
       ...repeatsVal,
       ...uuidVal,
       ...syncedAtVal,
+      ...admVal,
     });
     return res;
   },
@@ -112,6 +116,18 @@ const dataPointsQuery = () => ({
       },
     );
     return res;
+  },
+  countSavedDatapoints: async (db, { form }) => {
+    const rows = await sql.executeQuery(
+      db,
+      `
+        SELECT
+          COUNT(*) AS total
+        FROM datapoints
+        WHERE form = ? AND submitted = 0`,
+      [form],
+    );
+    return rows[0]?.total || 0;
   },
 });
 
