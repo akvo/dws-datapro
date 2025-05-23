@@ -152,7 +152,7 @@ const Submission = ({ navigation, route }) => {
           activeOpacity={0.6}
         >
           <View style={totalSavedData ? styles.redDot : styles.redDotHide} />
-          <Icon name="cloud-offline-outline" size={24} color="#677483" />
+          <Icon name="folder-open-outline" size={24} color="#677483" />
         </TouchableOpacity>
       }
     >

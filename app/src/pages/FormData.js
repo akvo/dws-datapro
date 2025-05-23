@@ -181,7 +181,8 @@ const FormDataPage = ({ navigation, route }) => {
 
   return (
     <BaseLayout
-      title={route?.params?.name}
+      title={trans.manageEditSavedForm}
+      subTitle={route?.params?.name}
       search={{
         show: true,
         placeholder: trans.formDataSearch,
