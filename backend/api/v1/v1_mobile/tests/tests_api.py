@@ -54,6 +54,7 @@ class MobileAssignmentApiTest(TestCase):
             dict(serializer.data['formsUrl'][0]),
             {
                 'id': self.forms[0].id,
+                'parentId': None,
                 'version': str(self.forms[0].version),
                 'url': f'/form/{self.forms[0].id}',
             },
@@ -78,6 +79,7 @@ class MobileAssignmentApiTest(TestCase):
             dict(response.data['formsUrl'][0]),
             {
                 'id': self.forms[0].id,
+                'parentId': None,
                 'version': str(self.forms[0].version),
                 'url': f'/form/{self.forms[0].id}',
             },
@@ -133,7 +135,6 @@ class MobileAssignmentApiTest(TestCase):
                 'approval_instructions',
                 'parent',
                 'question_group',
-                'children',
             ],
         )
 
