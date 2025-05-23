@@ -47,6 +47,33 @@ class MobileFormsApiTest(TestCase, AssignmentTokenTestHelperMixin):
         )
         self.mobile_assignment.forms.add(self.form)
 
+    def test_get_forms_list(self):
+        code = {"code": self.passcode}
+        response = self.client.post(
+            "/api/v1/device/auth",
+            code,
+            content_type="application/json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(len(data["formsUrl"]), 2)
+
+        form_children = Forms.objects.filter(
+            parent=self.form
+        ).values_list("id", flat=True)
+        # Check if the form children are included in the response
+        for form_id in form_children:
+            self.assertIn(
+                {
+                    "id": form_id,
+                    "parentId": self.form.id,
+                    "version": str(self.form.version),
+                    "url": f"/form/{form_id}",
+                },
+                data["formsUrl"],
+            )
+
     def test_get_form_details(self):
         token = self.get_assignmen_token(self.passcode)
         response = self.client.get(
@@ -67,17 +94,9 @@ class MobileFormsApiTest(TestCase, AssignmentTokenTestHelperMixin):
                 "approval_instructions",
                 "parent",
                 "question_group",
-                "children",
             ],
         )
         self.assertEqual(data["id"], self.form.id)
         self.assertEqual(data["name"], self.form.name)
         self.assertEqual(data["version"], self.form.version)
         self.assertEqual(data["parent"], None)
-        self.assertEqual(data["children"], [
-            {
-                "id": 40004,
-                "version": 1,
-                "name": "Test Form 4 Monitoring",
-            }
-        ])
