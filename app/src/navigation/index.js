@@ -7,7 +7,6 @@ import * as Sentry from '@sentry/react-native';
 
 import {
   HomePage,
-  ManageFormPage,
   FormDataPage,
   GetStartedPage,
   AuthFormPage,
@@ -78,7 +77,6 @@ const RootNavigator = () => {
       ) : (
         <>
           <Stack.Screen name="Home" component={HomePage} />
-          <Stack.Screen name="ManageForm" component={ManageFormPage} />
           <Stack.Screen name="FormData" component={FormDataPage} />
           <Stack.Screen name="Settings" component={SettingsPage} />
           <Stack.Screen name="About" component={AboutPage} />
@@ -103,7 +101,7 @@ const Navigation = () => {
   const handleOnChangeNavigation = (state) => {
     // listen to route change
     const currentRoute = state.routes[state.routes.length - 1].name;
-    if (['Home', 'ManageForm'].includes(currentRoute)) {
+    if (['Home'].includes(currentRoute)) {
       // reset form values
       FormState.update((s) => {
         s.currentValues = {};
