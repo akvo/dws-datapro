@@ -12,6 +12,7 @@ import { crudDataPoints } from '../database/crud';
 const Submission = ({ navigation, route }) => {
   const [search, setSearch] = useState('');
   const [data, setData] = useState([]);
+  const [totalSavedData, setTotalSavedData] = useState(0);
 
   const activeForm = FormState.useState((s) => s.form);
   const activeLang = UIState.useState((s) => s.lang);
@@ -27,7 +28,7 @@ const Submission = ({ navigation, route }) => {
     [data, search],
   );
 
-  const goToNewForm = useCallback(() => {
+  const goToNewForm = () => {
     FormState.update((s) => {
       s.surveyStart = getCurrentTimestamp();
       s.prevAdmAnswer = null;
@@ -36,19 +37,41 @@ const Submission = ({ navigation, route }) => {
       ...route?.params,
       newSubmission: true,
     });
-  }, [navigation, route]);
+  };
+
+  const goToDetails = (item) => {
+    const { json: valuesJSON, name: dataPointName } = item;
+
+    FormState.update((s) => {
+      /**
+       * Double parse to ensure that the JSON is correctly formatted
+       * and to handle cases where the JSON string contains escaped quotes.
+       */
+      const jsonData = typeof valuesJSON === 'string' ? JSON.parse(valuesJSON) : valuesJSON;
+      s.currentValues = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+    });
+
+    navigation.navigate('FormDataDetails', { name: dataPointName });
+  };
+
+  const goToFormOptions = (item) => {
+    const { id, name, uuid } = item;
+    navigation.navigate('FormOptions', {
+      id,
+      name,
+      uuid,
+      formId: activeForm.formId,
+    });
+  };
+
+  const goToSavedData = () => {
+    navigation.navigate('FormData', { ...route?.params, showSubmitted: false });
+  };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity
       key={item.id}
-      onPress={() =>
-        navigation.navigate('FormOptions', {
-          id: item.id,
-          name: item.name,
-          uuid: item.uuid,
-          formId: activeForm.formId,
-        })
-      }
+      onPress={() => (activeForm?.parentId ? goToDetails(item) : goToFormOptions(item))}
       testID={`submission-item-${item.id}`}
       style={styles.itemContainer}
       activeOpacity={0.6}
@@ -62,7 +85,6 @@ const Submission = ({ navigation, route }) => {
       </View>
       <View style={styles.itemContent}>
         <Text style={styles.itemTitle}>{item.name}</Text>
-        <Text style={styles.itemAdministration}>Administration: {item.administration}</Text>
         <Text style={styles.itemDate}>
           {trans.createdLabel} {item.createdAt}
         </Text>
@@ -71,10 +93,30 @@ const Submission = ({ navigation, route }) => {
   );
 
   const fetchData = useCallback(async () => {
+    if (!activeForm.id) {
+      return;
+    }
+    /**
+     * Get the total number of saved data points
+     */
+    const totalSaved = await crudDataPoints.countSavedDatapoints(db, {
+      form: activeForm.id,
+    });
+    setTotalSavedData(totalSaved);
+    /**
+     * Fetch data points from the database based on the active form ID and user ID.
+     * The data points are filtered by the submitted status (1 for submitted).
+     * The results are then formatted to include
+     * createdAt and syncedAt dates in a readable format.
+     * The syncedAt date is set to '-' if it is null.
+     * The isSynced property is set to true if syncedAt is not null.
+     * The data points are then set to the state variable 'data'.
+     */
     let rows = await crudDataPoints.selectDataPointsByFormAndSubmitted(db, {
       form: activeForm.id,
       submitted: 1,
       user: activeUserId,
+      uuid: route?.params?.uuid || null,
     });
     rows = rows.map((res) => {
       const createdAt = moment(res.createdAt).format('DD/MM/YYYY hh:mm A');
@@ -87,7 +129,7 @@ const Submission = ({ navigation, route }) => {
       };
     });
     setData(rows);
-  }, [activeForm.id, activeUserId, db]);
+  }, [activeForm.id, activeUserId, db, route?.params?.uuid]);
 
   useEffect(() => {
     fetchData();
@@ -102,7 +144,17 @@ const Submission = ({ navigation, route }) => {
         value: search,
         action: setSearch,
       }}
-      rightComponent={false}
+      rightComponent={
+        <TouchableOpacity
+          onPress={goToSavedData}
+          testID="draft-submission-button"
+          style={{ padding: 8 }}
+          activeOpacity={0.6}
+        >
+          <View style={totalSavedData ? styles.redDot : styles.redDotHide} />
+          <Icon name="cloud-offline-outline" size={24} color="#677483" />
+        </TouchableOpacity>
+      }
     >
       <BaseLayout.Content>
         <View style={styles.container}>
@@ -164,14 +216,21 @@ const styles = StyleSheet.create({
     color: '#212121',
     marginBottom: 4,
   },
-  itemAdministration: {
-    fontSize: 14,
-    color: '#757575',
-    marginBottom: 2,
-  },
   itemDate: {
     fontSize: 12,
     color: '#9e9e9e',
+  },
+  redDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: '#FF0000',
+    position: 'absolute',
+    top: 10,
+    right: 10,
+  },
+  redDotHide: {
+    display: 'none',
   },
 });
 
