@@ -62,6 +62,7 @@ class FormSeederTestCase(TestCase):
             "EPS Inspection",
             "EPS Water Quality Testing Monitoring",
             "Short HH Monitoring",
+            "Short HH Attachments & Testimonials",
             "Water Treatment Plant Monitoring",
             "Rural Water Supply Monitoring",
             "EPS Inspection Monitoring",
