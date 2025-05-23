@@ -22,11 +22,9 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
             first_name="test",
             last_name="testing",
         )
-        adm1, adm2 = Administration.objects.filter(
-            level__gt=0
-        ).all()[:2]
-        self.administration = adm1
-        self.administration2 = adm2
+        self.administration = Administration.objects.filter(
+            administration_data_approval__isnull=False,
+        ).last()
         self.form = Forms.objects.filter(parent__isnull=True).first()
 
         role = UserRoleTypes.admin
