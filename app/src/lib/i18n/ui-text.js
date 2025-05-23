@@ -123,6 +123,7 @@ const uiText = {
     confirmText: 'Apply signature',
     openSignatureButton: 'Open Signature Pad',
     changeSignatureButton: 'Change Signature',
+    newSubmissionText: 'New Submission',
   },
   fr: {
     latitude: 'Latitude',
@@ -240,6 +241,7 @@ const uiText = {
     confirmText: 'Appliquer la signature',
     openSignatureButton: 'Ouvrir le pad de signature',
     changeSignatureButton: 'Changer la signature',
+    newSubmissionText: 'Nouvelle soumission',
   },
 };
 
