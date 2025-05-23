@@ -27,13 +27,13 @@ export const downloadDatapointsJson = async (
     const response = await api.get(url);
     if (response.status === 200) {
       const jsonData = response.data;
-      const { uuid, datapoint_name: name, geolocation: geo } = jsonData || {};
+      const { uuid, datapoint_name: name, geolocation: geo, answers } = jsonData || {};
       const form = await crudForms.getByFormId(db, { formId });
       const isExists = await crudDataPoints.getByUUID(db, { uuid });
       if (isExists) {
         await crudDataPoints.updateByUUID(db, {
           uuid,
-          json: { ...jsonData, administrationId },
+          json: answers,
           syncedAt: lastUpdated,
         });
       } else {
@@ -42,11 +42,12 @@ export const downloadDatapointsJson = async (
           user,
           geo,
           name,
+          administrationId,
           form: form?.id,
           submitted: 1,
           duration: 0,
           createdAt: new Date().toISOString(),
-          json: { ...jsonData, administrationId },
+          json: answers,
           syncedAt: lastUpdated,
         });
       }
