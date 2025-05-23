@@ -21,7 +21,6 @@ import {
   FormDataDetailsPage,
   AddNewForm,
   AboutPage,
-  UpdateForm,
   SubmissionPage,
   FormOptionsPage,
 } from '../pages';
@@ -85,7 +84,6 @@ const RootNavigator = () => {
           <Stack.Screen name="About" component={AboutPage} />
           <Stack.Screen name="SettingsForm" component={SettingsFormPage} />
           <Stack.Screen name="FormPage" component={FormPage} />
-          <Stack.Screen name="UpdateForm" component={UpdateForm} />
           <Stack.Screen name="MapView" component={MapViewPage} />
           <Stack.Screen name="AddUser" component={AddUserPage} />
           <Stack.Screen name="Users" component={UsersPage} />
