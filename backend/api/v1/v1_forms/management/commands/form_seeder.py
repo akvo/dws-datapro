@@ -52,9 +52,26 @@ class Command(BaseCommand):
             source_files = list(filter(lambda x: "prod" in x, source_files))
         if JSON_FILE:
             source_files = [f"{source_folder}{JSON_FILE}.prod.json"]
+
+        # Sort forms based on parent_id: forms without parent_id first,
+        # then forms with parent_id
+        parent_forms = []
+        child_forms = []
+
         for source in source_files:
-            json_form = open(source, 'r')
-            json_form = json.load(json_form)
+            with open(source, 'r') as f:
+                json_form = json.load(f)
+                if json_form.get("parent_id"):
+                    child_forms.append(source)
+                else:
+                    parent_forms.append(source)
+
+        # Process all form sources in the correct order
+        # (parents first, then children)
+        for source in parent_forms + child_forms:
+            with open(source, 'r') as f:
+                json_form = json.load(f)
+
             form = Forms.objects.filter(id=json_form["id"]).first()
             QA.objects.filter(question__form=form).all().delete()
             if not form:
@@ -67,8 +84,11 @@ class Command(BaseCommand):
                     ),
                 )
                 if json_form.get("parent_id"):
-                    form.parent_id = json_form["parent_id"]
-                    form.save()
+                    parent = Forms.objects.filter(
+                        id=json_form["parent_id"]).first()
+                    if parent:
+                        form.parent = parent
+                        form.save()
                 if not TEST:
                     self.stdout.write(
                         f"Form Created | {form.name} V{form.version}")
