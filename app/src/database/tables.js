@@ -29,6 +29,7 @@ const tables = [
     name: 'forms',
     fields: {
       id: 'INTEGER PRIMARY KEY NOT NULL',
+      parentId: 'INTEGER NULL',
       userId: 'INTEGER NULL',
       formId: 'INTEGER NOT NULL',
       version: 'VARCHAR(255)',
@@ -55,6 +56,7 @@ const tables = [
       json: 'TEXT',
       submission_type: 'INTEGER DEFAULT "1" NOT NULL',
       uuid: 'VARCHAR(191)',
+      repeats: 'TEXT',
     },
   },
   {
