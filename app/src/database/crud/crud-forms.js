@@ -77,6 +77,33 @@ const formsQuery = () => ({
     const row = await sql.getFirstRow(db, 'forms', { formId });
     return row;
   },
+  getFormOptions: async (db, { parentId, uuid }) => {
+    const selectJoin = `SELECT
+          f.id,
+          f.userId,
+          f.formId,
+          f.version,
+          f.name,
+          f.json,
+          COUNT(
+            DISTINCT CASE WHEN dp.submitted = 1
+            THEN dp.id END
+          ) AS submitted,
+          COUNT(
+            DISTINCT CASE WHEN dp.submitted = 0
+            AND dp.syncedAt IS NULL THEN dp.id END
+          ) AS draft,
+          COUNT(
+            DISTINCT CASE WHEN dp.submitted = 1
+            AND dp.syncedAt IS NOT NULL THEN dp.id END
+          ) AS synced
+        FROM forms f
+        LEFT JOIN datapoints dp ON f.id = dp.form AND dp.uuid = ?
+        WHERE f.parentId = ?
+        GROUP BY f.id, f.formId, f.version, f.name, f.json;`;
+    const rows = await sql.executeQuery(db, selectJoin, [uuid, parentId, uuid]);
+    return rows;
+  },
 });
 
 const crudForms = formsQuery();
