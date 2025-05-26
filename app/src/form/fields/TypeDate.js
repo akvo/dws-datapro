@@ -16,6 +16,7 @@ const TypeDate = ({
   requiredSign = '*',
   disabled = false,
   tooltip = null,
+  onFocus = null,
 }) => {
   const [showDatepicker, setShowDatePicker] = useState(false);
 
@@ -25,12 +26,20 @@ const TypeDate = ({
   const datePickerValue = getDate(value);
   const requiredValue = required ? requiredSign : null;
   const dateValue = value ? moment(value).format('YYYY-MM-DD') : value;
+
+  const handleFocus = () => {
+    if (onFocus) {
+      onFocus();
+    }
+  };
+
   return (
     <View>
       <FieldLabel keyform={keyform} name={label} tooltip={tooltip} requiredSign={requiredValue} />
       <Input
         inputContainerStyle={styles.inputFieldContainer}
         onPressIn={() => setShowDatePicker(true)}
+        onFocus={handleFocus}
         showSoftInputOnFocus={false}
         testID="type-date"
         value={dateValue}
