@@ -21,14 +21,7 @@ import {
   Modal,
 } from "antd";
 import axios from "axios";
-import {
-  api,
-  config,
-  IS_ADMIN,
-  QUESTION_TYPES,
-  store,
-  uiText,
-} from "../../lib";
+import { api, IS_ADMIN, QUESTION_TYPES, store, uiText } from "../../lib";
 import { pick, isEmpty } from "lodash";
 import { PageLoader, Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
@@ -404,9 +397,6 @@ const Forms = () => {
         : authUser.administration.id,
       name: datapointName,
       geo: geo || null,
-      submission_type: uuid
-        ? config.submissionType.monitoring
-        : config.submissionType.registration,
       ...(uuid && { uuid }),
     };
 
