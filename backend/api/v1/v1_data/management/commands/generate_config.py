@@ -26,7 +26,7 @@ class Command(BaseCommand):
                     "level": level.level,
                 }
             )
-        for form in Forms.objects.filter(parent__isnull=True).all():
+        for form in Forms.objects.all():
             forms.append(
                 {
                     "id": form.id,
