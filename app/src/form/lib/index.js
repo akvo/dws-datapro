@@ -1,6 +1,5 @@
 import * as Yup from 'yup';
-import { helpers, i18n } from '../../lib';
-import { SUBMISSION_TYPES } from '../../lib/constants';
+import { i18n } from '../../lib';
 
 export const intersection = (array1, array2) => {
   const set1 = new Set(array1);
@@ -58,7 +57,6 @@ export const transformForm = (
   forms,
   currentValues,
   lang = 'en',
-  submissionType = SUBMISSION_TYPES.registration,
   repeatState = {},
   prevAdmAnswer = null,
 ) => {
@@ -85,21 +83,8 @@ export const transformForm = (
       }
       return q;
     });
-  const filteredQuestions = questions
-    .map((q) => {
-      const subTypeName = helpers.flipObject(SUBMISSION_TYPES)?.[submissionType];
-      const disabled = q?.disabled ? q.disabled?.submission_type?.includes(subTypeName) : false;
-      // handle hidden question
-      const hidden = q?.hidden ? q.hidden?.submission_type?.includes(subTypeName) : false;
-      return {
-        ...q,
-        disabled,
-        hidden,
-      };
-    })
-    .filter((q) => !q?.hidden); // remove hidden question from question lists
 
-  const transformed = filteredQuestions.map((x) => {
+  const transformed = questions.map((x) => {
     let requiredSignTemp = x?.requiredSign || null;
     if (x?.required && !x?.requiredSign) {
       requiredSignTemp = '*';
@@ -108,7 +93,7 @@ export const transformForm = (
       return {
         ...x,
         requiredSign: requiredSignTemp,
-        dependency: getDependencyAncestors(filteredQuestions, x.dependency, x.dependency),
+        dependency: getDependencyAncestors(questions, x.dependency, x.dependency),
       };
     }
     return {
@@ -342,7 +327,7 @@ export const generateValidationSchemaFieldLevel = async (currentValue, field) =>
   }
 };
 
-export const generateDataPointName = (forms, currentValues, cascades = {}) => {
+export const generateDataPointName = (forms, currentValues, cascades = {}, datapoint = null) => {
   const dataPointNameValues = forms?.question_group?.length
     ? forms.question_group
         .filter((qg) => !qg?.repeatable)
@@ -353,13 +338,19 @@ export const generateDataPointName = (forms, currentValues, cascades = {}) => {
           return { id: q.id, type: q.type, value };
         })
     : [];
-  const geoQuestion = forms?.question_group
-    ?.flatMap((qg) => qg?.question)
-    ?.find((q) => q?.type === 'geo');
   const dpName = dataPointNameValues
     .filter((d) => d.type !== 'geo' && (d.value || d.value === 0))
     .map((x) => x.value)
     .join(' - ');
+  if (datapoint?.geo) {
+    if (!dpName || `${dpName}`.trim() === '') {
+      return { dpName: datapoint.name || '', dpGeo: datapoint.geo };
+    }
+    return { dpName, dpGeo: datapoint.geo };
+  }
+  const geoQuestion = forms?.question_group
+    ?.flatMap((qg) => qg?.question)
+    ?.find((q) => q?.type === 'geo');
   const [lat, lng] =
     dataPointNameValues.find((d) => d.type === 'geo')?.value ||
     currentValues?.[geoQuestion?.id] ||
