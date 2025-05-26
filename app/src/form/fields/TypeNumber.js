@@ -60,6 +60,7 @@ const TypeNumber = ({
             onChange(id, val);
           }
         }}
+        defaultValue={value === null || typeof value === 'undefined' ? '' : String(value)}
         value={value}
         testID="type-number"
         {...addPreffix(addonBefore)}
