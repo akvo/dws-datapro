@@ -11,7 +11,6 @@ import {
   Modal,
   Button,
   Space,
-  Tag,
 } from "antd";
 import {
   LeftCircleOutlined,
@@ -84,23 +83,6 @@ const MonitoringDetail = () => {
       key: "name",
     },
     {
-      title: "Type",
-      dataIndex: "submission_type",
-      key: "submission_type",
-      render: (cell) => {
-        const indexType = Object.values(config?.submissionType).findIndex(
-          (st) => st === cell
-        );
-        const subTypeName =
-          Object.keys(config.submissionType)?.[indexType] || "registration";
-        return (
-          <Tag color={config.submissionTypeColor?.[subTypeName]}>
-            {subTypeName}
-          </Tag>
-        );
-      },
-    },
-    {
       title: "User",
       dataIndex: "created_by",
     },
@@ -145,7 +127,7 @@ const MonitoringDetail = () => {
   useEffect(() => {
     if (form && !updateRecord) {
       setLoading(true);
-      const url = `/form-data/${form}/?page=${currentPage}&parent=${parentId}&submission_type=${config.submissionType.monitoring}`;
+      const url = `/form-data/${form}/?page=${currentPage}&parent=${parentId}`;
       api
         .get(url)
         .then((res) => {
