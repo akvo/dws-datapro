@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ActivityIndicator } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { BaseLayout } from '../components';
 import { FormNavigation, QuestionGroupList } from './support';
@@ -45,6 +45,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [showQuestionGroupList, setShowQuestionGroupList] = useState(false);
   const [datapoint, setDatapoint] = useState(null);
+  const [fillingForm, setFillingForm] = useState(true);
   const currentValues = FormState.useState((s) => s.currentValues);
   const cascades = FormState.useState((s) => s.cascades);
   const activeLang = FormState.useState((s) => s.lang);
@@ -178,6 +179,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
   const fetchInitialValues = useCallback(async () => {
     // get initial values from crudDatapoints get by route.params?.uuid
     if (!db || !route?.params?.uuid) {
+      setFillingForm(false);
       return;
     }
     const questionsMap = activeQuestions.reduce((map, question) => {
@@ -191,7 +193,13 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
     if (findDatapoint?.json && !datapoint) {
       const findForm = await crudForms.selectFormById(db, { id: findDatapoint?.form });
       if (findForm?.json) {
-        const dpValues = JSON.parse(findDatapoint.json);
+        let dpValues = JSON.parse(findDatapoint.json);
+        if (typeof dpValues === 'string') {
+          /**
+           * Double parse to ensure that the JSON is correctly formatted
+           */
+          dpValues = JSON.parse(dpValues);
+        }
         const initialValues = JSON.parse(findForm?.json)
           ?.question_group?.flatMap((qg) => qg?.question)
           .reduce((m, q) => {
@@ -205,6 +213,9 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
         FormState.update((s) => {
           s.currentValues = initialValues;
         });
+        setTimeout(() => {
+          setFillingForm(false);
+        }, 500);
       }
       setDatapoint(findDatapoint);
     }
@@ -214,6 +225,21 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
   useEffect(() => {
     fetchInitialValues();
   }, [fetchInitialValues]);
+
+  if (fillingForm) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -236,18 +262,16 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
           )}
         </View>
       </BaseLayout.Content>
-      <View>
-        <FormNavigation
-          currentGroup={currentGroup}
-          onSubmit={handleOnSubmitForm}
-          activeGroup={activeGroup}
-          setActiveGroup={handleOnActiveGroup}
-          totalGroup={formDefinition?.question_group?.length || 0}
-          showQuestionGroupList={showQuestionGroupList}
-          setShowQuestionGroupList={setShowQuestionGroupList}
-          setShowDialogMenu={setShowDialogMenu}
-        />
-      </View>
+      <FormNavigation
+        currentGroup={currentGroup}
+        onSubmit={handleOnSubmitForm}
+        activeGroup={activeGroup}
+        setActiveGroup={handleOnActiveGroup}
+        totalGroup={formDefinition?.question_group?.length || 0}
+        showQuestionGroupList={showQuestionGroupList}
+        setShowQuestionGroupList={setShowQuestionGroupList}
+        setShowDialogMenu={setShowDialogMenu}
+      />
     </>
   );
 };
