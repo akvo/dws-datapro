@@ -82,6 +82,7 @@ class Command(BaseCommand):
                     approval_instructions=json_form.get(
                         'approval_instructions'
                     ),
+                    type=json_form.get("type"),
                 )
                 if json_form.get("parent_id"):
                     parent = Forms.objects.filter(
@@ -106,6 +107,8 @@ class Command(BaseCommand):
                     )
                 else:
                     form.approval_instructions = None
+                if json_form.get("type"):
+                    form.type = json_form.get("type")
                 form.save()
                 if not TEST:
                     self.stdout.write(
