@@ -940,9 +940,29 @@ class CreateBatchSerializer(serializers.Serializer):
             self.context.get("user").user_access.administration.pk
         ]
         # Check if the form has any approvers in the user's administration
-        if not form.form_data_approval.filter(
+        form_approval = form.form_data_approval.filter(
             administration__pk__in=adms
-        ).exists():
+        ).exists()
+        # If no direct form approval exists,
+        # check if any parent form has approvers
+        if not form_approval and hasattr(form, 'parent') and form.parent:
+            # Get all parent forms up the hierarchy
+            parent_forms = []
+            current_form = form.parent
+            while current_form:
+                parent_forms.append(current_form.id)
+                current_form = current_form.parent
+            # Check if any parent form has approval assignments
+            if parent_forms:
+                for parent_id in parent_forms:
+                    parent_approval = FormApprovalAssignment.objects.filter(
+                        form_id=parent_id,
+                        administration__pk__in=adms
+                    ).exists()
+                    if parent_approval:
+                        form_approval = True
+                        break
+        if not form_approval:
             raise ValidationError(
                 {"data": "No approvers found for this batch"}
             )
@@ -1136,6 +1156,25 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 form=data["form"],
                 administration__pk__in=adms
             ).exists()
+            # If no direct approval assignment exists,
+            # check if it's a child form
+            if (
+                not form_approval and
+                hasattr(data["form"], 'parent') and
+                data["form"].parent
+            ):
+                # Get all parent forms up the hierarchy
+                parent_forms = []
+                current_form = data["form"].parent
+                while current_form:
+                    parent_forms.append(current_form.id)
+                    current_form = current_form.parent
+                # Check if any parent form has approval assignments
+                if parent_forms:
+                    form_approval = FormApprovalAssignment.objects.filter(
+                        form_id__in=parent_forms,
+                        administration__pk__in=adms
+                    ).exists()
             if not form_approval:
                 direct_to_data = True
 
