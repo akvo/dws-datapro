@@ -149,7 +149,7 @@ class FormDataAddListView(APIView):
 
         parent = serializer.validated_data.get("parent")
         if parent:
-            queryset = form.form_form_data.filter(
+            queryset = FormData.objects.filter(
                 uuid=parent.uuid,
             )
             queryset = queryset.order_by("-created")
