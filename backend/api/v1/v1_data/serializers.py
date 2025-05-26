@@ -1279,6 +1279,14 @@ class SubmitPendingFormSerializer(serializers.Serializer):
         if direct_to_data:
             if data.get("uuid"):
                 obj_data.uuid = data["uuid"]
+                # find parent data by uuid and parent form
+                parent_data = FormData.objects.filter(
+                    uuid=data["uuid"],
+                    form__parent__isnull=True,
+                ).first()
+                if parent_data:
+                    # if parent data exists, link the child data
+                    obj_data.parent = parent_data
             obj_data.save()
             obj_data.save_to_file
 
