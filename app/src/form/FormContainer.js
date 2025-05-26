@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { View } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { BaseLayout } from '../components';
@@ -6,6 +6,7 @@ import { FormNavigation, QuestionGroupList } from './support';
 import QuestionGroup from './components/QuestionGroup';
 import { transformForm, generateDataPointName } from './lib';
 import { FormState } from '../store';
+import { crudDataPoints, crudForms } from '../database/crud';
 
 // TODO:: Allow other not supported yet
 
@@ -40,9 +41,10 @@ const style = {
   flex: 1,
 };
 
-const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
+const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [showQuestionGroupList, setShowQuestionGroupList] = useState(false);
+  const [datapoint, setDatapoint] = useState(null);
   const currentValues = FormState.useState((s) => s.currentValues);
   const cascades = FormState.useState((s) => s.cascades);
   const activeLang = FormState.useState((s) => s.lang);
@@ -56,14 +58,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
       .filter((q) => q?.dependency && q?.dependency?.length)
       ?.map((q) => ({ id: q.id, dependency: q.dependency })) || [];
 
-  const formDefinition = transformForm(
-    forms,
-    currentValues,
-    activeLang,
-    route.params.submission_type,
-    repeats,
-    prevAdmAnswer,
-  );
+  const formDefinition = transformForm(forms, currentValues, activeLang, repeats, prevAdmAnswer);
   const activeQuestions = formDefinition?.question_group?.flatMap((qg) => qg?.question);
   const currentGroup = useMemo(
     () => formDefinition?.question_group?.[activeGroup],
@@ -141,7 +136,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
 
     const results = checkValuesBeforeCallback({ values: validValues });
     if (onSubmit) {
-      const { dpName, dpGeo } = generateDataPointName(forms, validValues, cascades);
+      const { dpName, dpGeo } = generateDataPointName(forms, validValues, cascades, datapoint);
       onSubmit({ name: dpName, geo: dpGeo, answers: results });
     }
   };
@@ -179,6 +174,46 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
       setActiveGroup(page);
     }
   };
+
+  const fetchInitialValues = useCallback(async () => {
+    // get initial values from crudDatapoints get by route.params?.uuid
+    if (!db || !route?.params?.uuid) {
+      return;
+    }
+    const questionsMap = activeQuestions.reduce((map, question) => {
+      if (question.name && question.id) {
+        map[question.name] = question.id;
+      }
+      return map;
+    }, {});
+
+    const findDatapoint = await crudDataPoints.getByUUID(db, { uuid: route?.params?.uuid });
+    if (findDatapoint?.json && !datapoint) {
+      const findForm = await crudForms.selectFormById(db, { id: findDatapoint?.form });
+      if (findForm?.json) {
+        const dpValues = JSON.parse(findDatapoint.json);
+        const initialValues = JSON.parse(findForm?.json)
+          ?.question_group?.flatMap((qg) => qg?.question)
+          .reduce((m, q) => {
+            if (q?.name && q?.id) {
+              const answer = dpValues?.[q?.id];
+              const currentQuestion = questionsMap?.[q?.name];
+              m[currentQuestion] = answer;
+            }
+            return m;
+          }, {});
+        FormState.update((s) => {
+          s.currentValues = initialValues;
+        });
+      }
+      setDatapoint(findDatapoint);
+    }
+  }, [db, route?.params?.uuid, datapoint, activeQuestions]);
+
+  // Fetch initial values when the component mounts
+  useEffect(() => {
+    fetchInitialValues();
+  }, [fetchInitialValues]);
 
   return (
     <>

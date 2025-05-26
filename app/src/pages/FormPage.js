@@ -280,6 +280,7 @@ const FormPage = ({ navigation, route }) => {
           forms={formJSON}
           onSubmit={handleOnSubmitForm}
           setShowDialogMenu={setShowDialogMenu}
+          db={db}
         />
       ) : (
         <View style={styles.loadingContainer}>
