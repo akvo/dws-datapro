@@ -11,7 +11,8 @@ const flipObject = (obj) =>
 const capitalizeFirstLetter = (string) =>
   string ? string.charAt(0).toUpperCase() + string.slice(1) : string;
 
-const isImageFile = (fileExtension) => IMAGE_EXTENSIONS.includes(fileExtension.toLowerCase());
+const isImageFile = (fileExtension) =>
+  fileExtension ? IMAGE_EXTENSIONS.includes(fileExtension.toLowerCase()) : false;
 
 const helpers = {
   flipObject,
