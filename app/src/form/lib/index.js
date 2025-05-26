@@ -342,11 +342,12 @@ export const generateDataPointName = (forms, currentValues, cascades = {}, datap
     .filter((d) => d.type !== 'geo' && (d.value || d.value === 0))
     .map((x) => x.value)
     .join(' - ');
-  if (datapoint?.geo) {
+  if (datapoint?.geo && typeof datapoint.geo === 'string') {
+    const dpGeo = JSON.parse(datapoint.geo);
     if (!dpName || `${dpName}`.trim() === '') {
-      return { dpName: datapoint.name || '', dpGeo: datapoint.geo };
+      return { dpName: datapoint.name || '', dpGeo: dpGeo.join('|') };
     }
-    return { dpName, dpGeo: datapoint.geo };
+    return { dpName, dpGeo: dpGeo.join('|') };
   }
   const geoQuestion = forms?.question_group
     ?.flatMap((qg) => qg?.question)
