@@ -205,13 +205,15 @@ const FormDataDetails = ({ navigation, route }) => {
 
   return (
     <BaseLayout title={route?.params?.name} rightComponent={false}>
-      <SectionList
-        sections={sections}
-        renderItem={renderItem}
-        renderSectionHeader={renderSectionHeader}
-        keyExtractor={(item) => item.keyform}
-        contentContainerStyle={styles.sectionList}
-      />
+      <View style={styles.listContainer}>
+        <SectionList
+          sections={sections}
+          renderItem={renderItem}
+          renderSectionHeader={renderSectionHeader}
+          keyExtractor={(item) => item.keyform}
+          contentContainerStyle={styles.sectionList}
+        />
+      </View>
       <FormDataNavigation
         totalPage={totalPage}
         currentPage={currentPage}
@@ -233,6 +235,10 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
     backgroundColor: '#f2f2f2',
+  },
+  listContainer: {
+    width: '100%',
+    flex: 1,
   },
   sectionList: {
     flexGrow: 1,

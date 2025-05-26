@@ -90,6 +90,8 @@ const Users = ({ navigation, route }) => {
         <FlatList
           data={users}
           keyExtractor={(user) => user.id.toString()}
+          style={styles.listContainer}
+          testID="users-list"
           renderItem={({ item: user }) => (
             <TouchableOpacity
               onPress={() => handleSelectUser(user)}
@@ -109,6 +111,10 @@ const Users = ({ navigation, route }) => {
 };
 
 const styles = StyleSheet.create({
+  listContainer: {
+    width: '100%',
+    flex: 1,
+  },
   userItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',

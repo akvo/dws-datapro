@@ -31,7 +31,7 @@ const formsQuery = () => ({
     return rows;
   },
   selectFormById: async (db, { id }) => {
-    const rows = await sql.getFilteredRows(db, 'forms', { id });
+    const rows = await sql.getFirstRow(db, 'forms', { id });
     return rows;
   },
   selectFormByParentId: async (db, { parentId }) => {
@@ -76,6 +76,34 @@ const formsQuery = () => ({
   getByFormId: async (db, { formId }) => {
     const row = await sql.getFirstRow(db, 'forms', { formId });
     return row;
+  },
+  getFormOptions: async (db, { parentId, uuid }) => {
+    const selectJoin = `SELECT
+          f.id,
+          f.parentId,
+          f.userId,
+          f.formId,
+          f.version,
+          f.name,
+          f.json,
+          COUNT(
+            DISTINCT CASE WHEN dp.submitted = 1
+            THEN dp.id END
+          ) AS submitted,
+          COUNT(
+            DISTINCT CASE WHEN dp.submitted = 0
+            AND dp.syncedAt IS NULL THEN dp.id END
+          ) AS draft,
+          COUNT(
+            DISTINCT CASE WHEN dp.submitted = 1
+            AND dp.syncedAt IS NOT NULL THEN dp.id END
+          ) AS synced
+        FROM forms f
+        LEFT JOIN datapoints dp ON f.id = dp.form AND dp.uuid = ?
+        WHERE f.parentId = ?
+        GROUP BY f.id, f.formId, f.version, f.name, f.json;`;
+    const rows = await sql.executeQuery(db, selectJoin, [uuid, parentId, uuid]);
+    return rows;
   },
 });
 

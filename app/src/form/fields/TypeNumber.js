@@ -21,6 +21,7 @@ const TypeNumber = ({
   tooltip = null,
   questions = [],
   fn = null,
+  onFocus = null,
 }) => {
   const [fieldColor, setFieldColor] = useState(null);
   const requiredValue = required ? requiredSign : null;
@@ -43,6 +44,12 @@ const TypeNumber = ({
     }
   }, [fnColor, fieldColor, id, value, questions, keyform]);
 
+  const handleFocus = () => {
+    if (onFocus) {
+      onFocus();
+    }
+  };
+
   return (
     <View>
       <FieldLabel keyform={keyform} name={label} tooltip={tooltip} requiredSign={requiredValue} />
@@ -60,6 +67,8 @@ const TypeNumber = ({
             onChange(id, val);
           }
         }}
+        onFocus={handleFocus}
+        defaultValue={value === null || typeof value === 'undefined' ? '' : String(value)}
         value={value}
         testID="type-number"
         {...addPreffix(addonBefore)}

@@ -12,7 +12,6 @@ import { crudDataPoints } from '../database/crud';
 const Submission = ({ navigation, route }) => {
   const [search, setSearch] = useState('');
   const [data, setData] = useState([]);
-  const [totalSavedData, setTotalSavedData] = useState(0);
 
   const activeForm = FormState.useState((s) => s.form);
   const activeLang = UIState.useState((s) => s.lang);
@@ -97,13 +96,6 @@ const Submission = ({ navigation, route }) => {
       return;
     }
     /**
-     * Get the total number of saved data points
-     */
-    const totalSaved = await crudDataPoints.countSavedDatapoints(db, {
-      form: activeForm.id,
-    });
-    setTotalSavedData(totalSaved);
-    /**
      * Fetch data points from the database based on the active form ID and user ID.
      * The data points are filtered by the submitted status (1 for submitted).
      * The results are then formatted to include
@@ -151,7 +143,7 @@ const Submission = ({ navigation, route }) => {
           style={{ padding: 8 }}
           activeOpacity={0.6}
         >
-          <View style={totalSavedData ? styles.redDot : styles.redDotHide} />
+          <View style={route?.params?.draft ? styles.redDot : styles.redDotHide} />
           <Icon name="folder-open-outline" size={24} color="#677483" />
         </TouchableOpacity>
       }
@@ -228,6 +220,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 10,
+    zIndex: 1,
   },
   redDotHide: {
     display: 'none',

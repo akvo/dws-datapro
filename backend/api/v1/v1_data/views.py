@@ -149,7 +149,7 @@ class FormDataAddListView(APIView):
 
         parent = serializer.validated_data.get("parent")
         if parent:
-            queryset = form.form_form_data.filter(
+            queryset = FormData.objects.filter(
                 uuid=parent.uuid,
             )
             queryset = queryset.order_by("-created")
@@ -789,8 +789,16 @@ class PendingFormDataView(APIView):
 
         page_size = REST_FRAMEWORK.get("PAGE_SIZE")
 
-        queryset = form.pending_form_form_data.filter(
-            created_by=request.user, batch__isnull=True
+        # Get all child form IDs including the parent form
+        form_ids = [form.id]
+        if form.children.exists():
+            child_form_ids = form.children.values_list('id', flat=True)
+            form_ids.extend(list(child_form_ids))
+        # Query for pending form data across parent and child forms
+        queryset = PendingFormData.objects.filter(
+            form_id__in=form_ids,
+            created_by=request.user,
+            batch__isnull=True
         ).order_by("-created")
 
         paginator = PageNumberPagination()

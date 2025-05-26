@@ -1,6 +1,6 @@
 import React from 'react';
 import { SearchBar } from '@rneui/themed';
-import Stack from '../Stack';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import PageTitle from './PageTitle';
 import Content from './Content';
 
@@ -14,7 +14,16 @@ const BaseLayout = ({
   rightComponent = null,
   rightContainerStyle = {},
 }) => (
-  <Stack>
+  <SafeAreaView
+    style={{
+      flex: 1,
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      alignItems: 'flex-start',
+      backgroundColor: '#f9fafb',
+    }}
+    edges={['bottom', 'left', 'right']}
+  >
     {title && (
       <PageTitle
         text={title}
@@ -28,10 +37,11 @@ const BaseLayout = ({
         value={search.value}
         onChangeText={search.action}
         testID="search-bar"
+        containerStyle={{ width: '100%' }}
       />
     )}
     {children}
-  </Stack>
+  </SafeAreaView>
 );
 
 BaseLayout.Content = Content;

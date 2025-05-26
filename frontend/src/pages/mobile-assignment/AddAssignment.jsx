@@ -68,6 +68,7 @@ const AddAssignment = () => {
       title: pageTitle,
     },
   ];
+  const formOptions = userForms.filter((f) => !f?.content?.parent);
 
   const fetchUserAdmin = useCallback(async () => {
     try {
@@ -356,11 +357,7 @@ const AddAssignment = () => {
                   allowClear
                   loading={loading}
                   fieldNames={{ value: "id", label: "name" }}
-                  options={
-                    authUser.administration.level === 2 && editAssignment?.forms
-                      ? editAssignment.forms
-                      : userForms
-                  }
+                  options={editAssignment?.forms || formOptions}
                   className="custom-select"
                   tagRender={tagRender}
                 />

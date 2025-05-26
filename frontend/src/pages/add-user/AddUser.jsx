@@ -50,10 +50,12 @@ const AddUser = () => {
   } = store.useState((s) => s);
   const NATIONAL_LEVEL = levels?.find((l) => l.level === 0)?.id;
   const { active: activeLang } = language;
-  const forms = allForms.map((f) => ({
-    ...f,
-    access: config.accessFormTypes,
-  }));
+  const forms = allForms
+    .filter((f) => !f?.content?.parent)
+    .map((f) => ({
+      ...f,
+      access: config.accessFormTypes,
+    }));
 
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);

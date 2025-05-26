@@ -27,11 +27,12 @@ export const addPreffix = (addonBefore) => {
       paddingLeft: 8,
       paddingRight: 8,
       borderWidth: 0,
-      borderColor: 'transparent',
+      borderRightWidth: 0.5,
+      borderColor: 'grey',
       borderTopLeftRadius: 5,
       borderBottomLeftRadius: 5,
-      borderRightWidth: 0.5,
-      borderRightColor: 'grey',
+      borderTopRightRadius: 0,
+      borderBottomRightRadius: 0,
     },
   };
 };
@@ -52,17 +53,18 @@ export const addSuffix = (addonAfter) => {
     rightIcon: element,
     rightIconContainerStyle: {
       backgroundColor: '#F5F5F5',
-      marginRight: -9,
+      marginRight: -10,
       marginLeft: 8,
       marginVertical: 0,
-      paddingRight: 8,
       paddingLeft: 8,
+      paddingRight: 8,
       borderWidth: 0,
-      borderColor: 'transparent',
-      borderTopRightRadius: 5,
-      borderBottomRightRadius: 5,
       borderLeftWidth: 0.5,
       borderLeftColor: 'grey',
+      borderTopRightRadius: 5,
+      borderBottomRightRadius: 5,
+      borderTopLeftRadius: 0,
+      borderBottomLeftRadius: 0,
     },
   };
 };
@@ -80,12 +82,20 @@ const TypeInput = ({
   addonAfter = null,
   addonBefore = null,
   tooltip = null,
+  onFocus = null,
 }) => {
   const requiredValue = required ? requiredSign : null;
   const inputContainerStyle =
     metaUUID || disabled
       ? { ...styles.inputFieldContainer, ...styles.inputFieldDisabled }
       : styles.inputFieldContainer;
+
+  const handleFocus = () => {
+    if (onFocus) {
+      onFocus();
+    }
+  };
+
   return (
     <View>
       <FieldLabel keyform={keyform} name={label} tooltip={tooltip} requiredSign={requiredValue} />
@@ -98,6 +108,7 @@ const TypeInput = ({
         }}
         value={value}
         testID="type-input"
+        onFocus={handleFocus}
         {...addPreffix(addonBefore)}
         {...addSuffix(addonAfter)}
         disabled={metaUUID || disabled}

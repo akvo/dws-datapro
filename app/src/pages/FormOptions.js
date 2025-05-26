@@ -24,6 +24,7 @@ const FormOptions = ({ navigation, route }) => {
       subTitle: route?.params?.name,
       uuid: route?.params?.uuid,
       formId: selectedForm.formId,
+      draft: selectedForm?.draft || 0,
     });
   };
 
@@ -55,7 +56,9 @@ const FormOptions = ({ navigation, route }) => {
           <Text style={styles.itemLabel}>{item.name}</Text>
         ) : (
           <View>
-            <Text style={styles.itemTitle}>{item.name}</Text>
+            <Text style={styles.itemTitle}>
+              {item.name} {item?.submitted ? `(${item.submitted})` : ''}
+            </Text>
 
             <Text style={styles.itemVersion}>{`${trans.versionLabel}${item.version}`}</Text>
           </View>
@@ -66,10 +69,13 @@ const FormOptions = ({ navigation, route }) => {
   );
 
   const fetchForms = useCallback(async () => {
-    let rows = await crudForms.selectFormByParentId(db, { parentId: activeForm?.formId });
+    let rows = await crudForms.getFormOptions(db, {
+      parentId: activeForm?.formId,
+      uuid: route?.params?.uuid,
+    });
     rows = rows.map((r) => ({ ...r, parentName: activeForm.name, parentDBId: activeForm.id }));
     setForms(rows);
-  }, [db, activeForm]);
+  }, [db, activeForm, route?.params?.uuid]);
 
   useEffect(() => {
     fetchForms();

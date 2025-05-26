@@ -1,10 +1,7 @@
 import {
-  FileDoneOutlined,
-  FileProtectOutlined,
-  FileSyncOutlined,
+  // FileSyncOutlined,
   FileTextOutlined,
 } from "@ant-design/icons";
-import { config } from "../lib";
 
 export const ResetIcon = () => (
   <svg
@@ -22,16 +19,7 @@ export const ResetIcon = () => (
   </svg>
 );
 
-export const SubmissionTypeIcon = ({ type = 1, style }) => {
-  if (type === config.submissionType.monitoring) {
-    return <FileSyncOutlined style={style} />;
-  }
-  if (type === config.submissionType.verification) {
-    return <FileDoneOutlined style={style} />;
-  }
-  if (type === config.submissionType.certification) {
-    return <FileProtectOutlined style={style} />;
-  }
+export const SubmissionTypeIcon = ({ style }) => {
   return <FileTextOutlined style={style} />;
 };
 
