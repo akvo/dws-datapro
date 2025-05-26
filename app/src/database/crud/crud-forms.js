@@ -80,6 +80,7 @@ const formsQuery = () => ({
   getFormOptions: async (db, { parentId, uuid }) => {
     const selectJoin = `SELECT
           f.id,
+          f.parentId,
           f.userId,
           f.formId,
           f.version,
