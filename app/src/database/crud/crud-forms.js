@@ -31,7 +31,7 @@ const formsQuery = () => ({
     return rows;
   },
   selectFormById: async (db, { id }) => {
-    const rows = await sql.getFilteredRows(db, 'forms', { id });
+    const rows = await sql.getFirstRow(db, 'forms', { id });
     return rows;
   },
   selectFormByParentId: async (db, { parentId }) => {
