@@ -3,7 +3,7 @@ import "./style.scss";
 import { Row, Col, Divider, Table, ConfigProvider, Empty } from "antd";
 import { useNavigate } from "react-router-dom";
 
-import { api, config, store, uiText } from "../../lib";
+import { api, store, uiText } from "../../lib";
 import { DataFilters, Breadcrumbs, DescriptionPanel } from "../../components";
 import { generateAdvanceFilterURL } from "../../util/filter";
 
@@ -103,7 +103,7 @@ const ManageData = () => {
     if (selectedForm && isAdministrationLoaded && updateRecord) {
       setUpdateRecord(false);
       setLoading(true);
-      let url = `/form-data/${selectedForm}/?submission_type=${config.submissionType.registration}&page=${currentPage}`;
+      let url = `/form-data/${selectedForm}/?page=${currentPage}`;
       if (selectedAdministration?.id) {
         url += `&administration=${selectedAdministration.id}`;
       }

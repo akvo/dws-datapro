@@ -9,22 +9,13 @@ const FormDropdown = ({
   loading: parentLoading = false,
   title = false,
   hidden = false,
-  submissionTypes = [],
   ...props
 }) => {
   const { forms, selectedForm, loadingForm } = store.useState((state) => state);
   const filterForms = useMemo(() => {
     const form_items = title ? window.forms : forms;
-    return form_items.filter(
-      (f) =>
-        !submissionTypes.length ||
-        (submissionTypes.length &&
-          f?.content?.submission_types?.length &&
-          submissionTypes.filter((st) =>
-            f.content.submission_types.includes(st)
-          ).length)
-    );
-  }, [title, submissionTypes, forms]);
+    return form_items.filter((f) => !f.content?.parent);
+  }, [title, forms]);
 
   const handleChange = useCallback((e) => {
     if (!e) {

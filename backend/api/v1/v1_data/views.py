@@ -54,7 +54,7 @@ from api.v1.v1_data.serializers import (
     SubmitFormDataAnswerSerializer,
 )
 from api.v1.v1_forms.constants import (
-    QuestionTypes, SubmissionTypes
+    QuestionTypes
 )
 from api.v1.v1_forms.models import Forms, Questions
 from api.v1.v1_profile.models import Administration
@@ -130,13 +130,6 @@ class FormDataAddListView(APIView):
                 type=OpenApiTypes.NUMBER,
                 location=OpenApiParameter.QUERY,
             ),
-            OpenApiParameter(
-                name="submission_type",
-                required=False,
-                enum=SubmissionTypes.FieldStr.keys(),
-                type=OpenApiTypes.NUMBER,
-                location=OpenApiParameter.QUERY,
-            ),
         ],
         summary="To get list of form data",
     )
@@ -154,18 +147,10 @@ class FormDataAddListView(APIView):
 
         paginator = PageNumberPagination()
 
-        submission_type = request.GET.get(
-            "submission_type", SubmissionTypes.registration
-        )
-        submission_type = int(submission_type)
         parent = serializer.validated_data.get("parent")
         if parent:
-            submission_types = [submission_type]
-            if submission_type == SubmissionTypes.monitoring:
-                submission_types.append(SubmissionTypes.registration)
-            queryset = form.form_form_data.filter(
+            queryset = FormData.objects.filter(
                 uuid=parent.uuid,
-                submission_type__in=submission_types,
             )
             queryset = queryset.order_by("-created")
             instance = paginator.paginate_queryset(queryset, request)
@@ -186,14 +171,13 @@ class FormDataAddListView(APIView):
 
         # get latest data
         latest_ids_per_uuid = (
-            form.form_form_data.filter(submission_type=submission_type)
+            form.form_form_data
             .values("uuid")
             .annotate(latest_id=Max("id"))
             .values_list("latest_id", flat=True)
         )
         filter_data = {
             "pk__in": latest_ids_per_uuid,
-            "submission_type": submission_type,
         }
 
         access = request.user.user_access
@@ -805,8 +789,16 @@ class PendingFormDataView(APIView):
 
         page_size = REST_FRAMEWORK.get("PAGE_SIZE")
 
-        queryset = form.pending_form_form_data.filter(
-            created_by=request.user, batch__isnull=True
+        # Get all child form IDs including the parent form
+        form_ids = [form.id]
+        if form.children.exists():
+            child_form_ids = form.children.values_list('id', flat=True)
+            form_ids.extend(list(child_form_ids))
+        # Query for pending form data across parent and child forms
+        queryset = PendingFormData.objects.filter(
+            form_id__in=form_ids,
+            created_by=request.user,
+            batch__isnull=True
         ).order_by("-created")
 
         paginator = PageNumberPagination()

@@ -253,14 +253,14 @@ Object {
     },
     "footerContactPhone": "+254-20-2717077",
     "footerContactTitle": "Contacts",
-    "footerDonorSupport": "IWSIMS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
+    "footerDonorSupport": "DWS DataPro was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
     "footerExternalLinkItems": Array [
       Object {
         "text": "JMP",
         "url": "https://washdata.org/how-we-work/about-jmp#:~:text=Background,hygiene%20(WASH)%20since%201990",
       },
       Object {
-        "text": "CLTS IWSIMS",
+        "text": "CLTS DWS DataPro",
         "url": " http://wash.health.go.ke/clts/index.jsp",
       },
       Object {
@@ -599,7 +599,7 @@ Object {
     "selectType": "Select type...",
     "sendInstructions": "Send Instructions",
     "sendNewRequest": "Notify Approver",
-    "service1Text": "IWSIMS offers real-time data for prompt decision-maker access.",
+    "service1Text": "DWS DataPro offers real-time data for prompt decision-maker access.",
     "service2Text": "Identifying needs enables targeted interventions and efficient resource deployment.",
     "service3Text": "Real-time insights optimize sanitation metrics for efficient resource allocation.",
     "settings": "System Settings",
@@ -650,7 +650,6 @@ Object {
     "uploadsTab3": "Approved",
     "userAssociations": "This user has following data association(s)",
     "userDeleteFail": "Could not delete user",
-    "userDesignation": "Designation",
     "userEmail": "Email Address",
     "userFirstName": "First name",
     "userLastName": "Last name",
@@ -661,7 +660,6 @@ Object {
     "userTrained": "Trained",
     "usernameRequired": "Please input your Username!",
     "usersLoadFail": "Could not load users",
-    "valDesignation": "Please select a Designation",
     "valEmail": "Please enter a valid Email Address",
     "valFirstName": "First name is required",
     "valLastName": "Last name is required",
@@ -671,15 +669,11 @@ Object {
     "valPhone": "Phone number is required",
     "valRole": "Please select a Role",
     "welcome": <React.Fragment>
-      Rural and Urban Sanitation and Hygiene (RUSH)
-      <br />
-      Real-Time Monitoring and Information System (IWSIMS)
+      DWS DataPro
     </React.Fragment>,
     "welcomeCta": "Explore National Data",
     "welcomeDesc": <React.Fragment>
-      Rural and Urban Sanitation and Hygiene (RUSH)
-      <br />
-      Real-Time Monitoring and Information System (IWSIMS)
+      DWS DataPro
     </React.Fragment>,
     "welcomeShort": "Welcome to RUSH",
     "year": "Year",

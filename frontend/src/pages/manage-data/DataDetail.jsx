@@ -9,7 +9,6 @@ import { HistoryTable } from "../../components";
 import { validateDependency } from "../../util";
 
 const DataDetail = ({
-  questionGroups,
   record,
   updater,
   updateRecord,
@@ -25,7 +24,7 @@ const DataDetail = ({
   const pendingData = record?.pending_data?.created_by || false;
   const { user: authUser } = store.useState((state) => state);
   const { notify } = useNotification();
-  const { language } = store.useState((s) => s);
+  const { language, forms: allForms } = store.useState((s) => s);
   const { active: activeLang } = language;
   const text = useMemo(() => {
     return uiText[activeLang];
@@ -33,6 +32,9 @@ const DataDetail = ({
   const { hasEditAccess } = config;
   const userForm = authUser?.forms?.find((f) => f.id === record?.form);
   const isEditor = hasEditAccess(userForm);
+  const questionGroups = useMemo(() => {
+    return allForms.find((f) => f.id === record?.form)?.content?.question_group;
+  }, [record?.form, allForms]);
 
   const updateCell = (key, parentId, value) => {
     setresetButton({ ...resetButton, [key]: true });

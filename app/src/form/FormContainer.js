@@ -1,24 +1,18 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View } from 'react-native';
+import { View, ActivityIndicator, Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
-import * as Crypto from 'expo-crypto';
 import { BaseLayout } from '../components';
 import { FormNavigation, QuestionGroupList } from './support';
 import QuestionGroup from './components/QuestionGroup';
 import { transformForm, generateDataPointName } from './lib';
 import { FormState } from '../store';
-import { helpers } from '../lib';
-import { SUBMISSION_TYPES } from '../lib/constants';
+import { crudDataPoints, crudForms } from '../database/crud';
 
 // TODO:: Allow other not supported yet
 
-const checkValuesBeforeCallback = ({ values, hiddenQIds = [] }) =>
+const checkValuesBeforeCallback = ({ values }) =>
   Object.keys(values)
     .filter((key) => {
-      // remove value where question is hidden
-      if (hiddenQIds.includes(Number(key))) {
-        return false;
-      }
       // EOL remove value where question is hidden
       let value = values[key];
       if (typeof value === 'string') {
@@ -47,10 +41,12 @@ const style = {
   flex: 1,
 };
 
-const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
+const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [showQuestionGroupList, setShowQuestionGroupList] = useState(false);
-  const [isDefaultFilled, setIsDefaultFilled] = useState(false);
+  const [datapoint, setDatapoint] = useState(null);
+  const [fillingForm, setFillingForm] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const currentValues = FormState.useState((s) => s.currentValues);
   const cascades = FormState.useState((s) => s.cascades);
   const activeLang = FormState.useState((s) => s.lang);
@@ -64,34 +60,11 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
       .filter((q) => q?.dependency && q?.dependency?.length)
       ?.map((q) => ({ id: q.id, dependency: q.dependency })) || [];
 
-  const formDefinition = transformForm(
-    forms,
-    currentValues,
-    activeLang,
-    route.params.submission_type,
-    repeats,
-    prevAdmAnswer,
-  );
+  const formDefinition = transformForm(forms, currentValues, activeLang, repeats, prevAdmAnswer);
   const activeQuestions = formDefinition?.question_group?.flatMap((qg) => qg?.question);
   const currentGroup = useMemo(
     () => formDefinition?.question_group?.[activeGroup],
     [activeGroup, formDefinition?.question_group],
-  );
-
-  const hiddenQIds = useMemo(
-    () =>
-      forms?.question_group
-        ?.flatMap((qg) => qg?.question)
-        .map((q) => {
-          const subTypeName = helpers.flipObject(SUBMISSION_TYPES)?.[route.params.submission_type];
-          const hidden = q?.hidden ? q.hidden?.submission_type?.includes(subTypeName) : false;
-          if (hidden) {
-            return q.id;
-          }
-          return false;
-        })
-        .filter((x) => x),
-    [forms, route.params.submission_type],
   );
 
   const handleOnSubmitForm = () => {
@@ -163,9 +136,9 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
       .filter((key) => activeQuestions.filter((q) => `${q.id}` === `${key}`).length > 0)
       .reduce((prev, current) => ({ ...prev, [current]: reIndexedValues[current] }), {});
 
-    const results = checkValuesBeforeCallback({ values: validValues, hiddenQIds });
+    const results = checkValuesBeforeCallback({ values: validValues });
     if (onSubmit) {
-      const { dpName, dpGeo } = generateDataPointName(forms, validValues, cascades);
+      const { dpName, dpGeo } = generateDataPointName(forms, validValues, cascades, datapoint);
       onSubmit({ name: dpName, geo: dpGeo, answers: results });
     }
   };
@@ -204,42 +177,85 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
     }
   };
 
-  const handleOnDefaultValue = useCallback(() => {
-    if (!isDefaultFilled) {
-      setIsDefaultFilled(true);
-      const defaultValues = activeQuestions
-        .filter((aq) => aq?.default_value || aq?.meta_uuid)
-        .map((aq) => {
-          if (aq?.meta_uuid) {
-            const UUID = Crypto.randomUUID();
-            return {
-              [aq.id]: UUID,
-            };
-          }
-          const submissionType = route.params?.submission_type || SUBMISSION_TYPES.registration;
-          const subTypeName = helpers.flipObject(SUBMISSION_TYPES)[submissionType];
-          const defaultValue = aq?.default_value?.submission_type?.[subTypeName];
-          if (['option', 'multiple_option'].includes(aq.type)) {
-            return {
-              [aq.id]: defaultValue ? [defaultValue] : [],
-            };
-          }
-          return {
-            [aq.id]: defaultValue || Number(defaultValue) === 0 ? defaultValue : '',
-          };
-        })
-        .reduce((prev, current) => ({ ...prev, ...current }), {});
-      if (Object.keys(defaultValues).length) {
-        FormState.update((s) => {
-          s.currentValues = { ...s.currentValues, ...defaultValues };
-        });
-      }
+  const fetchInitialValues = useCallback(async () => {
+    // get initial values from crudDatapoints get by route.params?.uuid
+    if (!db || !route?.params?.uuid) {
+      setFillingForm(false);
+      return;
     }
-  }, [activeQuestions, route.params, isDefaultFilled]);
+    const questionsMap = activeQuestions.reduce((map, question) => {
+      if (question.name && question.id) {
+        map[question.name] = question.id;
+      }
+      return map;
+    }, {});
+
+    const findDatapoint = await crudDataPoints.getByUUID(db, { uuid: route?.params?.uuid });
+    if (findDatapoint?.json && !datapoint) {
+      const findForm = await crudForms.selectFormById(db, { id: findDatapoint?.form });
+      if (findForm?.json) {
+        let dpValues = JSON.parse(findDatapoint.json);
+        if (typeof dpValues === 'string') {
+          /**
+           * Double parse to ensure that the JSON is correctly formatted
+           */
+          dpValues = JSON.parse(dpValues);
+        }
+        const initialValues = JSON.parse(findForm?.json)
+          ?.question_group?.flatMap((qg) => qg?.question)
+          .reduce((m, q) => {
+            if (q?.name && q?.id) {
+              const answer = dpValues?.[q?.id];
+              const currentQuestion = questionsMap?.[q?.name];
+              m[currentQuestion] = answer;
+            }
+            return m;
+          }, {});
+        FormState.update((s) => {
+          s.currentValues = initialValues;
+        });
+        setTimeout(() => {
+          setFillingForm(false);
+        }, 500);
+      }
+      setDatapoint(findDatapoint);
+    }
+  }, [db, route?.params?.uuid, datapoint, activeQuestions]);
+
+  // Fetch initial values when the component mounts
+  useEffect(() => {
+    fetchInitialValues();
+  }, [fetchInitialValues]);
 
   useEffect(() => {
-    handleOnDefaultValue();
-  }, [handleOnDefaultValue]);
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
+  if (fillingForm) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          width: '100%',
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <ActivityIndicator />
+      </View>
+    );
+  }
 
   return (
     <>
@@ -262,7 +278,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
           )}
         </View>
       </BaseLayout.Content>
-      <View>
+      {!keyboardVisible && (
         <FormNavigation
           currentGroup={currentGroup}
           onSubmit={handleOnSubmitForm}
@@ -273,7 +289,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu }) => {
           setShowQuestionGroupList={setShowQuestionGroupList}
           setShowDialogMenu={setShowDialogMenu}
         />
-      </View>
+      )}
     </>
   );
 };

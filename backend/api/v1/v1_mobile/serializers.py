@@ -4,6 +4,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 from api.v1.v1_forms.models import Forms
 from drf_spectacular.types import OpenApiTypes
+from django.db.models import Q
 from api.v1.v1_mobile.authentication import MobileAssignmentToken
 from api.v1.v1_profile.models import Administration, Entity
 from utils.custom_serializer_fields import CustomCharField
@@ -40,6 +41,7 @@ class MobileDataPointDownloadListSerializer(serializers.Serializer):
 
 class MobileFormSerializer(serializers.ModelSerializer):
     id = serializers.IntegerField()
+    parentId = serializers.ReadOnlyField(source="parent_id")
     version = serializers.CharField()
     url = serializers.SerializerMethodField()
 
@@ -49,7 +51,7 @@ class MobileFormSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Forms
-        fields = ["id", "version", "url"]
+        fields = ["id", "version", "parentId", "url"]
 
 
 class MobileAssignmentFormsSerializer(serializers.Serializer):
@@ -60,7 +62,13 @@ class MobileAssignmentFormsSerializer(serializers.Serializer):
 
     @extend_schema_field(MobileFormSerializer(many=True))
     def get_formsUrl(self, obj):
-        return MobileFormSerializer(obj.forms.all(), many=True).data
+        # get all forms and its children forms
+        base_forms = list(obj.forms.all())
+        child_forms = []
+        for form in base_forms:
+            child_forms.extend(list(form.children.all()))
+        forms = base_forms + child_forms
+        return MobileFormSerializer(instance=forms, many=True).data
 
     def get_syncToken(self, obj):
         return str(MobileAssignmentToken.for_assignment(obj))
@@ -122,8 +130,12 @@ class FormsAndEntityValidation(serializers.PrimaryKeyRelatedField):
                             }
                         )
                     if entity and selected_adm:
+                        adm = selected_adm[0]
                         entity_has_data = entity.entity_data.filter(
-                            administration__in=selected_adm
+                            Q(administration__in=selected_adm) |
+                            Q(
+                                administration__path__startswith=adm
+                            ),
                         )
                         if not entity_has_data.exists():
                             no_data.append(
@@ -140,7 +152,10 @@ class FormsAndEntityValidation(serializers.PrimaryKeyRelatedField):
 
 
 class MobileAssignmentSerializer(serializers.ModelSerializer):
-    forms = FormsAndEntityValidation(queryset=Forms.objects.all(), many=True)
+    forms = FormsAndEntityValidation(
+        queryset=Forms.objects.filter(parent__isnull=True).all(),
+        many=True
+    )
     administrations = IdAndNameRelatedField(
         queryset=Administration.objects.all(), many=True
     )

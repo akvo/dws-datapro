@@ -19,7 +19,7 @@ from api.v1.v1_data.models import (
     AnswerHistory,
     PendingAnswerHistory,
 )
-from api.v1.v1_forms.constants import QuestionTypes, SubmissionTypes
+from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_forms.models import (
     Questions,
     Forms,
@@ -57,7 +57,7 @@ class SubmitFormDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormData
-        fields = ["name", "geo", "administration", "submission_type"]
+        fields = ["name", "geo", "administration"]
 
 
 class SubmitFormDataAnswerSerializer(serializers.ModelSerializer):
@@ -172,10 +172,6 @@ class SubmitFormSerializer(serializers.Serializer):
             name = None
             value = None
             option = None
-
-            if answer.get("question").meta_uuid:
-                obj_data.uuid = answer.get("value")
-                obj_data.save()
 
             if answer.get("question").type in [
                 QuestionTypes.geo,
@@ -346,7 +342,6 @@ class ListFormDataSerializer(serializers.ModelSerializer):
             "created",
             "updated",
             "pending_data",
-            "submission_type",
         ]
 
 
@@ -542,7 +537,6 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
     created = serializers.SerializerMethodField()
     administration = serializers.ReadOnlyField(source="administration.name")
     pending_answer_history = serializers.SerializerMethodField()
-    submission_type = CustomChoiceField(choices=SubmissionTypes.FieldStr)
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_created_by(self, instance: PendingFormData):
@@ -573,7 +567,6 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
             "duration",
             "created_by",
             "created",
-            "submission_type",
             "pending_answer_history",
         ]
 
@@ -630,7 +623,7 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
             listing.append(
                 {
                     "name": "Approver",
-                    "value": f"{user.name}, {user.designation_name}",
+                    "value": f"{user.name}",
                 }
             )
             if comment:
@@ -650,7 +643,7 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
             listing.append(
                 {
                     "name": "Rejector",
-                    "value": f"{user.name}, {user.designation_name}",
+                    "value": f"{user.name}",
                 }
             )
             if comment:
@@ -902,7 +895,8 @@ class ListBatchCommentSerializer(serializers.ModelSerializer):
 class BatchListRequestSerializer(serializers.Serializer):
     approved = CustomBooleanField(default=False)
     form = CustomPrimaryKeyRelatedField(
-        queryset=Forms.objects.all(), required=False
+        queryset=Forms.objects.filter(parent__isnull=True).all(),
+        required=False
     )
 
 
@@ -946,9 +940,29 @@ class CreateBatchSerializer(serializers.Serializer):
             self.context.get("user").user_access.administration.pk
         ]
         # Check if the form has any approvers in the user's administration
-        if not form.form_data_approval.filter(
+        form_approval = form.form_data_approval.filter(
             administration__pk__in=adms
-        ).exists():
+        ).exists()
+        # If no direct form approval exists,
+        # check if any parent form has approvers
+        if not form_approval and hasattr(form, 'parent') and form.parent:
+            # Get all parent forms up the hierarchy
+            parent_forms = []
+            current_form = form.parent
+            while current_form:
+                parent_forms.append(current_form.id)
+                current_form = current_form.parent
+            # Check if any parent form has approval assignments
+            if parent_forms:
+                for parent_id in parent_forms:
+                    parent_approval = FormApprovalAssignment.objects.filter(
+                        form_id=parent_id,
+                        administration__pk__in=adms
+                    ).exists()
+                    if parent_approval:
+                        form_approval = True
+                        break
+        if not form_approval:
             raise ValidationError(
                 {"data": "No approvers found for this batch"}
             )
@@ -1003,8 +1017,7 @@ class CreateBatchSerializer(serializers.Serializer):
                         },
                         {
                             "name": "Submitter",
-                            "value": f"""{obj.user.name},
-                        {obj.user.designation_name}""",
+                            "value": f"""{obj.user.name}""",
                         },
                     ],
                 }
@@ -1028,9 +1041,6 @@ class SubmitPendingFormDataSerializer(serializers.ModelSerializer):
     submitter = CustomCharField(required=False)
     duration = CustomIntegerField(required=False)
     uuid = serializers.CharField(required=False)
-    submission_type = CustomChoiceField(
-        choices=SubmissionTypes.FieldStr, required=True
-    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1047,7 +1057,6 @@ class SubmitPendingFormDataSerializer(serializers.ModelSerializer):
             "submitter",
             "duration",
             "uuid",
-            "submission_type",
         ]
 
 
@@ -1147,6 +1156,25 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 form=data["form"],
                 administration__pk__in=adms
             ).exists()
+            # If no direct approval assignment exists,
+            # check if it's a child form
+            if (
+                not form_approval and
+                hasattr(data["form"], 'parent') and
+                data["form"].parent
+            ):
+                # Get all parent forms up the hierarchy
+                parent_forms = []
+                current_form = data["form"].parent
+                while current_form:
+                    parent_forms.append(current_form.id)
+                    current_form = current_form.parent
+                # Check if any parent form has approval assignments
+                if parent_forms:
+                    form_approval = FormApprovalAssignment.objects.filter(
+                        form_id__in=parent_forms,
+                        administration__pk__in=adms
+                    ).exists()
             if not form_approval:
                 direct_to_data = True
 
@@ -1163,7 +1191,6 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 geo=data.get("geo"),
                 created_by=data.get("created_by"),
                 created=data.get("submitedAt") or timezone.now(),
-                submission_type=data.get("submission_type"),
             )
 
         pending_answers = []
@@ -1174,10 +1201,6 @@ class SubmitPendingFormSerializer(serializers.Serializer):
             name = None
             value = None
             option = None
-
-            if question.meta_uuid:
-                obj_data.uuid = answer.get("value")
-                obj_data.save()
 
             if question.type in [
                 QuestionTypes.geo,
@@ -1256,6 +1279,14 @@ class SubmitPendingFormSerializer(serializers.Serializer):
         if direct_to_data:
             if data.get("uuid"):
                 obj_data.uuid = data["uuid"]
+                # find parent data by uuid and parent form
+                parent_data = FormData.objects.filter(
+                    uuid=data["uuid"],
+                    form__parent__isnull=True,
+                ).first()
+                if parent_data:
+                    # if parent data exists, link the child data
+                    obj_data.parent = parent_data
             obj_data.save()
             obj_data.save_to_file
 

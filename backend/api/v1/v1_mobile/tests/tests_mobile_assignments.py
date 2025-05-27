@@ -138,8 +138,8 @@ class MobileAssignmentTestCase(TestCase, ProfileTestHelperMixin):
         adm1 = Administration.objects.first()
         adm2 = Administration.objects.all()[1]
         adm3 = Administration.objects.filter(parent=adm2).first()
-        form1 = Forms.objects.first()
-        form2 = Forms.objects.last()
+        form1 = Forms.objects.get(pk=1)
+        form2 = Forms.objects.get(pk=4)
         assignment = MobileAssignment.objects.create_assignment(
                 user=self.user, name='assignment #1')
         assignment.forms.add(form1)
@@ -183,10 +183,9 @@ class MobileAssignmentTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(response.status_code, 204)
 
     def test_create_error_entity_validation(self):
-        adms = Administration.objects \
-            .filter(entity_data__isnull=True).all()
-        adm_ids = [a.id for a in adms]
-        adm = Administration.objects.filter(pk__in=adm_ids).first()
+        adm = Administration.objects \
+            .filter(entity_data__isnull=False).last()
+        adm.entity_data.all().delete()
         form = Forms.objects.get(pk=2)
         payload = {
             'name': 'test assignment',

@@ -11,7 +11,7 @@ import {
   Modal,
   Button,
   Space,
-  Tag,
+  Dropdown,
 } from "antd";
 import {
   LeftCircleOutlined,
@@ -42,8 +42,9 @@ const MonitoringDetail = () => {
   const { form, parentId } = useParams();
   const navigate = useNavigate();
 
-  const { language, selectedFormData } = store.useState((s) => s);
+  const { language, selectedFormData, forms } = store.useState((s) => s);
   const { active: activeLang } = language;
+  const childrenForms = forms.filter((f) => `${f.content?.parent}` === form);
 
   const text = useMemo(() => {
     return uiText[activeLang];
@@ -84,21 +85,9 @@ const MonitoringDetail = () => {
       key: "name",
     },
     {
-      title: "Type",
-      dataIndex: "submission_type",
-      key: "submission_type",
-      render: (cell) => {
-        const indexType = Object.values(config?.submissionType).findIndex(
-          (st) => st === cell
-        );
-        const subTypeName =
-          Object.keys(config.submissionType)?.[indexType] || "registration";
-        return (
-          <Tag color={config.submissionTypeColor?.[subTypeName]}>
-            {subTypeName}
-          </Tag>
-        );
-      },
+      title: "Form",
+      dataIndex: "form",
+      render: (formId) => forms.find((f) => f.id === formId)?.name || "N/A",
     },
     {
       title: "User",
@@ -137,15 +126,15 @@ const MonitoringDetail = () => {
     }
   };
 
-  const goToMonitoringForm = async () => {
-    const { form, uuid } = selectedFormData;
+  const goToMonitoringForm = async (form) => {
+    const { uuid } = selectedFormData;
     navigate(`/control-center/form/${form}/${uuid}`);
   };
 
   useEffect(() => {
     if (form && !updateRecord) {
       setLoading(true);
-      const url = `/form-data/${form}/?page=${currentPage}&parent=${parentId}&submission_type=${config.submissionType.monitoring}`;
+      const url = `/form-data/${form}/?page=${currentPage}&parent=${parentId}`;
       api
         .get(url)
         .then((res) => {
@@ -200,14 +189,20 @@ const MonitoringDetail = () => {
               </Button>
             </Col>
             <Col span={6} style={{ textAlign: "right" }}>
-              <Button
-                type="primary"
-                shape="round"
-                onClick={goToMonitoringForm}
-                icon={<FormOutlined />}
+              <Dropdown
+                trigger={["click"]}
+                menu={{
+                  items: childrenForms.map((form) => ({
+                    key: form.id,
+                    label: form.name,
+                  })),
+                  onClick: (e) => goToMonitoringForm(e.key),
+                }}
               >
-                {text.updateDataButton}
-              </Button>
+                <Button type="primary" shape="round" icon={<FormOutlined />}>
+                  {text.updateDataButton}
+                </Button>
+              </Dropdown>
             </Col>
           </Row>
           <Divider />
@@ -236,7 +231,6 @@ const MonitoringDetail = () => {
                 expandable={{
                   expandedRowRender: (record) => (
                     <DataDetail
-                      questionGroups={questionGroups}
                       record={record}
                       updateRecord={updateRecord}
                       updater={setUpdateRecord}

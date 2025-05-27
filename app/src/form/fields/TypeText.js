@@ -15,12 +15,20 @@ const TypeText = ({
   requiredSign = '*',
   meta_uuid: metaUUID,
   disabled,
+  onFocus = null,
 }) => {
   const requiredValue = required ? requiredSign : null;
   const inputContainerStyle =
     metaUUID || disabled
       ? { ...styles.inputFieldContainer, ...styles.inputFieldDisabled }
       : styles.inputFieldContainer;
+
+  const handleFocus = () => {
+    if (onFocus) {
+      onFocus();
+    }
+  };
+
   return (
     <View>
       <FieldLabel keyform={keyform} name={label} tooltip={tooltip} requiredSign={requiredValue} />
@@ -33,6 +41,7 @@ const TypeText = ({
             onChange(id, val);
           }
         }}
+        onFocus={handleFocus}
         value={value}
         testID="type-text"
         disabled={metaUUID || disabled}

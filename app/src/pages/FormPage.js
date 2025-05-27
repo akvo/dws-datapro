@@ -12,7 +12,7 @@ import { Button, Dialog, Text } from '@rneui/themed';
 import Icon from 'react-native-vector-icons/Ionicons';
 import * as SQLite from 'expo-sqlite';
 import * as Sentry from '@sentry/react-native';
-
+import * as Crypto from 'expo-crypto';
 import FormContainer from '../form/FormContainer';
 import { SaveDialogMenu, SaveDropdownMenu } from '../form/support';
 import { BaseLayout } from '../components';
@@ -92,7 +92,7 @@ const FormPage = ({ navigation, route }) => {
         submitted: 0,
         duration: surveyDuration,
         json: currentValues || {},
-        submissionType: route.params.submission_type,
+        uuid: route.params?.uuid,
       };
 
       const duration = getDurationInMinutes(surveyStart) + surveyDuration;
@@ -162,8 +162,7 @@ const FormPage = ({ navigation, route }) => {
         submitted: 1,
         duration: surveyDuration,
         json: answers,
-        submissionType: route.params.submission_type,
-        uuid: route.params?.uuid,
+        uuid: route.params?.uuid || Crypto.randomUUID(),
       };
       const duration = getDurationInMinutes(surveyStart) + surveyDuration;
       const payload = {
@@ -281,6 +280,7 @@ const FormPage = ({ navigation, route }) => {
           forms={formJSON}
           onSubmit={handleOnSubmitForm}
           setShowDialogMenu={setShowDialogMenu}
+          db={db}
         />
       ) : (
         <View style={styles.loadingContainer}>

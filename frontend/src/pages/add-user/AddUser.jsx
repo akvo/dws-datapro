@@ -50,10 +50,12 @@ const AddUser = () => {
   } = store.useState((s) => s);
   const NATIONAL_LEVEL = levels?.find((l) => l.level === 0)?.id;
   const { active: activeLang } = language;
-  const forms = allForms.map((f) => ({
-    ...f,
-    access: config.accessFormTypes,
-  }));
+  const forms = allForms
+    .filter((f) => !f?.content?.parent)
+    .map((f) => ({
+      ...f,
+      access: config.accessFormTypes,
+    }));
 
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -156,7 +158,6 @@ const AddUser = () => {
       email: values.email,
       administration: admin.id,
       phone_number: values.phone_number,
-      designation: values.designation,
       role: values.role,
       inform_user: values.inform_user,
       organisation: values.organisation,
@@ -277,7 +278,6 @@ const AddUser = () => {
             allApproverAccess.length > 0 && res.data?.role === IS_SUPER_ADMIN;
           form.setFieldsValue({
             administration: res.data?.administration,
-            designation: parseInt(res.data?.designation) || null,
             email: res.data?.email,
             first_name: res.data?.first_name,
             last_name: res.data?.last_name,
@@ -354,7 +354,6 @@ const AddUser = () => {
                 first_name: "",
                 last_name: "",
                 phone_number: "",
-                designation: null,
                 email: "",
                 role: null,
                 inform_user: true,
@@ -445,31 +444,6 @@ const AddUser = () => {
                         {organisations?.map((o, oi) => (
                           <Option key={`org-${oi}`} value={o.id}>
                             {o.name}
-                          </Option>
-                        ))}
-                      </Select>
-                    </Form.Item>
-                  </div>
-                  <div className="form-row">
-                    <Form.Item
-                      name="designation"
-                      label={text.userDesignation}
-                      rules={[{ required: true, message: text.valDesignation }]}
-                    >
-                      <Select
-                        placeholder={text.selectOne}
-                        getPopupContainer={(trigger) => trigger.parentNode}
-                        showSearch
-                        optionFilterProp="children"
-                        filterOption={(input, option) =>
-                          option.children
-                            .toLowerCase()
-                            .indexOf(input.toLowerCase()) >= 0
-                        }
-                      >
-                        {config?.designations?.map((d, di) => (
-                          <Option key={di} value={d.id}>
-                            {d.name}
                           </Option>
                         ))}
                       </Select>

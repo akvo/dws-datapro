@@ -1,5 +1,5 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 
 import { View, Text } from 'react-native';
 import {
@@ -26,12 +26,14 @@ const QuestionField = ({
   onChange,
   value = null,
   questions = [],
+  onFieldFocus,
 }) => {
   const questionType = questionField?.type;
   const defaultValQuestion = questionField?.default_value || {};
   const displayValue =
     questionField?.hidden || Object.keys(defaultValQuestion).length ? 'none' : 'flex';
   const formFeedback = FormState.useState((s) => s.feedback);
+  const viewRef = useRef(null);
 
   const handleOnChangeField = useCallback(
     (id, val) => {
@@ -43,6 +45,15 @@ const QuestionField = ({
     [onChange, questionField],
   );
 
+  const handleInputFocus = useCallback(() => {
+    if (onFieldFocus && viewRef.current) {
+      // Measure the position of this component on the screen
+      viewRef.current.measureInWindow((x, y, width, height) => {
+        onFieldFocus(y, height);
+      });
+    }
+  }, [onFieldFocus]);
+
   const renderField = useCallback(() => {
     switch (questionType) {
       case QUESTION_TYPES.date:
@@ -51,6 +62,7 @@ const QuestionField = ({
             keyform={keyform}
             onChange={handleOnChangeField}
             value={value}
+            onFocus={handleInputFocus}
             {...questionField}
           />
         );
@@ -87,6 +99,7 @@ const QuestionField = ({
             keyform={keyform}
             onChange={handleOnChangeField}
             value={value}
+            onFocus={handleInputFocus}
             {...questionField}
           />
         );
@@ -97,6 +110,7 @@ const QuestionField = ({
             onChange={handleOnChangeField}
             value={value}
             questions={questions}
+            onFocus={handleInputFocus}
             {...questionField}
           />
         );
@@ -145,14 +159,23 @@ const QuestionField = ({
             keyform={keyform}
             onChange={handleOnChangeField}
             value={value}
+            onFocus={handleInputFocus}
             {...questionField}
           />
         );
     }
-  }, [questionType, keyform, handleOnChangeField, value, questionField, questions]);
+  }, [
+    questionType,
+    keyform,
+    handleOnChangeField,
+    handleInputFocus,
+    value,
+    questionField,
+    questions,
+  ]);
 
   return (
-    <View testID="question-view" style={{ display: displayValue }}>
+    <View ref={viewRef} testID="question-view" style={{ display: displayValue }}>
       {renderField()}
       {formFeedback?.[questionField?.id] && formFeedback?.[questionField?.id] !== true && (
         <Text style={styles.validationErrorText} testID="err-validation-text">

@@ -6,14 +6,14 @@ export const config = [
       {
         id: 1,
         type: 'text',
-        label: 'About IWSIMS',
+        label: 'About DWS DataPro',
         name: 'serverURL',
         description: 'Lorem Ipsum',
         editable: false,
         translations: [
           {
             language: 'fr',
-            name: 'About IWSIMS',
+            name: 'About DWS DataPro',
             description: 'Lorem Ipsum',
           },
         ],
