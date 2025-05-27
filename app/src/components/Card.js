@@ -16,7 +16,7 @@ const Card = ({ title = null, subTitles = [], submissionType = null }) => {
   };
   const titleWidth = submissionType ? '70%' : '100%';
   return (
-    <RneCard>
+    <RneCard containerStyle={{ width: '100%' }}>
       {submissionType && (
         <View
           style={{

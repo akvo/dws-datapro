@@ -6,7 +6,7 @@ import Stack from '../Stack';
 const Content = ({ children = null, data = [], columns = 1, action = null }) => {
   if (data?.length) {
     return (
-      <ScrollView>
+      <ScrollView style={{ width: '100%' }} contentContainerStyle={{ flexGrow: 1 }}>
         <Stack row columns={columns}>
           {data?.map((d) =>
             action ? (
@@ -15,6 +15,7 @@ const Content = ({ children = null, data = [], columns = 1, action = null }) => 
                 type="clear"
                 onPress={() => action(d?.id)}
                 testID={`card-touchable-${d?.id}`}
+                style={{ width: '100%' }}
               >
                 <Card
                   title={d?.name}
@@ -23,7 +24,7 @@ const Content = ({ children = null, data = [], columns = 1, action = null }) => 
                 />
               </TouchableOpacity>
             ) : (
-              <View key={d?.id} testID={`card-non-touchable-${d?.id}`}>
+              <View key={d?.id} testID={`card-non-touchable-${d?.id}`} style={{ width: '100%' }}>
                 <Card title={d?.name} subTitles={d?.subtitles} />
               </View>
             ),
