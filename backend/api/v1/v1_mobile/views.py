@@ -513,8 +513,14 @@ def get_datapoint_download_list(request, version):
     paginator = Pagination()
 
     queryset = FormData.objects.filter(
-        administration_id__in=administrations,
-        form_id__in=forms,
+        Q(
+            administration_id__in=administrations,
+            form_id__in=forms,
+        ) |
+        Q(
+            administration__path__startswith=administrations[0]["id"],
+            form_id__in=forms,
+        )
     )
     if assignment.last_synced_at:
         queryset = queryset.filter(
