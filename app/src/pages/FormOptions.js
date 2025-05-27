@@ -17,8 +17,9 @@ const FormOptions = ({ navigation, route }) => {
   const goToSubmission = (selectedForm) => {
     FormState.update((s) => {
       s.form = selectedForm;
+      s.previousForm = activeForm;
     });
-    navigation.navigate('Submission', {
+    navigation.push('Submission', {
       id: selectedForm?.id,
       name: selectedForm.name,
       subTitle: route?.params?.name,
@@ -40,7 +41,7 @@ const FormOptions = ({ navigation, route }) => {
     FormState.update((s) => {
       s.currentValues = dataValues;
     });
-    navigation.navigate('FormDataDetails', { name: dataPointName });
+    navigation.push('FormDataDetails', { name: dataPointName });
   };
 
   const renderItem = ({ item }) => (
@@ -80,6 +81,17 @@ const FormOptions = ({ navigation, route }) => {
   useEffect(() => {
     fetchForms();
   }, [fetchForms]);
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (e) => {
+        UIState.update((s) => {
+          s.refreshPage = true;
+        });
+        navigation.dispatch(e.data.action);
+      }),
+    [navigation, activeForm?.id],
+  );
 
   return (
     <BaseLayout title={route?.params?.name} rightComponent={false}>
