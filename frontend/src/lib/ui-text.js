@@ -3,20 +3,8 @@ import React, { Fragment } from "react";
 const uiText = {
   en: {
     // Home page
-    welcome: (
-      <Fragment>
-        Rural and Urban Sanitation and Hygiene (RUSH)
-        <br />
-        Real-Time Monitoring and Information System (IWSIMS)
-      </Fragment>
-    ),
-    welcomeDesc: (
-      <Fragment>
-        Rural and Urban Sanitation and Hygiene (RUSH)
-        <br />
-        Real-Time Monitoring and Information System (IWSIMS)
-      </Fragment>
-    ),
+    welcome: <Fragment>DWS DataPro</Fragment>,
+    welcomeDesc: <Fragment>DWS DataPro</Fragment>,
     countdownTitle: "Time remaining to achieve national RUSH targets:",
     year: "Year",
     month: "Month",
@@ -26,7 +14,7 @@ const uiText = {
     second: "Second",
     welcomeCta: "Explore National Data",
     service1Text:
-      "IWSIMS offers real-time data for prompt decision-maker access.",
+      "DWS DataPro offers real-time data for prompt decision-maker access.",
     service2Text:
       "Identifying needs enables targeted interventions and efficient resource deployment.",
     service3Text:
@@ -69,7 +57,7 @@ const uiText = {
     footerAboutTitle: "About Data",
     footerAboutDescription: "",
     footerDonorSupport:
-      "IWSIMS was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
+      "DWS DataPro was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
     footerContactTitle: "Contacts",
     footerContactAddress: "",
     footerContactPhone: "+254-20-2717077",
@@ -85,7 +73,7 @@ const uiText = {
         url: "https://washdata.org/how-we-work/about-jmp#:~:text=Background,hygiene%20(WASH)%20since%201990",
       },
       {
-        text: "CLTS IWSIMS",
+        text: "CLTS DWS DataPro",
         url: " http://wash.health.go.ke/clts/index.jsp",
       },
       {

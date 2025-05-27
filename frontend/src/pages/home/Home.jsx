@@ -50,8 +50,8 @@ const Home = () => {
         </figure>
         <div className="item-parallax-content flex-container">
           <div className="landing-content">
-            <span className="head-title">{jumbotron.subtitle}</span>
             <h1 className="head-lg">{jumbotron.title}</h1>
+            <span className="head-title">{jumbotron.subtitle}</span>
           </div>
         </div>
       </section>

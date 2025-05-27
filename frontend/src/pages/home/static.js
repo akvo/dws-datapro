@@ -5,8 +5,9 @@ export const quickLinks = [
 ];
 
 export const jumbotron = {
-  title: "Integrated Water and\nSewerage Information Management System",
-  subtitle: "Department of Water & Sewerage",
+  title: "DWS DataPro",
+  subtitle:
+    "The Fiji Department of Water & Sewerage (DWS) DataPro is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji.",
   image: {
     src: "https://images.unsplash.com/photo-1642450909999-7106494ef779?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     alt: "Water landscape",
@@ -78,9 +79,9 @@ export const footer = {
     "Samabula, Suva",
   ],
   contactPhone: "(+679) 3384111",
-  aboutTitle: "About IWSIMS",
+  aboutTitle: "About DWS DataPro",
   aboutText:
-    "The Fiji Integrated Water and Sewerage Information Management System (IWSIMS) is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji. It serves as a centralized hub for data collection, analysis, and reporting, enabling informed decision-making and efficient resource allocation.",
+    "The Fiji DWS DataPro is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji. It serves as a centralized hub for data collection, analysis, and reporting, enabling informed decision-making and efficient resource allocation.",
   copyrightText: "© 2025 Department of Water and Sewerage",
   poweredByText: "Powered by",
 };
