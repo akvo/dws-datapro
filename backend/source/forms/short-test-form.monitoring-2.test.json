@@ -1,6 +1,6 @@
 {
   "id": 17993639153662,
-  "form": "Short HH Attachments & Testimonials",
+  "form": "Short HH Testimonials",
   "description": "Example form to test the attachments and testimonials features.",
   "defaultLanguage": "en",
   "languages": [
@@ -19,114 +19,11 @@
   },
   "question_groups": [
     {
-      "id": 170308627000081,
-      "order": 1,
-      "name": "attachments",
-      "label": "Attachments",
-      "description": "Please upload the required documents to finalize your submission.",
-      "repeatable": false,
-      "translations": null,
-      "questions": [
-        {
-          "id": 170308627000811,
-          "name": "upload_screenshot_proof",
-          "label": "Upload a screenshot proving you have followed",
-          "short_label": "Upload a screenshot",
-          "meta": false,
-          "type": "attachment",
-          "rule": {
-            "allowedFileTypes": [
-              "jpeg",
-              "jpg",
-              "png"
-            ]
-          },
-          "required": false
-        },
-        {
-          "id": 170308627000821,
-          "name": "upload_work",
-          "label": "Upload your work to get a chance to win a prize",
-          "short_label": "Upload your work",
-          "meta": false,
-          "type": "attachment",
-          "rule": {
-            "allowedFileTypes": []
-          },
-          "required": true
-        },
-        {
-          "id": 170308627000831,
-          "name": "letter_of_application",
-          "label": "Letter of application",
-          "meta": false,
-          "type": "attachment",
-          "rule": {
-            "allowedFileTypes": [
-              "pdf",
-              "doc",
-              "docx",
-              "odt"
-            ]
-          },
-          "required": true
-        },
-        {
-          "id": 170308627000841,
-          "name": "signature",
-          "label": "Please sign here to confirm your application",
-          "short_label": "Please sign here",
-          "tooltip": {
-            "text": "Please sign here to confirm your application"
-          },
-          "meta": false,
-          "type": "signature",
-          "required": true
-        },
-        {
-          "id": 170308627000851,
-          "name": "satisfaction_level",
-          "label": "From 1 to 10, how satisfied are you with this form?",
-          "short_label": "Your satisfaction level",
-          "tooltip": {
-            "text": "Please rate your satisfaction level from 1 to 10, where 1 is the lowest and 10 is the highest."
-          },
-          "meta": false,
-          "type": "number",
-          "rule": {
-            "min": 1,
-            "max": 10
-          },
-          "fn": {
-            "fnColor": "#satisfaction_level# > 5 ? \"#38A15A\" : \"#DB3B3B\""
-          },
-          "required": true
-        },
-        {
-          "id": 170308627000861,
-          "name": "satisfaction_level_results",
-          "label": "Satisfaction level results",
-          "short_label": "Satisfaction level results",
-          "tooltip": {
-            "text": "This field will show the results based on your satisfaction level."
-          },
-          "meta": false,
-          "type": "autofield",
-          "fn": {
-            "multiline": false,
-            "fnString": "#satisfaction_level# > 5 ? \"Good\" : \"Bad\"",
-            "fnColor": "#satisfaction_level# > 5 ? \"#38A15A\" : \"#DB3B3B\""
-          },
-          "required": false
-        }
-      ]
-    },
-    {
       "id": 170308627000091,
       "name": "testimonials",
       "label": "Testimonials",
       "description": "Grab all the testimonials you can get from your clients and add them here.",
-      "order": 2,
+      "order": 1,
       "repeatable": true,
       "repeatText": "Client testimonial",
       "questions": [
