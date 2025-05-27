@@ -11,6 +11,7 @@ import {
   Modal,
   Button,
   Space,
+  Dropdown,
 } from "antd";
 import {
   LeftCircleOutlined,
@@ -41,8 +42,9 @@ const MonitoringDetail = () => {
   const { form, parentId } = useParams();
   const navigate = useNavigate();
 
-  const { language, selectedFormData } = store.useState((s) => s);
+  const { language, selectedFormData, forms } = store.useState((s) => s);
   const { active: activeLang } = language;
+  const childrenForms = forms.filter((f) => `${f.content?.parent}` === form);
 
   const text = useMemo(() => {
     return uiText[activeLang];
@@ -83,6 +85,11 @@ const MonitoringDetail = () => {
       key: "name",
     },
     {
+      title: "Form",
+      dataIndex: "form",
+      render: (formId) => forms.find((f) => f.id === formId)?.name || "N/A",
+    },
+    {
       title: "User",
       dataIndex: "created_by",
     },
@@ -119,8 +126,8 @@ const MonitoringDetail = () => {
     }
   };
 
-  const goToMonitoringForm = async () => {
-    const { form, uuid } = selectedFormData;
+  const goToMonitoringForm = async (form) => {
+    const { uuid } = selectedFormData;
     navigate(`/control-center/form/${form}/${uuid}`);
   };
 
@@ -182,14 +189,20 @@ const MonitoringDetail = () => {
               </Button>
             </Col>
             <Col span={6} style={{ textAlign: "right" }}>
-              <Button
-                type="primary"
-                shape="round"
-                onClick={goToMonitoringForm}
-                icon={<FormOutlined />}
+              <Dropdown
+                trigger={["click"]}
+                menu={{
+                  items: childrenForms.map((form) => ({
+                    key: form.id,
+                    label: form.name,
+                  })),
+                  onClick: (e) => goToMonitoringForm(e.key),
+                }}
               >
-                {text.updateDataButton}
-              </Button>
+                <Button type="primary" shape="round" icon={<FormOutlined />}>
+                  {text.updateDataButton}
+                </Button>
+              </Dropdown>
             </Col>
           </Row>
           <Divider />
@@ -218,7 +231,6 @@ const MonitoringDetail = () => {
                 expandable={{
                   expandedRowRender: (record) => (
                     <DataDetail
-                      questionGroups={questionGroups}
                       record={record}
                       updateRecord={updateRecord}
                       updater={setUpdateRecord}
