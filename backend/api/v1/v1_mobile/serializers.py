@@ -4,6 +4,7 @@ from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 from api.v1.v1_forms.models import Forms
 from drf_spectacular.types import OpenApiTypes
+from django.db.models import Q
 from api.v1.v1_mobile.authentication import MobileAssignmentToken
 from api.v1.v1_profile.models import Administration, Entity
 from utils.custom_serializer_fields import CustomCharField
@@ -129,8 +130,12 @@ class FormsAndEntityValidation(serializers.PrimaryKeyRelatedField):
                             }
                         )
                     if entity and selected_adm:
+                        adm = selected_adm[0]
                         entity_has_data = entity.entity_data.filter(
-                            administration__in=selected_adm
+                            Q(administration__in=selected_adm) |
+                            Q(
+                                administration__path__startswith=adm
+                            ),
                         )
                         if not entity_has_data.exists():
                             no_data.append(

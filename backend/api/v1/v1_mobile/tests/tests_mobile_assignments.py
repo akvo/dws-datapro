@@ -183,10 +183,9 @@ class MobileAssignmentTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(response.status_code, 204)
 
     def test_create_error_entity_validation(self):
-        adms = Administration.objects \
-            .filter(entity_data__isnull=True).all()
-        adm_ids = [a.id for a in adms]
-        adm = Administration.objects.filter(pk__in=adm_ids).first()
+        adm = Administration.objects \
+            .filter(entity_data__isnull=False).last()
+        adm.entity_data.all().delete()
         form = Forms.objects.get(pk=2)
         payload = {
             'name': 'test assignment',
