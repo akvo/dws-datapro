@@ -7,7 +7,6 @@ import React, {
 } from "react";
 import { Webform } from "akvo-react-form";
 import "akvo-react-form/dist/index.css";
-import { v4 as uuidv4 } from "uuid";
 import "./style.scss";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -38,7 +37,7 @@ const Forms = () => {
   const [submit, setSubmit] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const { notify } = useNotification();
-  const { language, initialValue } = store.useState((s) => s);
+  const { language, initialValue, forms: allForms } = store.useState((s) => s);
   const { active: activeLang } = language;
   const [hiddenQIds, setHiddenQIds] = useState([]);
 
@@ -560,16 +559,32 @@ const Forms = () => {
   };
 
   const fetchInitialMonitoringData = useCallback(
-    async (response) => {
+    async ({ data: apiData }) => {
       try {
-        const { data: apiData } = response;
+        const parentFormQuestions = allForms
+          ?.find((f) => f?.id === apiData?.parent)
+          ?.content?.question_group?.flatMap((qg) => qg?.question);
         const questions = apiData?.question_group?.flatMap(
           (qg) => qg?.question
         );
         const res = await fetch(
           `${window.location.origin}/datapoints/${uuid}.json`
         );
-        const { answers } = await res.json();
+        const { answers: apiAnswers } = await res.json();
+        const parentQuestionsMap = parentFormQuestions?.reduce((acc, q) => {
+          acc[q.id] = q.name;
+          return acc;
+        }, {});
+        const questionsMap = questions.reduce((acc, q) => {
+          acc[q.name] = q.id;
+          return acc;
+        }, {});
+        const answers = Object.entries(apiAnswers).reduce((acc, [key, val]) => {
+          const qName = parentQuestionsMap[key];
+          const qId = questionsMap?.[qName];
+          acc[qId] = val;
+          return acc;
+        }, {});
         /**
          * Transform cascade answers
          */
@@ -595,7 +610,6 @@ const Forms = () => {
         /**
          * Transform answers to Webform format
          */
-        const submissionType = uuid ? "monitoring" : "registration";
         const initialValue = Object.entries(answers)
           .filter(([key, val]) => {
             const questionId = parseInt(key, 10);
@@ -606,14 +620,6 @@ const Forms = () => {
               (val === null ||
                 typeof val === "undefined" ||
                 (typeof val === "string" && val.trim() === ""))
-            ) {
-              return false;
-            }
-            // remove hidden question init value
-            if (
-              q?.hidden?.submission_type &&
-              !isEmpty(q?.hidden?.submission_type) &&
-              q.hidden.submission_type.includes(submissionType)
             ) {
               return false;
             }
@@ -640,83 +646,16 @@ const Forms = () => {
         });
       }
     },
-    [getCascadeAnswerId, uuid, text.updateDataError]
+    [getCascadeAnswerId, uuid, text.updateDataError, allForms]
   );
 
   useEffect(() => {
     if (isEmpty(forms) && formId) {
       api.get(`/form/web/${formId}`).then((res) => {
-        let defaultValues = [];
-        const submissionType = uuid ? "monitoring" : "registration";
         const questionGroups = res.data.question_group.map((qg) => {
           const questions = qg.question
             .map((q) => {
               let qVal = { ...q };
-              // set initial value for new_or_monitoring question
-              if (
-                q?.default_value &&
-                q?.default_value?.submission_type?.registration &&
-                !uuid
-              ) {
-                defaultValues = [
-                  ...defaultValues,
-                  {
-                    question: q.id,
-                    value: q.default_value.submission_type.registration,
-                  },
-                ];
-              }
-              if (!uuid && q?.meta_uuid) {
-                defaultValues = [
-                  ...defaultValues,
-                  {
-                    question: q.id,
-                    value: uuidv4(),
-                  },
-                ];
-              }
-              // eol set initial value for new_or_monitoring question
-
-              // set disabled new_or_monitoring question
-              if (
-                q?.default_value &&
-                !isEmpty(q?.default_value?.submission_type)
-              ) {
-                qVal = {
-                  ...qVal,
-                  disabled: true,
-                };
-              }
-              // eol set disabled new_or_monitoring question
-
-              // support disabled question by submission type
-              if (
-                q?.disabled?.submission_type &&
-                !isEmpty(q?.disabled?.submission_type)
-              ) {
-                qVal = {
-                  ...qVal,
-                  disabled: q.disabled.submission_type.includes(submissionType),
-                };
-              }
-              // EOL support disabled question by submission type
-
-              // support hidden question by submission type
-              if (
-                q?.hidden?.submission_type &&
-                !isEmpty(q?.hidden?.submission_type)
-              ) {
-                const hidden =
-                  q.hidden.submission_type.includes(submissionType);
-                if (hidden) {
-                  setHiddenQIds((prev) => [...new Set([...prev, q.id])]);
-                }
-                qVal = {
-                  ...qVal,
-                  hidden: hidden,
-                };
-              }
-              // EOL support hidden question by submission type
 
               if (q?.extra) {
                 delete qVal.extra;
@@ -748,14 +687,6 @@ const Forms = () => {
           };
         });
         setForms({ ...res.data, question_group: questionGroups });
-        // INITIAL VALUE FOR NEW DATA
-        if (defaultValues.length) {
-          setTimeout(() => {
-            store.update((s) => {
-              s.initialValue = defaultValues;
-            });
-          }, 1000);
-        }
         // INITIAL VALUE FOR MONITORING
         if (uuid) {
           fetchInitialMonitoringData(res);
