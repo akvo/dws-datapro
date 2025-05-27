@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useEffect } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Keyboard } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { BaseLayout } from '../components';
 import { FormNavigation, QuestionGroupList } from './support';
@@ -46,6 +46,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
   const [showQuestionGroupList, setShowQuestionGroupList] = useState(false);
   const [datapoint, setDatapoint] = useState(null);
   const [fillingForm, setFillingForm] = useState(true);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const currentValues = FormState.useState((s) => s.currentValues);
   const cascades = FormState.useState((s) => s.cascades);
   const activeLang = FormState.useState((s) => s.lang);
@@ -226,6 +227,21 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
     fetchInitialValues();
   }, [fetchInitialValues]);
 
+  useEffect(() => {
+    const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+      setKeyboardVisible(true);
+    });
+    const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+      setKeyboardVisible(false);
+    });
+
+    // Cleanup listeners on unmount
+    return () => {
+      keyboardDidHideListener.remove();
+      keyboardDidShowListener.remove();
+    };
+  }, []);
+
   if (fillingForm) {
     return (
       <View
@@ -262,16 +278,18 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
           )}
         </View>
       </BaseLayout.Content>
-      <FormNavigation
-        currentGroup={currentGroup}
-        onSubmit={handleOnSubmitForm}
-        activeGroup={activeGroup}
-        setActiveGroup={handleOnActiveGroup}
-        totalGroup={formDefinition?.question_group?.length || 0}
-        showQuestionGroupList={showQuestionGroupList}
-        setShowQuestionGroupList={setShowQuestionGroupList}
-        setShowDialogMenu={setShowDialogMenu}
-      />
+      {!keyboardVisible && (
+        <FormNavigation
+          currentGroup={currentGroup}
+          onSubmit={handleOnSubmitForm}
+          activeGroup={activeGroup}
+          setActiveGroup={handleOnActiveGroup}
+          totalGroup={formDefinition?.question_group?.length || 0}
+          showQuestionGroupList={showQuestionGroupList}
+          setShowQuestionGroupList={setShowQuestionGroupList}
+          setShowDialogMenu={setShowDialogMenu}
+        />
+      )}
     </>
   );
 };

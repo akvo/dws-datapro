@@ -76,13 +76,15 @@ const FAButton = ({
 
 const styles = StyleSheet.create({
   buttonWrapper: {
-    position: 'absolute',
+    width: '100%',
+    position: 'fixed',
     left: 0,
     right: 0,
-    bottom: 24,
+    bottom: 48,
     alignItems: 'center',
     justifyContent: 'center',
     pointerEvents: 'box-none',
+    textAlign: 'center',
   },
   floatingButton: {
     borderRadius: 28,
