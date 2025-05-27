@@ -138,10 +138,18 @@ const TypeCascade = ({
     }
     return Object.values(groupedDs).map((options, ox) => {
       const defaultValue = value?.[ox] || null;
-      const answer =
-        typeof defaultValue === 'string'
-          ? options.find((o) => o?.name === defaultValue)?.id
-          : defaultValue;
+      let answer = defaultValue;
+      if (typeof defaultValue === 'string') {
+        const found = options.find((o) => o?.name === defaultValue);
+        if (found) {
+          answer = found.id;
+        }
+      }
+
+      if (Array.isArray(value) && value.length) {
+        const found = options.find((o) => value.includes(o?.id));
+        answer = found?.id || options?.[options.length - 1]?.id || null;
+      }
       return {
         options,
         value: answer,
