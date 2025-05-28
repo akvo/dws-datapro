@@ -224,7 +224,8 @@ AUTH_USER_MODEL = "v1_users.SystemUser"
 # MOBILE ENV VARIABLES
 WEBDOMAIN = environ.get("WEBDOMAIN", "http://localhost:3000")
 APK_UPLOAD_SECRET = environ.get("APK_UPLOAD_SECRET")
-APP_NAME = "iwsims"
+APP_NAME = environ.get("APP_NAME", "iwsims")
+APP_SHORT_NAME = environ.get("APP_SHORT_NAME", "iwsims")
 MASTER_DATA = "./source"
 STORAGE_PATH = environ.get("STORAGE_PATH", "./storage")
 
