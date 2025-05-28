@@ -148,7 +148,10 @@
           "extra": {
             "type": "entity",
             "name": "School"
-          }
+          },
+          "api": {
+						"endpoint": "/api/v1/entity-data/1/list/"
+					}
         }
       ]
     }
