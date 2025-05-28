@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import Header from "./Header";
 import Banner from "./Banner";
 import Body from "./Body";
-import Footer from "./Footer";
 import { Row } from "antd";
 import "./style.scss";
 
@@ -27,6 +26,5 @@ Layout.propTypes = {
 Layout.Header = Header;
 Layout.Banner = Banner;
 Layout.Body = Body;
-Layout.Footer = Footer;
 
 export default Layout;
