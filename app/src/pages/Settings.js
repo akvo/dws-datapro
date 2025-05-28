@@ -77,15 +77,15 @@ const Settings = ({ navigation }) => {
               </TouchableOpacity>
             </>
           )}
-          <Divider width={8} color="#f9fafb" />
-          <LogoutButton />
-          <Divider width={8} color="#f9fafb" />
           <TouchableOpacity onPress={() => navigation.navigate('About')} style={styles.listItem}>
             <View style={styles.listItemContent}>
               <Text style={styles.listItemTitle}>{trans.about}</Text>
             </View>
             <Icon name="chevron-right" size={24} color="#000" />
           </TouchableOpacity>
+          <Divider width={8} color="#f9fafb" />
+          <LogoutButton />
+          <Divider width={8} color="#f9fafb" />
           <DialogForm
             onOk={handleSaveLang}
             onCancel={() => setShowLang(false)}
