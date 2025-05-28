@@ -19,6 +19,8 @@ services:
       - WEBDOMAIN=notset
       - APK_UPLOAD_SECRET=ci-secret
       - SENTRY_DSN
+      - APP_NAME=iwsims
+      - APP_SHORT_NAME=iwsims
     network_mode: service:mainnetwork
     restart: always
     volumes:

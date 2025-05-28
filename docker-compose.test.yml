@@ -27,6 +27,8 @@ services:
       - APK_UPLOAD_SECRET=ci-secret
       - STORAGE_PATH="./storage"
       - SENTRY_DSN
+      - APP_NAME=iwsims
+      - APP_SHORT_NAME=iwsims
     depends_on:
       - db
     command: tail -f /dev/null
