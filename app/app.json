@@ -1,7 +1,7 @@
 {
   "expo": {
     "newArchEnabled": true,
-    "name": "iwsims-mobile",
+    "name": "DWS DataPro",
     "slug": "iwsims-mobile",
     "version": "4.1.0",
     "orientation": "portrait",
@@ -62,6 +62,11 @@
       ],
       "expo-document-picker",
       "expo-asset"
-    ]
+    ],
+    "androidNavigationBar": {
+      "visible": "immersive",
+      "barStyle": "dark-content",
+      "backgroundColor": "#000000"
+    }
   }
 }
