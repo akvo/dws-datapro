@@ -77,7 +77,7 @@ class EntitiesDataBulkUploadTemplateExportTestCase(
         df = pd.read_excel(response.content, sheet_name=entity_type.name)
         self.assertEqual(
             len(df.to_records("dict")),
-            Administration.objects.filter(level__level__gt=0).count()
+            self.adm.count()
         )
 
     def test_export_prefilled_entity_with_selected_adm_template(self):
