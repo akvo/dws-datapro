@@ -37,3 +37,8 @@ window.dbadm = [
     path: "1.",
   },
 ];
+
+window.appConfig = {
+  name: "Test App",
+  shortName: "Test",
+};
