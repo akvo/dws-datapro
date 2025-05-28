@@ -23,7 +23,7 @@ const Reports = () => {
 
   const handlePrint = () => {
     const print = document.getElementById("print-iframe");
-    const title = "RUSH";
+    const title = window.appConfig.appName;
     print.contentDocument.title = title;
     print.focus();
     print.contentWindow.print();

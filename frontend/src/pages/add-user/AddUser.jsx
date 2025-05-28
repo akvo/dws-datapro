@@ -30,16 +30,6 @@ import { FormAccessCheckbox, FormAccessCollapsible } from "./components";
 
 const { Option } = Select;
 
-const descriptionData = (
-  <p>
-    This page allows you to add users to the RUSH platform.You will only be able
-    to add users for regions under your jurisdisction.
-    <br />
-    Once you have added the user, the user will be notified by email to set
-    their password and access the platform
-  </p>
-);
-
 const AddUser = () => {
   const {
     user: authUser,
@@ -336,7 +326,7 @@ const AddUser = () => {
           <Col>
             <Breadcrumbs pagePath={pagePath} />
             <DescriptionPanel
-              description={descriptionData}
+              description={text.addUserDescription}
               title={panelTitle}
             />
           </Col>
