@@ -350,7 +350,11 @@ exports[`Login and Registration test if the registration form exists: Registrati
                   <h1
                     data-testid="welcome-title"
                   >
-                    Welcome to RUSH, John Doe
+                    Welcome to the 
+                    <b>
+                      Test
+                    </b>
+                     platform, John Doe
                   </h1>
                   <p
                     class="contact-text"

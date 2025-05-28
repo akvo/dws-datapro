@@ -1,18 +1,16 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import "./style.scss";
 import { AkvoIcon } from "../../components/Icons";
-import { config } from "../../lib";
-import {
-  quickLinks,
-  jumbotron,
-  mandate,
-  structure,
-  keyRoles,
-  footer,
-} from "./static";
+import { config, store, uiText } from "../../lib";
 
 const Home = () => {
+  const language = store.useState((s) => s.language);
+  const { active: activeLang } = language;
+  const text = useMemo(() => {
+    return uiText[activeLang];
+  }, [activeLang]);
+
   useEffect(() => {
     // Create a script element to load script.js
     const script = document.createElement("script");
@@ -33,8 +31,8 @@ const Home = () => {
       <section className="block">
         <figure className="item-parallax-media ">
           <img
-            src={jumbotron.image.src}
-            alt={jumbotron.image.alt}
+            src={text.homeJumbotronImage.src}
+            alt={text.homeJumbotronImage.alt}
             style={{
               height: "100vh",
               width: "100%",
@@ -50,8 +48,8 @@ const Home = () => {
         </figure>
         <div className="item-parallax-content flex-container">
           <div className="landing-content">
-            <h1 className="head-lg">{jumbotron.title}</h1>
-            <span className="head-title">{jumbotron.subtitle}</span>
+            <h1 className="head-lg">{text.homeJumbotronTitle}</h1>
+            <span className="head-title">{text.homeJumbotronSubtitle}</span>
           </div>
         </div>
       </section>
@@ -61,15 +59,15 @@ const Home = () => {
           className="item-parallax-content centered-content section-container"
           style={{ paddingTop: 128, paddingBottom: 128 }}
         >
-          <h1 className="head-md head-centered">{mandate.title}</h1>
-          <p className="section-caption-text">{mandate.text}</p>
+          <h1 className="head-md head-centered">{text.homeMandateTitle}</h1>
+          <p className="section-caption-text">{text.homeMandateText}</p>
         </div>
         <div className="item-parallax-content flex-container img-grid">
           <figure className="img-gridItem type-left">
             <img src="/assets/department-structure.jpg" alt="Department" />
             <figcaption className="img-caption">
-              <h2 className="head-title">{structure.title}</h2>
-              <p className="copy">{structure.text}</p>
+              <h2 className="head-title">{text.homeStructureTitle}</h2>
+              <p className="copy">{text.homeStructureText}</p>
             </figcaption>
           </figure>
         </div>
@@ -80,11 +78,11 @@ const Home = () => {
           className="centered-content section-container"
           style={{ paddingTop: 128, paddingBottom: 128 }}
         >
-          <h1 className="head-md head-centered">{keyRoles.title}</h1>
-          <p className="section-caption-text">{keyRoles.text}</p>
+          <h1 className="head-md head-centered">{text.homeKeyRolesTitle}</h1>
+          <p className="section-caption-text">{text.homeKeyRolesText}</p>
         </div>
         <div className="item-parallax-content flex-container img-grid">
-          {keyRoles.items.map((item, index) => (
+          {text.homeKeyRolesItems.map((item, index) => (
             <figure key={index} className={`img-gridItem type-${item.type}`}>
               <img src={item.imgSrc} alt={item.imgAlt} />
               <figcaption className="img-caption">
@@ -98,7 +96,7 @@ const Home = () => {
 
       <section className="block footer-section ">
         <div className="flex-container section-container">
-          <div className="footer-co</div>lumn footer-column-1">
+          <div className="footer-column footer-column-1">
             <div className="footer-logo-container">
               <Link to="/">
                 <div className="footer-logo">
@@ -108,9 +106,9 @@ const Home = () => {
             </div>
           </div>
           <div className="footer-column footer-column-2 text-sm text-white/60">
-            <h4 className="head-sm">{footer.quickLinksTitle}</h4>
+            <h4 className="head-sm">{text.homeFooterQuickLinksTitle}</h4>
             <ul className="quick-links-list">
-              {quickLinks.map((link, index) => (
+              {text.homeQuickLinks.map((link, index) => (
                 <li key={index} className="mb-2">
                   <Link to={link.href} className="text-white/60">
                     {link.text}
@@ -120,10 +118,10 @@ const Home = () => {
             </ul>
           </div>
           <div className="footer-column footer-column-2 text-sm text-white/60">
-            <h4 className="head-sm">{footer.contactTitle}</h4>
+            <h4 className="head-sm">{text.homeFooterContactTitle}</h4>
             <div className="flex items-start mb-2">
               <div>
-                {footer.contactDetails.map((line, index) => (
+                {text.homeFooterContactDetails.map((line, index) => (
                   <React.Fragment key={index}>
                     {line}
                     <br />
@@ -133,7 +131,7 @@ const Home = () => {
             </div>
             <div className="flex items-start mb-2">
               <div>
-                {footer.contactAddress.map((line, index) => (
+                {text.homeFooterContactAddress.map((line, index) => (
                   <React.Fragment key={index}>
                     {line}
                     <br />
@@ -142,24 +140,31 @@ const Home = () => {
               </div>
             </div>
             <div className="flex items-center">
-              <a href={`tel:${footer.contactPhone.replace(/\(|\)|\s/g, "")}`}>
-                <span>{footer.contactPhone}</span>
+              <a
+                href={`tel:${text.homeFooterContactPhone.replace(
+                  /\(|\)|\s/g,
+                  ""
+                )}`}
+              >
+                <span>{text.homeFooterContactPhone}</span>
               </a>
             </div>
           </div>
           <div className="footer-column footer-column-2 text-sm text-white/60">
-            <h4 className="head-sm">{footer.aboutTitle}</h4>
+            <h4 className="head-sm">{text.homeFooterAboutTitle}</h4>
             <div className="flex items-start mb-2">
-              <div>{footer.aboutText}</div>
+              <div>{text.homeFooterAboutText}</div>
             </div>
           </div>
         </div>
         <div className="footer-copyright">
           <div>
-            <p className="copy copy-white">{footer.copyrightText}</p>
+            <p className="copy copy-white">{text.homeFooterCopyrightText}</p>
           </div>
           <div className="powered-by-container">
-            <span className="copy copy-white">{footer.poweredByText}</span>
+            <span className="copy copy-white">
+              {text.homeFooterPoweredByText}
+            </span>
             <span>
               <AkvoIcon />
             </span>

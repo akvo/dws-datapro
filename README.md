@@ -14,11 +14,15 @@ Real Time Monitoring Information Systems
 
 ### Environment Setup
 
-Expected that PORT 5432 and 3000 are not being used by other services.
+Ensure that PORT 5432 and 3000 are not being used by other services.
+
+Copy `env.example` to create a `.env` file. Here’s what it should look like:
 
 .env
 
 ```bash
+APP_NAME="DWS DataPro"
+APP_SHORT_NAME="DWS DataPro"
 DB_HOST=db
 DB_PASSWORD=password
 DB_SCHEMA=iwsims
@@ -29,6 +33,7 @@ GOOGLE_APPLICATION_CREDENTIALS
 MAILJET_APIKEY
 MAILJET_SECRET
 WEBDOMAIN
+EXPO_TOKEN="<<your secret expo token>>"
 POSTGRES_PASSWORD=password
 PGADMIN_DEFAULT_EMAIL=dev@akvo.org
 PGADMIN_DEFAULT_PASSWORD=password

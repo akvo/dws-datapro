@@ -10,26 +10,56 @@ Object {
     "EntitiesDataDownload": "Entities Data Download",
     "EntitiesDataUpload": "Entities Data Upload",
     "EntitiesDownloadPageHint": "Uncheck Prefilled if you only want an upload template",
-    "aboutHighlight": <React.Fragment />,
-    "aboutRush": "About RUSH",
-    "aboutText": <React.Fragment />,
     "accountDisclaimer": "The user is accountable for his/her account and in case there are any changes (Transfers, retirement, any kind of leave, resignation etc) this should be communicated to the County Administrator or National Super Admin who might be able to assign the roles to the new officer.",
     "actionColumn": "Action",
-    "addAdmDesc": "This page allows you to add administration to the RUSH platform.",
+    "addAdmDesc": <React.Fragment>
+      This page allows you to add administration to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "addAdministration": "Add Administration",
-    "addAttributeDesc": "This page allows you to add attribute to the RUSH platform.",
+    "addAttributeDesc": <React.Fragment>
+      This page allows you to add attribute to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "addAttributes": "Add Attribute",
     "addEntities": "Add Entities",
     "addEntity": "Add New",
     "addEntityData": "Add New",
-    "addEntityDesc": "This page allows you to add entity to the RUSH platform.",
-    "addEntityTypeDesc": "This page allows you to add entity type to the RUSH platform.",
+    "addEntityDesc": <React.Fragment>
+      This page allows you to add entity to the 
+      Test
+       
+      platform.
+    </React.Fragment>,
+    "addEntityTypeDesc": <React.Fragment>
+      This page allows you to add entity type to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "addNewButton": "Add New",
     "addNewUser": "Add new user",
     "addOptionButton": "Add option",
-    "addOrgDesc": "This page allows you to add organisations to the RUSH platform.",
+    "addOrgDesc": <React.Fragment>
+      This page allows you to add organisations to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "addOrganisation": "Add Organization",
     "addUser": "Add User",
+    "addUserDescription": <React.Fragment>
+      This page allows you to add users to the 
+      Test
+       
+      platform. You will only be able to add users for regions under your jurisdisction.
+      <br />
+      Once you have added the user, the user will be notified by email to set their password and access the platform
+    </React.Fragment>,
     "admConfirmDelete": "Are you sure you want to delete this administration?",
     "admErrDeleteTitle": "Unable to delete the administration",
     "admFieldRequired": "Administration is required",
@@ -104,11 +134,7 @@ Object {
     "confirmDeleteEntity": "Are you sure you want to delete this entity?",
     "confirmDeleteEntityData": "Are you sure you want to delete this data?",
     "contactAdmin": "Please contact the administrator",
-    "contactDesText": "Get in touch with us for support or feedback.",
-    "contactText": "Contact Us",
     "controlCenter": "Control Center",
-    "copyright": "© 2022 — Ministry of Health",
-    "countdownTitle": "Time remaining to achieve national RUSH targets:",
     "createNewBatch": "Create a new batch",
     "dashboards": "Dashboards",
     "dataAdministrationDownloadText": <React.Fragment>
@@ -171,27 +197,56 @@ Object {
       </ul>
     </React.Fragment>,
     "dataUploadTitle": "Data Upload",
-    "day": "Day",
     "deleteOrganisationDesc": [Function],
     "deleteOrganisationTitle": "You are about to delete the organization",
     "deleteText": "Delete",
-    "deleteUserDesc": "The User will no longer be able to access the RUSH platform as an Enumrator/Admin etc",
+    "deleteUserDesc": <React.Fragment>
+      The User will no longer be able to access the
+       
+      Test
+       platform as an Enumrator/Admin etc
+    </React.Fragment>,
     "deleteUserHint": "Deleting this user will not delete the data association(s)",
     "deleteUserTitle": "You are about to delete the user",
     "download": "Download",
     "downloadHere": "download here",
     "downloadTitle": "Downloads",
     "dropFile": "Drop your file here",
-    "editAdmDesc": "This page allows you to edit administration to the RUSH platform.",
+    "editAdmDesc": <React.Fragment>
+      This page allows you to edit administration to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "editAdministration": "Edit Administration",
-    "editAttributeDesc": "This page allows you to edit attribute to the RUSH platform.",
+    "editAttributeDesc": <React.Fragment>
+      This page allows you to edit attribute to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "editAttributes": "Edit Attribute",
     "editButton": "Edit",
     "editEntity": "Edit Entity",
     "editEntityData": "Edit data",
-    "editEntityDesc": "This page allows you to edit entity to the RUSH platform.",
-    "editEntityTypeDesc": "This page allows you to edit entity type to the RUSH platform.",
-    "editOrgDesc": "This page allows you to edit organisations to the RUSH platform.",
+    "editEntityDesc": <React.Fragment>
+      This page allows you to edit entity to the 
+      Test
+       
+      platform.
+    </React.Fragment>,
+    "editEntityTypeDesc": <React.Fragment>
+      This page allows you to edit entity type to the
+       
+      Test
+       platform.
+    </React.Fragment>,
+    "editOrgDesc": <React.Fragment>
+      This page allows you to edit organisations to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "editOrganisation": "Edit Organization",
     "editUser": "Edit User",
     "endOfListLabel": "End of List",
@@ -219,7 +274,12 @@ Object {
     "errorMandatoryFields": "Please answer all the mandatory questions",
     "errorPageNA": "Oops, this page is not available",
     "errorSomething": "Something went wrong",
-    "errorURL": "Please check the URL again or let us take you back to the RUSH homepage",
+    "errorURL": <React.Fragment>
+      Please check the URL again or let us take you back to the
+       
+      Test
+       homepage
+    </React.Fragment>,
     "errorUnknown": "An unknown error occurred",
     "errorUserLoad": "Failed to load user data",
     "errorVerifyCreds": "Please verify your credentials for the requested resource",
@@ -236,75 +296,12 @@ Object {
       </p>
     </React.Fragment>,
     "failed": "Failed",
-    "feedbackBtn": "Send Feedback",
     "fetchingForm": "Fetching form..",
     "fileUploadFail": "Could not upload file",
     "fileUploadSuccess": "File uploaded successfully",
     "finish": "Finish",
     "finishSubmissionBatchBtn": "Finish and Go to Batch",
     "finishSubmissionBtn": "Finish and Go to Manage Data",
-    "footerAboutDescription": "",
-    "footerAboutTitle": "About Data",
-    "footerContactAddress": "",
-    "footerContactEmail": "rushiwsims.system@health.go.ke",
-    "footerContactFeedback": Object {
-      "text": "Feedback Form",
-      "url": "https://docs.google.com/forms/d/e/1FAIpQLSf5rjD66CCcMWYgFwkNp8Xb1lRJoec1CwhhPnjOd-mU84ktPA/viewform",
-    },
-    "footerContactPhone": "+254-20-2717077",
-    "footerContactTitle": "Contacts",
-    "footerDonorSupport": "DWS DataPro was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
-    "footerExternalLinkItems": Array [
-      Object {
-        "text": "JMP",
-        "url": "https://washdata.org/how-we-work/about-jmp#:~:text=Background,hygiene%20(WASH)%20since%201990",
-      },
-      Object {
-        "text": "CLTS DWS DataPro",
-        "url": " http://wash.health.go.ke/clts/index.jsp",
-      },
-      Object {
-        "text": "GLAAS",
-        "url": "https://www.who.int/teams/environment-climate-change-and-health/water-sanitation-and-health/monitoring-and-evidence/wash-systems-monitoring/un-water-global-analysis-and-assessment-of-sanitation-and-drinking-water",
-      },
-    ],
-    "footerExternalLinkTitle": "External Links",
-    "footerLegalLinkItems": Array [
-      Object {
-        "text": "Privacy Policy",
-        "url": "#",
-      },
-      Object {
-        "text": "Terms & Conditions",
-        "url": "#",
-      },
-      Object {
-        "text": "Cookie Policy",
-        "url": "#",
-      },
-    ],
-    "footerQuickLinkItems": Array [
-      Object {
-        "text": "Read the Docs",
-        "url": "/documentation/",
-      },
-    ],
-    "footerQuickLinkTitle": "Quick Links",
-    "footerResourcesItems": Array [
-      Object {
-        "text": "International Resources",
-        "url": "#",
-      },
-      Object {
-        "text": "National Resources",
-        "url": "#",
-      },
-      Object {
-        "text": "County Resources",
-        "url": "#",
-      },
-    ],
-    "footerResourcesTitle": "Resources",
     "forgotDesc": "Enter the email associated with your account and we&apos;ll Send an email with instructions to reset your password",
     "forgotTitle": "Reset your password",
     "formAssignmentError": "You don't have any form assignment, please contact the administrator",
@@ -318,9 +315,93 @@ Object {
     "formSuccessSubTitle": "Do note that this data has NOT been sent for approval. If you are ready to send the submissions for approval, please create a batch and send to the approver",
     "formSuccessSubTitleForAdmin": "Do note that the data submitted by SUPER ADMIN role will not go through the approval flow and recorded as approved data",
     "formSuccessTitle": "Thank you for the submission",
-    "frameworkText": "4 M&E Frameworks",
     "generating": "Generating",
-    "hour": "Hour",
+    "helloText": "Hello",
+    "homeFooterAboutText": <React.Fragment>
+      The Fiji 
+      Test App
+       is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji. It serves as a centralized hub for data collection, analysis, and reporting, enabling informed decision-making and efficient resource allocation.
+    </React.Fragment>,
+    "homeFooterAboutTitle": <React.Fragment>
+      About 
+      Test App
+    </React.Fragment>,
+    "homeFooterContactAddress": Array [
+      "Private Mail Bag, Suva, Fiji",
+      "Level 4, Nasilivata House, Ratu Mara Road,",
+      "Samabula, Suva",
+    ],
+    "homeFooterContactDetails": Array [
+      "Department of Water and Sewerage",
+      "Ministry of Public Works and Meteorological Services, and Transport",
+    ],
+    "homeFooterContactPhone": "(+679) 3384111",
+    "homeFooterContactTitle": "Contact Us",
+    "homeFooterCopyrightText": "© 2025 Department of Water and Sewerage",
+    "homeFooterPoweredByText": "Powered by",
+    "homeFooterQuickLinksTitle": "Quick Links",
+    "homeJumbotronImage": Object {
+      "alt": "Water landscape",
+      "src": "https://images.unsplash.com/photo-1642450909999-7106494ef779?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    "homeJumbotronSubtitle": "The Fiji Department of Water & Sewerage (DWS) DataPro is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji.",
+    "homeJumbotronTitle": <React.Fragment>
+      Test App
+    </React.Fragment>,
+    "homeKeyRolesItems": Array [
+      Object {
+        "imgAlt": "Water policy",
+        "imgSrc": "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "text": "Formulating regulatory frameworks and policies to promote a sustainable water and sewerage sector. Providing expert advice on water and sewerage issues to support effective governance.",
+        "title": "Policy & Legislation",
+        "type": "right",
+      },
+      Object {
+        "imgAlt": "Compliance monitoring",
+        "imgSrc": "https://images.unsplash.com/photo-1708807472445-d33589e6b090?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "text": "Overseeing adherence to established policies, legislation, and industry standards. Serving as the primary government agency responsible for monitoring the activities of the Water Authority of Fiji.",
+        "title": "Monitoring & Oversight",
+        "type": "left",
+      },
+      Object {
+        "imgAlt": "Technical and policy advisory",
+        "imgSrc": "/assets/technical-advisory.jpg",
+        "text": "Providing expert advice on water and sewerage issues to support effective governance and operational efficiency.",
+        "title": "Technical and Policy Advisory",
+        "type": "right",
+      },
+      Object {
+        "imgAlt": "Compliance monitoring",
+        "imgSrc": "https://plus.unsplash.com/premium_photo-1661964131234-fda88ca041c5?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        "text": "Serving as the primary government agency responsible for monitoring the activities of the Water Authority of Fiji and ensuring compliance with national regulations.",
+        "title": "Water Authority of Fiji Oversight",
+        "type": "left",
+      },
+    ],
+    "homeKeyRolesText": "The key roles and responsibilities of the Department include policy and legislation development, technical and policy advisory, compliance monitoring, and Water Authority of Fiji oversight.",
+    "homeKeyRolesTitle": "Key Roles and Responsibilities",
+    "homeMandateText": "The Department of Water and Sewerage is mandated with the responsibility of ensuring a sustainable water and sewerage sector through the development of innovative policies, efficient service delivery, and rigorous compliance monitoring.",
+    "homeMandateTitle": "Our Mandate",
+    "homeQuickLinks": Array [
+      Object {
+        "href": "/privacy-policy",
+        "text": "Privacy Policy",
+      },
+      Object {
+        "href": "/terms-n-conditions",
+        "text": "Terms & Conditions",
+      },
+      Object {
+        "href": "/cookie-policy",
+        "text": "Cookie Policy",
+      },
+    ],
+    "homeStructureImage": Object {
+      "alt": "Water resources",
+      "src": "https://images.unsplash.com/photo-1744157801849-5e090acbdf84?q=80&w=2089&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+    },
+    "homeStructureText": "The Department is headed by the Director of Water and Sewerage with the Technical Unit responsible for monitoring and compliance and Policy Unit responsible for policy and regulatory matters, supported by common cadre support staff.",
+    "homeStructureTitle": "Department Structure",
     "informUser": "Inform User for Changes",
     "instructionsMailed": "Instructions mailed successfully",
     "invalidInviteDesc": "Lorem, ipsum dolor sit amet consectetur adipisicing elit. Autem provident voluptatum cum numquam, quidem vitae, qui quam beatae exercitationem ullam perferendis! Nobis in aut fuga voluptate harum, tempore distinctio optio.",
@@ -328,7 +409,6 @@ Object {
     "lastLoginLabel": "Last login",
     "lastResponseCol": "Last Response",
     "latestUpdateText": "Latest Updates",
-    "learnMoreButton": "Learn more",
     "levelField": "Level",
     "levelFieldRequired": "Level is required",
     "levelLabel": "Level",
@@ -443,7 +523,6 @@ Object {
       </ul>
     </React.Fragment>,
     "mdPanelTitle": "Master Data",
-    "minute": "Minute",
     "mobileAddText": "Add Assignment",
     "mobileAdmRequired": "Administration is required: one or multiple",
     "mobileButtonAdd": "Add new data collector",
@@ -458,9 +537,19 @@ Object {
     "mobileLabelName": "Name",
     "mobileLevelRequired": "Level is required",
     "mobileNameRequired": "Name is required",
-    "mobilePanelAddDesc": "This page allows you to add mobile data collectors to the RUSH platform.",
+    "mobilePanelAddDesc": <React.Fragment>
+      This page allows you to add mobile data collectors to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "mobilePanelButton": "Manage Data Collectors",
-    "mobilePanelEditDesc": "This page allows you to edit mobile data collectors to the RUSH platform.",
+    "mobilePanelEditDesc": <React.Fragment>
+      This page allows you to edit mobile data collectors to the
+       
+      Test
+       platform.
+    </React.Fragment>,
     "mobilePanelText": <React.Fragment>
       This is where you :
       <ul>
@@ -492,7 +581,6 @@ Object {
       </ul>
     </React.Fragment>,
     "monitoringDataTitle": "Monitoring data",
-    "month": "Month",
     "myProfile": "My Profile",
     "nameField": "Name",
     "nameFieldRequired": "Name is required",
@@ -571,8 +659,6 @@ Object {
     "questionnaireText": "Questionnaire",
     "questionnairesLabel": "Questionnaires",
     "questionnairesRequired": "Please select at least one questionnaire access level: Read-only, Editor, or Approver.",
-    "realTime": "Real-Time Monitoring and Information System (IWSIMS)",
-    "reportText": "Report generation and visualizations.",
     "reports": "Reports",
     "requiredError": "{{field}} is required",
     "resetHint": <React.Fragment>
@@ -589,7 +675,6 @@ Object {
     "searchEntityType": "Enter name...",
     "searchNameOrCode": "Enter name or code...",
     "searchPlaceholder": "Search...",
-    "second": "Second",
     "selectAttributes": "Select attributes...",
     "selectEntity": "Select entity...",
     "selectForm": "Please select a form",
@@ -599,9 +684,6 @@ Object {
     "selectType": "Select type...",
     "sendInstructions": "Send Instructions",
     "sendNewRequest": "Notify Approver",
-    "service1Text": "DWS DataPro offers real-time data for prompt decision-maker access.",
-    "service2Text": "Identifying needs enables targeted interventions and efficient resource deployment.",
-    "service3Text": "Real-time insights optimize sanitation metrics for efficient resource allocation.",
     "settings": "System Settings",
     "settingsDescriptionPanel": "This page allows Super Admin to maintain system critical master lists.",
     "showEmpty": "Show empty values",
@@ -668,15 +750,13 @@ Object {
     "valOrganization": "Please select an Organization",
     "valPhone": "Phone number is required",
     "valRole": "Please select a Role",
-    "welcome": <React.Fragment>
-      DWS DataPro
+    "welcomeShort": <React.Fragment>
+      Welcome to the 
+      <b>
+        Test
+      </b>
+       platform
     </React.Fragment>,
-    "welcomeCta": "Explore National Data",
-    "welcomeDesc": <React.Fragment>
-      DWS DataPro
-    </React.Fragment>,
-    "welcomeShort": "Welcome to RUSH",
-    "year": "Year",
   },
 }
 `;

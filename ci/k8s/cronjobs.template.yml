@@ -120,6 +120,16 @@ spec:
                     secretKeyRef:
                       name: iwsims
                       key: webdomain
+                - name: APP_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: iwsims
+                      key: app-name
+                - name: APP_SHORT_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: iwsims
+                      key: app-short-name
                 - name: SENTRY_DSN
                   valueFrom:
                     secretKeyRef:

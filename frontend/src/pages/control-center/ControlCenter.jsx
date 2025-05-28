@@ -94,18 +94,20 @@ const ControlCenter = () => {
         <DescriptionPanel description={text.ccDescriptionPanel} />
 
         <div className="profile-container">
-          <h2>DWS DataPro Control Center</h2>
+          <h2>
+            {window.appConfig.name} {text.controlCenter}
+          </h2>
           <div className="profle-wrapper">
             <img src="/assets/profile.png" />
             <div>
-              <h2>Hello {authUser?.name || ""},</h2>
+              <h2>{`${text.helloText} ${authUser?.name}`},</h2>
               <p>
                 {authUser?.role?.value} | {authUser.designation?.name}
                 {authUser.organisation?.name &&
                   `- ${authUser.organisation?.name}`}
               </p>
               <p>
-                Last Login:{" "}
+                {`${text.lastLoginLabel}: `}
                 {new Date(authUser?.last_login * 1000)
                   .toISOString()
                   .replace("T", " ")
