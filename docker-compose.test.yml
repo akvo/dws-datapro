@@ -8,6 +8,8 @@ services:
       - ./:/app:delegated
       - ${SERVICE_ACCOUNT}:/credentials/:ro
     environment:
+      - APP_NAME=akvo-mis
+      - APP_SHORT_NAME=akvo-mis
       - DB_SCHEMA=iwsims
       - DB_USER=akvo
       - DB_PASSWORD=password
@@ -27,8 +29,6 @@ services:
       - APK_UPLOAD_SECRET=ci-secret
       - STORAGE_PATH="./storage"
       - SENTRY_DSN
-      - APP_NAME=iwsims
-      - APP_SHORT_NAME=iwsims
     depends_on:
       - db
     command: tail -f /dev/null

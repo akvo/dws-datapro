@@ -14,13 +14,13 @@ services:
       - ./.git:/app/.git:ro
     working_dir: /app
     environment:
+      - APP_NAME=${APP_NAME}
+      - APP_SHORT_NAME=${APP_SHORT_NAME}
       - BACKEND_IP_ADDRESS=${IP_ADDRESS}
       - EXPO_TOKEN
       - SENTRY_ENV=${SENTRY_MOBILE_ENV}
       - SENTRY_DSN=${SENTRY_MOBILE_DSN}
       - SENTRY_AUTH_TOKEN=${SENTRY_MOBILE_AUTH_TOKEN}
-      - APP_NAME=${APP_NAME}
-      - APP_SHORT_NAME=${APP_SHORT_NAME}
     network_mode: service:mainnetwork
 volumes:
   iwsims-docker-mobile-sync:

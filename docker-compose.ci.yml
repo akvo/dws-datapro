@@ -8,6 +8,8 @@ services:
       db:
         condition: service_healthy
     environment:
+      - APP_NAME=akvo-mis
+      - APP_SHORT_NAME=akvo-mis
       - DB_SCHEMA=iwsims
       - DB_USER=akvo
       - DB_PASSWORD=password
@@ -19,8 +21,6 @@ services:
       - WEBDOMAIN=notset
       - APK_UPLOAD_SECRET=ci-secret
       - SENTRY_DSN
-      - APP_NAME=iwsims
-      - APP_SHORT_NAME=iwsims
     network_mode: service:mainnetwork
     restart: always
     volumes:
@@ -66,6 +66,9 @@ services:
     volumes:
       - ./frontend:/app:delegated
     working_dir: /app
+    environment:
+      - APP_NAME=akvo-mis
+      - APP_SHORT_NAME=akvo-mis
   mainnetwork:
     image: alpine:3.14
     command: ["tail", "-f", "/dev/null"]
