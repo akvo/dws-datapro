@@ -14,7 +14,7 @@ from api.v1.v1_forms.constants import (
 )
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_data.models import (
-    PendingFormData, PendingDataApproval, PendingDataBatch,
+    FormData, PendingDataApproval, PendingDataBatch,
 )
 from api.v1.v1_data.constants import DataApprovalStatus
 from api.v1.v1_data.tasks import seed_approved_data
@@ -153,10 +153,11 @@ class DynamicDataApprovalFlowTestCase(
         # Create a new batch
         t = RefreshToken.for_user(user)
         header = {"HTTP_AUTHORIZATION": f"Bearer {t.access_token}"}
-        pending_form_data = PendingFormData.objects.filter(
+        pending_form_data = FormData.objects.filter(
             form=self.form,
             created_by=user,
             submitter=mobile_assignment.name,
+            is_pending=True,
         ).all()
         values = list(pending_form_data.values_list("id", flat=True))
         payload = {
@@ -234,10 +235,11 @@ class DynamicDataApprovalFlowTestCase(
         # Create a new batch
         t = RefreshToken.for_user(user)
         header = {"HTTP_AUTHORIZATION": f"Bearer {t.access_token}"}
-        pending_form_data = PendingFormData.objects.filter(
+        pending_form_data = FormData.objects.filter(
             form=self.form,
             created_by=user,
             submitter=mobile_assignment.name,
+            is_pending=True,
         ).all()
         values = list(pending_form_data.values_list("id", flat=True))
         payload = {
@@ -333,10 +335,11 @@ class DynamicDataApprovalFlowTestCase(
         # Create a new batch
         t = RefreshToken.for_user(user)
         header = {"HTTP_AUTHORIZATION": f"Bearer {t.access_token}"}
-        pending_form_data = PendingFormData.objects.filter(
+        pending_form_data = FormData.objects.filter(
             form=self.form,
             created_by=user,
             submitter=mobile_assignment.name,
+            is_pending=True,
         ).all()
         values = list(pending_form_data.values_list("id", flat=True))
         payload = {
@@ -445,10 +448,11 @@ class DynamicDataApprovalFlowTestCase(
         # Create a new batch
         t = RefreshToken.for_user(user)
         header = {"HTTP_AUTHORIZATION": f"Bearer {t.access_token}"}
-        pending_form_data = PendingFormData.objects.filter(
+        pending_form_data = FormData.objects.filter(
             form=self.form,
             created_by=user,
             submitter=mobile_assignment.name,
+            is_pending=True,
         ).all()
         values = list(pending_form_data.values_list("id", flat=True))
         payload = {
@@ -505,7 +509,7 @@ class DynamicDataApprovalFlowTestCase(
         batch.refresh_from_db()
         self.assertTrue(batch.approved)
 
-        for d in batch.batch_pending_data_batch.all():
+        for d in batch.batch_form_data.all():
             seed_approved_data(d)
 
         # Check the datapoint is available in the Routine Data
@@ -579,10 +583,11 @@ class DynamicDataApprovalFlowTestCase(
         # Check if we keep create a new batch
         t = RefreshToken.for_user(user)
         header = {"HTTP_AUTHORIZATION": f"Bearer {t.access_token}"}
-        pending_form_data = PendingFormData.objects.filter(
+        pending_form_data = FormData.objects.filter(
             form=self.form,
             created_by=user,
             submitter=mobile_assignment.name,
+            is_pending=True,
         ).all()
         values = list(pending_form_data.values_list("id", flat=True))
         payload = {
