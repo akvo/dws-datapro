@@ -18,7 +18,7 @@ const uiText = {
     errorURL: (
       <Fragment>
         Please check the URL again or let us take you back to the{" "}
-        {window.appConfig.shortName} homepage
+        {window.appConfig.name} homepage
       </Fragment>
     ),
     errorVerifyCreds:
@@ -338,7 +338,7 @@ const uiText = {
     // Reset Password
     welcomeShort: (
       <Fragment>
-        Welcome to the <b>{window.appConfig.shortName}</b> platform
+        Welcome to the <b>{window.appConfig.name}</b> platform
       </Fragment>
     ),
     resetHint: (
@@ -406,8 +406,8 @@ const uiText = {
     deleteUserTitle: "You are about to delete the user",
     deleteUserDesc: (
       <Fragment>
-        The User will no longer be able to access the{" "}
-        {window.appConfig.shortName} platform as an Enumrator/Admin etc
+        The User will no longer be able to access the {window.appConfig.name}{" "}
+        platform as an Enumrator/Admin etc
       </Fragment>
     ),
     userAssociations: "This user has following data association(s)",
@@ -474,13 +474,13 @@ const uiText = {
     mobilePanelAddDesc: (
       <Fragment>
         This page allows you to add mobile data collectors to the{" "}
-        {window.appConfig.shortName} platform.
+        {window.appConfig.name} platform.
       </Fragment>
     ),
     mobilePanelEditDesc: (
       <Fragment>
         This page allows you to edit mobile data collectors to the{" "}
-        {window.appConfig.shortName} platform.
+        {window.appConfig.name} platform.
       </Fragment>
     ),
     mobileErrDelete: "Unable to delete assingment",
@@ -551,62 +551,62 @@ const uiText = {
     searchEntity: "Enter name...",
     addOrgDesc: (
       <Fragment>
-        This page allows you to add organisations to the{" "}
-        {window.appConfig.shortName} platform.
+        This page allows you to add organisations to the {window.appConfig.name}{" "}
+        platform.
       </Fragment>
     ),
     addEntityDesc: (
       <Fragment>
-        This page allows you to add entity to the {window.appConfig.shortName}{" "}
+        This page allows you to add entity to the {window.appConfig.name}{" "}
         platform.
       </Fragment>
     ),
     addEntityTypeDesc: (
       <Fragment>
-        This page allows you to add entity type to the{" "}
-        {window.appConfig.shortName} platform.
+        This page allows you to add entity type to the {window.appConfig.name}{" "}
+        platform.
       </Fragment>
     ),
     addAttributeDesc: (
       <Fragment>
-        This page allows you to add attribute to the{" "}
-        {window.appConfig.shortName} platform.
+        This page allows you to add attribute to the {window.appConfig.name}{" "}
+        platform.
       </Fragment>
     ),
     addAdmDesc: (
       <Fragment>
         This page allows you to add administration to the{" "}
-        {window.appConfig.shortName} platform.
+        {window.appConfig.name} platform.
       </Fragment>
     ),
     editOrgDesc: (
       <Fragment>
         This page allows you to edit organisations to the{" "}
-        {window.appConfig.shortName} platform.
+        {window.appConfig.name} platform.
       </Fragment>
     ),
     editEntityDesc: (
       <Fragment>
-        This page allows you to edit entity to the {window.appConfig.shortName}{" "}
+        This page allows you to edit entity to the {window.appConfig.name}{" "}
         platform.
       </Fragment>
     ),
     editEntityTypeDesc: (
       <Fragment>
-        This page allows you to edit entity type to the{" "}
-        {window.appConfig.shortName} platform.
+        This page allows you to edit entity type to the {window.appConfig.name}{" "}
+        platform.
       </Fragment>
     ),
     editAttributeDesc: (
       <Fragment>
-        This page allows you to edit attribute to the{" "}
-        {window.appConfig.shortName} platform.
+        This page allows you to edit attribute to the {window.appConfig.name}{" "}
+        platform.
       </Fragment>
     ),
     editAdmDesc: (
       <Fragment>
         This page allows you to edit administration to the{" "}
-        {window.appConfig.shortName} platform.
+        {window.appConfig.name} platform.
       </Fragment>
     ),
     successAddedOrg: "Organisation added",
@@ -705,7 +705,7 @@ const uiText = {
     // User Management
     addUserDescription: (
       <Fragment>
-        This page allows you to add users to the {window.appConfig.shortName}{" "}
+        This page allows you to add users to the {window.appConfig.name}{" "}
         platform. You will only be able to add users for regions under your
         jurisdisction.
         <br />
