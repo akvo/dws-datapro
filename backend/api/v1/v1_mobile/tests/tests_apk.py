@@ -1,7 +1,9 @@
 import os
 import requests_mock
 import requests as r
-from iwsims.settings import BASE_DIR, APP_NAME, MASTER_DATA, APK_UPLOAD_SECRET
+from iwsims.settings import (
+    BASE_DIR, APP_SHORT_NAME, MASTER_DATA, APK_UPLOAD_SECRET
+)
 from django.test import TestCase
 from api.v1.v1_mobile.models import MobileApk
 
@@ -38,7 +40,7 @@ class MobileApkTestCase(TestCase):
     @classmethod
     def tearDownClass(cls):
         os.remove(
-            f"{cls.apk_path}/{APP_NAME}-{cls.mobile_apk.apk_version}.apk"
+            f"{cls.apk_path}/{APP_SHORT_NAME}-{cls.mobile_apk.apk_version}.apk"
         )
         cls.mock.stop()
 
@@ -62,13 +64,13 @@ class MobileApkTestCase(TestCase):
         self.assertEqual(
             download["Content-Disposition"],
             (
-                f"attachment; filename={APP_NAME}"
+                f"attachment; filename={APP_SHORT_NAME}"
                 f"-{cls.mobile_apk.apk_version}.apk"
             ),
         )
         self.assertTrue(download.has_header("Content-Length"))
         apk_file = (
-            f"{cls.apk_path}/{APP_NAME}-{cls.mobile_apk.apk_version}.apk"
+            f"{cls.apk_path}/{APP_SHORT_NAME}-{cls.mobile_apk.apk_version}.apk"
         )
         self.assertTrue(os.path.exists(apk_file))
 
@@ -85,7 +87,7 @@ class MobileApkTestCase(TestCase):
             },
         )
         self.assertEqual(upload.status_code, 201)
-        new_file = f"{cls.apk_path}/{APP_NAME}-{new_version}.apk"
+        new_file = f"{cls.apk_path}/{APP_SHORT_NAME}-{new_version}.apk"
         self.assertTrue(os.path.exists(new_file))
 
         # NEW VERSION UPLOAD
@@ -96,7 +98,7 @@ class MobileApkTestCase(TestCase):
         )
         self.assertEqual(
             download["Content-Disposition"],
-            f"attachment; filename={APP_NAME}-{new_version}.apk",
+            f"attachment; filename={APP_SHORT_NAME}-{new_version}.apk",
         )
 
         # FAILED UPLOAD WITH WRONG SECRET
@@ -135,7 +137,7 @@ class MobileApkTestCase(TestCase):
             },
         )
         self.assertEqual(upload.status_code, 201)
-        new_file = f"{cls.apk_path}/{APP_NAME}-{new_version}.apk"
+        new_file = f"{cls.apk_path}/{APP_SHORT_NAME}-{new_version}.apk"
         self.assertTrue(os.path.exists(new_file))
 
         # check apk version with current version = last version
