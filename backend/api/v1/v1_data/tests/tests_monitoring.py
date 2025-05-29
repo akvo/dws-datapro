@@ -3,7 +3,6 @@ from django.core.management import call_command
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_data.models import (
     FormData,
-    PendingFormData,
     PendingDataBatch
 )
 from api.v1.v1_forms.models import Forms
@@ -52,14 +51,18 @@ class MonitoringDataTestCase(TestCase):
 
     def test_seed_monitoring_batch(self):
         for i in range(2):
-            pending_data = PendingFormData.objects.create(
-                uuid=self.uuid if i == 0 else f'{self.uuid}{i}',
-                form=self.form,
+            child_form = self.form.children.first()
+            pending_data = FormData.objects.create(
+                parent=self.data,
+                uuid=self.uuid,
+                form=child_form,
+                name=f'Child Data {i + 1}',
                 administration=self.administration,
                 created_by=self.user,
+                is_pending=True
             )
             add_fake_answers(pending_data)
-        self.assertTrue(PendingFormData.objects.count() == 2)
+        self.assertTrue(FormData.objects.filter(is_pending=True).count() == 2)
         batch = PendingDataBatch.objects.create(
             name='test batch',
             administration=self.administration,
@@ -67,16 +70,13 @@ class MonitoringDataTestCase(TestCase):
             user=self.user,
             approved=True
         )
-        batch.batch_pending_data_batch.add(*PendingFormData.objects.all())
-        self.assertTrue(batch.batch_pending_data_batch.count() == 2)
-        for pending_data in batch.batch_pending_data_batch.all():
+        batch.batch_form_data.add(*FormData.objects.filter(is_pending=True))
+        self.assertTrue(batch.batch_form_data.count() == 2)
+        for pending_data in batch.batch_form_data.all():
             seed_approved_data(pending_data)
         self.assertTrue(FormData.objects.count() == 3)
-        child_data = FormData.objects.filter(
-            parent__isnull=False
-        )
+        child_data = self.data.children.all()
         first_child = child_data.first()
-        self.assertTrue(child_data.count() == 1)
         self.assertEqual(first_child.parent.uuid, self.uuid)
         self.assertEqual(self.data.children.first().id, first_child.id)
-        self.assertEqual(self.data.children.count(), 1)
+        self.assertEqual(self.data.children.count(), 2)
