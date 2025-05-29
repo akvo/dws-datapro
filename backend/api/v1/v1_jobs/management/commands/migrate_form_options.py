@@ -7,9 +7,7 @@ from django.db.models import Max, F
 from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_data.models import (
     Answers,
-    PendingAnswers,
     AnswerHistory,
-    PendingAnswerHistory,
     FormData,
 )
 
@@ -121,28 +119,11 @@ class Command(BaseCommand):
                     form_id=form_id,
                 )
 
-            # update pending answers
-            update_answers(
-                df=df,
-                form_id=form_id,
-                model=PendingAnswers,
-                base_column=base_column,
-                update_column=update_column,
-            )
-
             # update answers history
             update_answers(
                 df=df,
                 form_id=form_id,
                 model=AnswerHistory,
-                base_column=base_column,
-                update_column=update_column,
-            )
-            # update pending answers history
-            update_answers(
-                df=df,
-                form_id=form_id,
-                model=PendingAnswerHistory,
                 base_column=base_column,
                 update_column=update_column,
             )
