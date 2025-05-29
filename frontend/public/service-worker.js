@@ -1,5 +1,5 @@
 /* App Identifier */
-var APP_PREFIX = "RUSH_";
+var APP_PREFIX = "MIS_";
 /* Change this to update cache */
 var CACHE_VERSION = "local";
 var CACHE_NAME = APP_PREFIX + CACHE_VERSION;
