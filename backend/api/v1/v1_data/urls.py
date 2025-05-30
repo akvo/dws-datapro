@@ -12,6 +12,7 @@ from api.v1.v1_data.views import (
     PendingDataDetailDeleteView,
     BatchSummaryView,
     BatchCommentView,
+    DataDetailDeleteView,
 )
 from api.v1.v1_users.views import health_check, get_config_file, email_template
 
@@ -32,6 +33,10 @@ urlpatterns = [
     re_path(
         r"^(?P<version>(v1))/form-pending-data-batch/(?P<batch_id>[0-9]+)",
         list_pending_data_batch,
+    ),
+    re_path(
+        r"^(?P<version>(v1))/data-details/(?P<data_id>[0-9]+)",
+        DataDetailDeleteView.as_view(),
     ),
     re_path(
         r"^(?P<version>(v1))/pending-data/(?P<pending_data_id>[0-9]+)",

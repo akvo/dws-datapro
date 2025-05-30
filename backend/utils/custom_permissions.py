@@ -1,5 +1,6 @@
 from rest_framework.permissions import BasePermission
 
+from django.db.models import Q
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_forms.models import FormAccess
 from api.v1.v1_forms.constants import FormAccessTypes
@@ -54,10 +55,16 @@ class IsSuperAdminOrFormUser(BasePermission):
         # Check if user is super admin
         if request.user.user_access.role == UserRoleTypes.super_admin:
             return True
-        # Check if user has any form
+        # Check if user has any form or form is part of their children
         has_form_access = FormAccess.objects.filter(
-            user_form__user=request.user,
-            user_form__form_id=view.kwargs.get("form_id")
+            Q(
+                user_form__user=request.user,
+                user_form__form_id=view.kwargs.get("form_id")
+            ) |
+            Q(
+                user_form__user=request.user,
+                user_form__form__children__id=view.kwargs.get("form_id")
+            ),
         ).exists()
         return has_form_access
 

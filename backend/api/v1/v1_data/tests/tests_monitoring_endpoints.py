@@ -42,6 +42,7 @@ class MonitoringDataTestCase(TestCase):
         )
 
         self.form = form
+        self.child_form = self.form.children.first()
         self.adm_data = Administration.objects.filter(
             level__level=2,
             path__startswith=self.administration.path
@@ -54,6 +55,10 @@ class MonitoringDataTestCase(TestCase):
             created_by=self.user,
         )
         add_fake_answers(self.data)
+        # Seed monitoring data
+        call_command(
+            "fake_data_monitoring_seeder", "-r", 2, "-t", True, "-a", True
+        )
 
         # Login as an admin
         admin = {"email": self.user.email, "password": 'test1234'}
@@ -115,7 +120,7 @@ class MonitoringDataTestCase(TestCase):
     def test_add_new_monitoring(self):
         monitoring = FormData.objects.create(
             uuid=self.uuid,
-            form=self.form,
+            form=self.child_form,
             administration=self.administration,
             created_by=self.user,
         )
@@ -129,8 +134,8 @@ class MonitoringDataTestCase(TestCase):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data['total'], 1)
-        api_url = f"/api/v1/form-data/{self.form.id}"
-        api_url += f"?parent={monitoring.id}"
+        api_url = f"/api/v1/form-data/{self.child_form.id}"
+        api_url += f"?parent={monitoring.uuid}"
         data_parent = self.client.get(
             api_url,
             content_type='application/json',
@@ -138,31 +143,24 @@ class MonitoringDataTestCase(TestCase):
         )
         self.assertEqual(data_parent.status_code, 200)
         data_parent = data_parent.json()
-        self.assertEqual(data_parent['total'], 2)
+        self.assertEqual(data_parent['total'], 3)
 
         self.assertEqual(data_parent['data'][0]['name'], monitoring.name)
 
-    def test_get_latest_data(self):
-        for m in range(2):
-            monitoring = FormData.objects.create(
-                uuid=self.uuid,
-                form=self.form,
-                administration=self.adm_data,
-                created_by=self.user,
-            )
-            add_fake_answers(monitoring)
-        lastest = FormData.objects.order_by('-created').first()
-        data = self.client.get(
-            f"/api/v1/form-data/{self.form.id}",
-            content_type='application/json',
-            **{'HTTP_AUTHORIZATION': f'Bearer {self.token}'}
-        )
+    def test_monitoring_details_by_parent_uuid(self):
+        header = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
+
+        parent = FormData.objects.filter(
+            children__gt=0,
+        ).first()
+        # Get the monitoring data by parent UUID and form children ID
+        form_id = parent.form.children.first().id
+        url = f"/api/v1/form-data/{form_id}"
+        url += f"?page=1&parent={parent.uuid}"
+        data = self.client.get(url, follow=True, **header)
+        result = data.json()
         self.assertEqual(data.status_code, 200)
-        data = data.json()
-        self.assertEqual(data['total'], 1)
-        self.assertEqual(data['data'][0]['name'], lastest.name)
         self.assertEqual(
-            list(data['data'][0]),
-            ['id', 'uuid', 'name', 'form', 'administration',
-             'geo', 'created_by', 'updated_by', 'created', 'updated',
-             'pending_data'])
+            list(result), ["current", "total", "total_page", "data"]
+        )
+        self.assertEqual(result["total"], parent.children.count())
