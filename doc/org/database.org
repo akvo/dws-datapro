@@ -3,16 +3,16 @@
 #+PROPERTY: header-args:sql+    :dbhost localhost
 #+PROPERTY: header-args:sql+    :dbuser akvo
 #+PROPERTY: header-args:sql+    :dbpassword password
-#+PROPERTY: header-args:sql+    :database iwsims
+#+PROPERTY: header-args:sql+    :database mis
 #+PROPERTY: header-args :tangle data-model.sql
 #+STARTUP: showall
 
-#+NAME: IWSIMS Database
+#+NAME: MIS Database
 #+begin_src sql
 \d
 #+end_src
 
-#+RESULTS: IWSIMS Database
+#+RESULTS: MIS Database
 | List of relations |                                           |                   |       |
 |-------------------+-------------------------------------------+-------------------+-------|
 | Schema            | Name                                      | Type              | Owner |
