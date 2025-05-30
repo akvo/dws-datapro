@@ -24,23 +24,23 @@ services:
       - APP_SHORT_NAME=$APP_SHORT_NAME
   worker:
     volumes:
-      - ../akvo-config/k8s-secrets/test/iwsims:/credentials/:ro
+      - ../akvo-config/k8s-secrets/test/dws-datapro:/credentials/:ro
       - ${STORAGE_PATH}:/app/storage:delegated
     environment:
       - APP_NAME=$APP_NAME
       - APP_SHORT_NAME=$APP_SHORT_NAME
-      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/iwsims-service-account.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/dws-datapro-service-account.json
       - MAILJET_APIKEY=$MAILJET_APIKEY
       - MAILJET_SECRET=$MAILJET_SECRET
       - WEBDOMAIN=http://localhost:3000
   backend:
     volumes:
-      - ../akvo-config/k8s-secrets/test/iwsims:/credentials/:ro
+      - ../akvo-config/k8s-secrets/test/dws-datapro:/credentials/:ro
       - ${STORAGE_PATH}:/app/storage:delegated
     environment:
       - APP_NAME=$APP_NAME
       - APP_SHORT_NAME=$APP_SHORT_NAME
-      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/iwsims-service-account.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/dws-datapro-service-account.json
       - MAILJET_APIKEY=$MAILJET_APIKEY
       - MAILJET_SECRET=$MAILJET_SECRET
       - WEBDOMAIN=$WEBDOMAIN

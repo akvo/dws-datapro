@@ -10,7 +10,7 @@ services:
     environment:
       - APP_NAME=$APP_NAME
       - APP_SHORT_NAME=$APP_SHORT_NAME
-      - DB_SCHEMA=iwsims
+      - DB_SCHEMA=mis
       - DB_USER=akvo
       - DB_PASSWORD=password
       - DB_HOST=db
@@ -30,7 +30,7 @@ services:
     environment:
       - APP_NAME=$APP_NAME
       - APP_SHORT_NAME=$APP_SHORT_NAME
-      - DB_SCHEMA=iwsims
+      - DB_SCHEMA=mis
       - DB_USER=akvo
       - DB_PASSWORD=password
       - DB_HOST=db

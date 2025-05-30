@@ -2,7 +2,7 @@
 version: "3.9"
 services:
   backend:
-    image: eu.gcr.io/akvo-lumen/iwsims/backend:latest
+    image: eu.gcr.io/akvo-lumen/dws-datapro/backend:latest
     working_dir: /app/backend
     volumes:
       - ./:/app:delegated
@@ -10,7 +10,7 @@ services:
     environment:
       - APP_NAME=akvo-mis
       - APP_SHORT_NAME=akvo-mis
-      - DB_SCHEMA=iwsims
+      - DB_SCHEMA=mis
       - DB_USER=akvo
       - DB_PASSWORD=password
       - DB_HOST=db
@@ -22,7 +22,7 @@ services:
       - SEMAPHORE_WORKFLOW_ID=${SEMAPHORE_WORKFLOW_ID:-}
       - SEMAPHORE_GIT_PR_NUMBER=${SEMAPHORE_GIT_PR_NUMBER:-}
       - DEBUG=True
-      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/iwsims-service-account.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/dws-datapro-service-account.json
       - MAILJET_APIKEY=$MAILJET_APIKEY
       - MAILJET_SECRET=$MAILJET_SECRET
       - WEBDOMAIN=notset
