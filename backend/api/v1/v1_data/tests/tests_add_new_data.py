@@ -7,8 +7,7 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.v1.v1_forms.models import Forms, FormApprovalAssignment
 from api.v1.v1_profile.models import Administration
-from api.v1.v1_data.models import FormData, PendingFormData, \
-    Answers, PendingAnswers
+from api.v1.v1_data.models import FormData, Answers
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 
 
@@ -74,10 +73,10 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data, {"message": "ok"})
-        pending_form_data = PendingFormData.objects.filter(
-            form_id=form_id).count()
-        self.assertEqual(pending_form_data, 0)
-        form_data = FormData.objects.filter(form_id=form_id).first()
+        # Super admin data should be saved directly without pending status
+        form_data = FormData.objects.filter(
+            form_id=form_id, is_pending=False
+        ).first()
         self.assertEqual(form_data.name, "Testing Data")
         answers = Answers.objects.filter(data_id=form_data.id).count()
         self.assertGreater(answers, 0)
@@ -157,9 +156,10 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data, {"message": "ok"})
-        pending_form_data = PendingFormData.objects.filter(
-            form_id=form_id).count()
-        self.assertEqual(pending_form_data, 1)
+        # Check that data was created as pending
+        pending_data = FormData.objects.filter(
+            form_id=form_id, is_pending=True).first()
+        self.assertEqual(pending_data.name, "Testing Data #2")
         form = Forms.objects.get(pk=2)
         national_adm = Administration.objects.filter(
             level__level=0
@@ -214,14 +214,15 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data, {"message": "ok"})
-        pending_form_data = PendingFormData.objects.filter(
-                form_id=form_id).first()
-        self.assertEqual(pending_form_data.name, "Testing Data National")
-        answers = PendingAnswers.objects.filter(
-                pending_data_id=pending_form_data.id).count()
+        form_data = FormData.objects.filter(
+            name="Testing Data National",
+            form_id=form_id
+        ).first()
+        self.assertEqual(form_data.name, "Testing Data National")
+        answers = Answers.objects.filter(data=form_data).count()
         self.assertGreater(answers, 0)
         form_data = FormData.objects.filter(
-            form_id=form_id).count()
+            form_id=form_id, is_pending=False).count()
         self.assertEqual(form_data, 0)
 
     def test_add_new_data_by_data_entry(self):
@@ -283,13 +284,18 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data, {"message": "ok"})
-        form_data = FormData.objects.filter(form_id=form_id).count()
+        # Regular form data should be zero
+        # since this should create a pending entry
+        form_data = FormData.objects.filter(
+            form_id=form_id, is_pending=False
+        ).count()
         self.assertEqual(form_data, 0)
-        pending_form_data = PendingFormData.objects.filter(
-            form_id=form_id).first()
+        # Check pending form data
+        pending_form_data = FormData.objects.filter(
+            form_id=form_id, is_pending=True).first()
         self.assertEqual(pending_form_data.name, "Testing Data Entry")
-        pending_answers = PendingAnswers.objects.filter(
-            pending_data_id=pending_form_data.id).count()
+        pending_answers = Answers.objects.filter(
+            data_id=pending_form_data.id).count()
         self.assertGreater(pending_answers, 0)
 
     def test_add_new_data_by_data_entry_with_some_empty_values(self):

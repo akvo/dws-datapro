@@ -6,7 +6,7 @@ from api.v1.v1_profile.constants import UserRoleTypes
 from django.core.management import call_command
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_forms.models import Forms, UserForms
-from api.v1.v1_data.models import PendingFormData, PendingAnswers
+from api.v1.v1_data.models import FormData, Answers
 from rest_framework import status
 
 
@@ -119,12 +119,13 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        pending_data = PendingFormData.objects.filter(
-            created_by=self.user
+        pending_data = FormData.objects.filter(
+            created_by=self.user,
+            is_pending=True
         ).all()
         self.assertEqual(pending_data.count(), 1)
-        answer_data = PendingAnswers.objects.filter(
-            pending_data=pending_data[0]
+        answer_data = Answers.objects.filter(
+            data=pending_data[0]
         ).count()
         self.assertEqual(answer_data, len(list(answers)))
         self.assertTrue(pending_data[0].geo, [0, 0])

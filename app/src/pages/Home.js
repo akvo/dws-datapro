@@ -51,7 +51,12 @@ const Home = ({ navigation, route }) => {
     FormState.update((s) => {
       s.form = findForm;
     });
-    navigation.navigate('Submission', { id, name: findForm.name, formId: findForm.formId });
+    navigation.push('Submission', {
+      id,
+      name: findForm.name,
+      formId: findForm.formId,
+      draft: findForm?.draft,
+    });
   };
 
   const goToUsers = () => {

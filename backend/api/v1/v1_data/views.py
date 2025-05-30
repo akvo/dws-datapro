@@ -27,12 +27,9 @@ from api.v1.v1_data.constants import DataApprovalStatus
 from api.v1.v1_data.models import (
     FormData,
     Answers,
-    PendingFormData,
     PendingDataBatch,
     ViewPendingDataApproval,
-    PendingAnswers,
     AnswerHistory,
-    PendingAnswerHistory,
     PendingDataApproval,
 )
 from api.v1.v1_data.serializers import (
@@ -509,7 +506,7 @@ def list_pending_data_batch(request, version, batch_id):
     batch = get_object_or_404(PendingDataBatch, pk=batch_id)
     return Response(
         ListPendingFormDataSerializer(
-            instance=batch.batch_pending_data_batch.all(), many=True
+            instance=batch.batch_form_data.all(), many=True
         ).data,
         status=status.HTTP_200_OK,
     )
@@ -524,16 +521,17 @@ class PendingDataDetailDeleteView(APIView):
         summary="To get list of answers for pending data",
     )
     def get(self, request, pending_data_id, version):
-        data = get_object_or_404(PendingFormData, pk=pending_data_id)
+        data = get_object_or_404(FormData, pk=pending_data_id, is_pending=True)
+        # Find the original FormData if this is an update
         last_data = (
-            FormData.objects.filter(uuid=data.uuid)
+            FormData.objects.filter(uuid=data.uuid, is_pending=False)
             .order_by("-created")
             .first()
         )
         return Response(
             ListPendingDataAnswerSerializer(
                 context={"last_data": last_data},
-                instance=data.pending_data_answer.all(),
+                instance=data.data_answer.all(),
                 many=True,
             ).data,
             status=status.HTTP_200_OK,
@@ -547,7 +545,11 @@ class PendingDataDetailDeleteView(APIView):
         summary="To delete pending data",
     )
     def delete(self, request, pending_data_id, version):
-        instance = get_object_or_404(PendingFormData, pk=pending_data_id)
+        instance = get_object_or_404(
+            FormData,
+            pk=pending_data_id,
+            is_pending=True
+        )
         if instance.created_by_id != request.user.id:
             return Response(
                 {"message": "You are not allowed to perform this action"},
@@ -671,16 +673,22 @@ class BatchSummaryView(APIView):
     )
     def get(self, request, batch_id, version):
         batch = get_object_or_404(PendingDataBatch, pk=batch_id)
-        instance = PendingAnswers.objects.filter(
-            pending_data__batch_id=batch.id,
-            question__type__in=[
+        # Get questions for option and multiple_option types
+        questions = Questions.objects.filter(
+            type__in=[
                 QuestionTypes.option,
                 QuestionTypes.multiple_option,
-            ],
+            ]
+        )
+        # Get all answers for these questions in the batch
+        answers = Answers.objects.filter(
+            data__batch_id=batch.id,
+            data__is_pending=True,
+            question__in=questions,
         ).distinct("question")
         return Response(
             ListBatchSummarySerializer(
-                instance=instance, many=True, context={"batch": batch}
+                instance=answers, many=True, context={"batch": batch}
             ).data,
             status=status.HTTP_200_OK,
         )
@@ -795,10 +803,11 @@ class PendingFormDataView(APIView):
             child_form_ids = form.children.values_list('id', flat=True)
             form_ids.extend(list(child_form_ids))
         # Query for pending form data across parent and child forms
-        queryset = PendingFormData.objects.filter(
+        queryset = FormData.objects.filter(
             form_id__in=form_ids,
             created_by=request.user,
-            batch__isnull=True
+            batch__isnull=True,
+            is_pending=True
         ).order_by("-created")
 
         paginator = PageNumberPagination()
@@ -832,7 +841,11 @@ class PendingFormDataView(APIView):
         get_object_or_404(Forms, pk=form_id)
         pending_data_id = request.GET["pending_data_id"]
         user = request.user
-        pending_data = get_object_or_404(PendingFormData, pk=pending_data_id)
+        pending_data = get_object_or_404(
+            FormData,
+            pk=pending_data_id,
+            is_pending=True
+        )
         serializer = SubmitFormDataAnswerSerializer(
             data=request.data, many=True
         )
@@ -846,17 +859,17 @@ class PendingFormDataView(APIView):
             )
 
         pending_answers = request.data
-        # move current pending_answer to pending_answer_history
+        # move current pending_answer to answer_history
         for answer in pending_answers:
-            pending_form_answer = PendingAnswers.objects.get(
-                pending_data=pending_data, question=answer.get("question")
+            form_answer = Answers.objects.get(
+                data=pending_data, question=answer.get("question")
             )
-            PendingAnswerHistory.objects.create(
-                pending_data=pending_form_answer.pending_data,
-                question=pending_form_answer.question,
-                name=pending_form_answer.name,
-                value=pending_form_answer.value,
-                options=pending_form_answer.options,
+            AnswerHistory.objects.create(
+                data=form_answer.data,
+                question=form_answer.question,
+                name=form_answer.name,
+                value=form_answer.value,
+                options=form_answer.options,
                 created_by=user,
             )
             # prepare updated answer
@@ -883,13 +896,13 @@ class PendingFormDataView(APIView):
                 # for administration,number question type
                 value = answer.get("value")
             # Update answer
-            pending_form_answer.pending_data = pending_data
-            pending_form_answer.question = question
-            pending_form_answer.name = name
-            pending_form_answer.value = value
-            pending_form_answer.options = option
-            pending_form_answer.updated = timezone.now()
-            pending_form_answer.save()
+            form_answer.data = pending_data
+            form_answer.question = question
+            form_answer.name = name
+            form_answer.value = value
+            form_answer.options = option
+            form_answer.updated = timezone.now()
+            form_answer.save()
         # update datapoint
         pending_data.updated = timezone.now()
         pending_data.updated_by = user

@@ -130,13 +130,22 @@ class FormsAndEntityValidation(serializers.PrimaryKeyRelatedField):
                             }
                         )
                     if entity and selected_adm:
-                        adm = selected_adm[0]
-                        entity_has_data = entity.entity_data.filter(
-                            Q(administration__in=selected_adm) |
-                            Q(
-                                administration__path__startswith=adm
-                            ),
-                        )
+                        # Build query for all selected administrations
+                        query = Q()
+                        for adm_id in selected_adm:
+                            adm = Administration.objects.filter(
+                                id=adm_id
+                            ).first()
+                            if adm:
+                                adm_path = adm.path if adm.parent else adm.id
+                                # Add OR condition for this administration
+                                query |= Q(administration__id=adm_id) | Q(
+                                    administration__path__startswith=adm_path
+                                )
+
+                        # Check if entity has data in any of
+                        # the selected administrations or their children
+                        entity_has_data = entity.entity_data.filter(query)
                         if not entity_has_data.exists():
                             no_data.append(
                                 {

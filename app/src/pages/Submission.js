@@ -13,11 +13,13 @@ const Submission = ({ navigation, route }) => {
   const [search, setSearch] = useState('');
   const [data, setData] = useState([]);
 
+  const previousForm = FormState.useState((s) => s.previousForm);
   const activeForm = FormState.useState((s) => s.form);
   const activeLang = UIState.useState((s) => s.lang);
   const { id: activeUserId } = UserState.useState((s) => s);
   const trans = i18n.text(activeLang);
   const db = SQLite.useSQLiteContext();
+  const refreshPage = UIState.useState((s) => s.refreshPage);
 
   const datapoints = useMemo(
     () =>
@@ -32,7 +34,7 @@ const Submission = ({ navigation, route }) => {
       s.surveyStart = getCurrentTimestamp();
       s.prevAdmAnswer = null;
     });
-    navigation.navigate('FormPage', {
+    navigation.push('FormPage', {
       ...route?.params,
       newSubmission: true,
     });
@@ -50,12 +52,12 @@ const Submission = ({ navigation, route }) => {
       s.currentValues = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
     });
 
-    navigation.navigate('FormDataDetails', { name: dataPointName });
+    navigation.push('FormDataDetails', { name: dataPointName });
   };
 
   const goToFormOptions = (item) => {
     const { id, name, uuid } = item;
-    navigation.navigate('FormOptions', {
+    navigation.push('FormOptions', {
       id,
       name,
       uuid,
@@ -64,32 +66,8 @@ const Submission = ({ navigation, route }) => {
   };
 
   const goToSavedData = () => {
-    navigation.navigate('FormData', { ...route?.params, showSubmitted: false });
+    navigation.push('FormData', { ...route?.params, showSubmitted: false });
   };
-
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      key={item.id}
-      onPress={() => (activeForm?.parentId ? goToDetails(item) : goToFormOptions(item))}
-      testID={`submission-item-${item.id}`}
-      style={styles.itemContainer}
-      activeOpacity={0.6}
-    >
-      <View style={styles.iconContainer}>
-        <Icon
-          name={item.isSynced ? 'checkmark' : 'time'}
-          size={24}
-          color={item.isSynced ? '#4CAF50' : '#FFA000'}
-        />
-      </View>
-      <View style={styles.itemContent}>
-        <Text style={styles.itemTitle}>{item.name}</Text>
-        <Text style={styles.itemDate}>
-          {trans.createdLabel} {item.createdAt}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
 
   const fetchData = useCallback(async () => {
     if (!activeForm.id) {
@@ -126,6 +104,53 @@ const Submission = ({ navigation, route }) => {
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  useEffect(() => {
+    if (refreshPage) {
+      fetchData();
+      UIState.update((s) => {
+        s.refreshPage = false;
+      });
+    }
+  }, [refreshPage, activeForm?.id, fetchData]);
+
+  useEffect(
+    () =>
+      navigation.addListener('beforeRemove', (e) => {
+        if (previousForm) {
+          FormState.update((s) => {
+            s.form = previousForm;
+            s.previousForm = null;
+          });
+        }
+        navigation.dispatch(e.data.action);
+      }),
+    [navigation, previousForm],
+  );
+
+  const renderItem = ({ item }) => (
+    <TouchableOpacity
+      key={item.id}
+      onPress={() => (activeForm?.parentId ? goToDetails(item) : goToFormOptions(item))}
+      testID={`submission-item-${item.id}`}
+      style={styles.itemContainer}
+      activeOpacity={0.6}
+    >
+      <View style={styles.iconContainer}>
+        <Icon
+          name={item.isSynced ? 'checkmark' : 'time'}
+          size={24}
+          color={item.isSynced ? '#4CAF50' : '#FFA000'}
+        />
+      </View>
+      <View style={styles.itemContent}>
+        <Text style={styles.itemTitle}>{item.name}</Text>
+        <Text style={styles.itemDate}>
+          {trans.createdLabel} {item.createdAt}
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   return (
     <BaseLayout

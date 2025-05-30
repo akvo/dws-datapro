@@ -6,7 +6,7 @@ from faker import Faker
 
 from mis.settings import COUNTRY_NAME
 from api.v1.v1_data.models import (
-    PendingFormData,
+    FormData,
     PendingDataApproval,
     PendingDataBatch,
 )
@@ -30,13 +30,14 @@ def seed_data(form, fake_geo, repeat, created_by):
         administration = created_by.user_access.administration
         mobile_assignment = created_by.mobile_assignments.order_by("?").first()
         geo = fake_geo.iloc[i].to_dict()
-        pending_data = PendingFormData.objects.create(
+        pending_data = FormData.objects.create(
             name=fake.pystr_format(),
             geo=[geo["X"], geo["Y"]],
             form=form,
             administration=administration,
             created_by=created_by,
             submitter=mobile_assignment.name if mobile_assignment else None,
+            is_pending=True,
         )
         add_fake_answers(pending_data)
         pendings.append(pending_data)
@@ -138,7 +139,8 @@ class Command(BaseCommand):
         test = options.get("test")
         PendingDataApproval.objects.all().delete()
         PendingDataBatch.objects.all().delete()
-        PendingFormData.objects.all().delete()
+        # Delete all pending FormData (is_pending=True)
+        FormData.objects.filter(is_pending=True).delete()
         fake_geo = pd.read_csv(f"./source/{COUNTRY_NAME}_random_points.csv")
         max_adm_level = get_max_administration_level()
         forms = Forms.objects.filter(parent__isnull=True).all()
@@ -161,8 +163,8 @@ class Command(BaseCommand):
             limit = options.get("batch")
             print_info(form, administration, submitter, limit, test)
             if limit:
-                while PendingFormData.objects.filter(
-                    batch__isnull=True, form=form
+                while FormData.objects.filter(
+                    batch__isnull=True, form=form, is_pending=True
                 ).count():
                     batch = PendingDataBatch.objects.create(
                         name=fake.catch_phrase(),
@@ -171,12 +173,12 @@ class Command(BaseCommand):
                         user=submitter,
                     )
 
-                    objs = PendingFormData.objects.filter(
-                        batch__isnull=True, form=form
+                    objs = FormData.objects.filter(
+                        batch__isnull=True, form=form, is_pending=True
                     )[:limit]
                     for obj in objs:
                         obj.batch = batch
-                    PendingFormData.objects.bulk_update(objs, fields=["batch"])
+                    FormData.objects.bulk_update(objs, fields=["batch"])
                     assign_batch_for_approval(
                         batch=batch,
                         user=submitter,

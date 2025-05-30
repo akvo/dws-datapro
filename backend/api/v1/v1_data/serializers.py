@@ -11,13 +11,10 @@ from api.v1.v1_data.constants import DataApprovalStatus
 from api.v1.v1_data.models import (
     FormData,
     Answers,
-    PendingFormData,
-    PendingAnswers,
     PendingDataApproval,
     PendingDataBatch,
     PendingDataBatchComments,
     AnswerHistory,
-    PendingAnswerHistory,
 )
 from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_forms.models import (
@@ -49,6 +46,10 @@ class SubmitFormDataSerializer(serializers.ModelSerializer):
         queryset=Administration.objects.none()
     )
     name = CustomCharField()
+    geo = CustomListField(required=False, allow_null=True)
+    submitter = CustomCharField(required=False)
+    duration = CustomIntegerField(required=False)
+    uuid = serializers.CharField(required=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -58,7 +59,14 @@ class SubmitFormDataSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FormData
-        fields = ["name", "geo", "administration"]
+        fields = [
+            "name",
+            "geo",
+            "administration",
+            "submitter",
+            "duration",
+            "uuid",
+        ]
 
 
 class SubmitFormDataAnswerSerializer(serializers.ModelSerializer):
@@ -311,10 +319,11 @@ class ListFormDataSerializer(serializers.ModelSerializer):
         )
     )
     def get_pending_data(self, instance: FormData):
+        # Check if there's a pending version of this data point
         batch = None
-        pending_data = PendingFormData.objects.select_related(
+        pending_data = FormData.objects.select_related(
             "created_by"
-        ).filter(data=instance.pk).first()
+        ).filter(uuid=instance.uuid, is_pending=True).first()
         if pending_data:
             batch = PendingDataBatch.objects.filter(
                 pk=pending_data.batch_id
@@ -355,18 +364,6 @@ class ListOptionsChartCriteriaSerializer(serializers.Serializer):
         self.fields.get("question").queryset = Questions.objects.all()
 
 
-class ListPendingFormDataRequestSerializer(serializers.Serializer):
-    administration = CustomPrimaryKeyRelatedField(
-        queryset=Administration.objects.none(), required=False
-    )
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.fields.get(
-            "administration"
-        ).queryset = Administration.objects.all()
-
-
 class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
     history = serializers.SerializerMethodField()
     value = serializers.SerializerMethodField()
@@ -374,11 +371,11 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(AnswerHistorySerializer(many=True))
     def get_history(self, instance):
-        pending_answer_history = PendingAnswerHistory.objects.filter(
-            pending_data=instance.pending_data, question=instance.question
+        answer_history = AnswerHistory.objects.filter(
+            data=instance.data, question=instance.question
         ).all()
         history = []
-        for h in pending_answer_history:
+        for h in answer_history:
             history.append(get_answer_history(h))
         return history if history else None
 
@@ -399,7 +396,7 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
         return None
 
     class Meta:
-        model = PendingAnswers
+        model = Answers
         fields = ["history", "question", "value", "last_value"]
 
 
@@ -422,7 +419,7 @@ class ListPendingDataBatchSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_total_data(self, instance: PendingDataBatch):
-        return instance.batch_pending_data_batch.count()
+        return instance.batch_form_data.count()
 
     @extend_schema_field(CommonDataSerializer)
     def get_form(self, instance: PendingDataBatch):
@@ -537,29 +534,29 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
     created_by = serializers.SerializerMethodField()
     created = serializers.SerializerMethodField()
     administration = serializers.ReadOnlyField(source="administration.name")
-    pending_answer_history = serializers.SerializerMethodField()
+    answer_history = serializers.SerializerMethodField()
 
     @extend_schema_field(OpenApiTypes.STR)
-    def get_created_by(self, instance: PendingFormData):
+    def get_created_by(self, instance: FormData):
         return instance.created_by.get_full_name()
 
     @extend_schema_field(OpenApiTypes.STR)
-    def get_created(self, instance: PendingFormData):
+    def get_created(self, instance: FormData):
         return update_date_time_format(instance.created)
 
     @extend_schema_field(OpenApiTypes.BOOL)
-    def get_pending_answer_history(self, instance: PendingFormData):
-        history = PendingAnswerHistory.objects.filter(
-            pending_data=instance
+    def get_answer_history(self, instance: FormData):
+        # Check for history in answer_history table
+        history = AnswerHistory.objects.filter(
+            data=instance
         ).count()
         return True if history > 0 else False
 
     class Meta:
-        model = PendingFormData
+        model = FormData
         fields = [
             "id",
             "uuid",
-            "data_id",
             "name",
             "form",
             "administration",
@@ -568,7 +565,7 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
             "duration",
             "created_by",
             "created",
-            "pending_answer_history",
+            "answer_history",
         ]
 
 
@@ -599,8 +596,13 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
         approval = PendingDataApproval.objects.get(user=user, batch=batch)
         approval.status = validated_data.get("status")
         approval.save()
-        first_data = PendingFormData.objects.filter(batch=batch).first()
-        data_count = PendingFormData.objects.filter(batch=batch).count()
+        # Get the first form data in the batch to get submitter email
+        first_data = FormData.objects.filter(
+            batch=batch, is_pending=True
+        ).first()
+        data_count = FormData.objects.filter(
+            batch=batch, is_pending=True
+        ).count()
         data = {
             "send_to": [first_data.created_by.email],
             "batch": batch,
@@ -688,10 +690,6 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
                     context=inform_data,
                     type=EmailTypes.inform_batch_rejection_approver,
                 )
-            # change approval status to pending
-            # for la in lower_approvals:
-            #     la.status = DataApprovalStatus.pending
-            #     la.save()
         if validated_data.get("comment"):
             PendingDataBatchComments.objects.create(
                 user=user, batch=batch, comment=validated_data.get("comment")
@@ -703,11 +701,12 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
                 DataApprovalStatus.rejected,
             ],
         ).count():
-            pending_data_list = PendingFormData.objects.filter(
-                batch=batch
+            # Get all pending data for this batch
+            form_data_list = FormData.objects.filter(
+                batch=batch, is_pending=True
             ).all()
             # Seed data via Async Task
-            for data in pending_data_list:
+            for data in form_data_list:
                 async_task("api.v1.v1_data.tasks.seed_approved_data", data)
             batch.approved = True
             batch.updated = timezone.now()
@@ -765,7 +764,7 @@ class ListBatchSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_total_data(self, instance: PendingDataBatch):
-        return instance.batch_pending_data_batch.all().count()
+        return instance.batch_form_data.all().count()
 
     @extend_schema_field(
         inline_serializer(
@@ -837,17 +836,21 @@ class ListBatchSummarySerializer(serializers.ModelSerializer):
         return QuestionTypes.FieldStr.get(instance.question.type)
 
     @extend_schema_field(OpenApiTypes.ANY)
-    def get_value(self, instance: PendingAnswers):
-        batch: PendingDataBatch = self.context.get("batch")
+    def get_value(self, instance):
+        batch = self.context.get("batch")
         if instance.question.type == QuestionTypes.number:
-            val = PendingAnswers.objects.filter(
-                pending_data__batch=batch, question_id=instance.question.id
+            val = Answers.objects.filter(
+                data__batch=batch,
+                data__is_pending=True,
+                question_id=instance.question.id
             ).aggregate(Sum("value"))
             return val.get("value__sum")
         elif instance.question.type == QuestionTypes.administration:
             return (
-                PendingAnswers.objects.filter(
-                    pending_data__batch=batch, question_id=instance.question.id
+                Answers.objects.filter(
+                    data__batch=batch,
+                    data__is_pending=True,
+                    question_id=instance.question.id
                 )
                 .distinct("value")
                 .count()
@@ -855,8 +858,9 @@ class ListBatchSummarySerializer(serializers.ModelSerializer):
         else:
             data = []
             for option in instance.question.options.all():
-                val = PendingAnswers.objects.filter(
-                    pending_data__batch=batch,
+                val = Answers.objects.filter(
+                    data__batch=batch,
+                    data__is_pending=True,
                     question_id=instance.question.id,
                     options__contains=option.value,
                 ).count()
@@ -864,7 +868,7 @@ class ListBatchSummarySerializer(serializers.ModelSerializer):
             return data
 
     class Meta:
-        model = PendingAnswers
+        model = Answers
         fields = ["id", "question", "type", "value"]
 
 
@@ -909,14 +913,16 @@ class CreateBatchSerializer(serializers.Serializer):
     comment = CustomCharField(required=False)
     data = CustomListField(
         child=CustomPrimaryKeyRelatedField(
-            queryset=PendingFormData.objects.none()
+            queryset=FormData.objects.none()
         ),
         required=False,
     )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.fields.get("data").child.queryset = PendingFormData.objects.all()
+        self.fields.get("data").child.queryset = FormData.objects.filter(
+            is_pending=True
+            )
 
     def validate_name(self, name):
         if PendingDataBatch.objects.filter(name__iexact=name).exists():
@@ -1007,9 +1013,7 @@ class CreateBatchSerializer(serializers.Serializer):
                 PendingDataApproval.objects.create(
                     batch=obj, user=assignment.user, level_id=level
                 )
-                number_of_records = PendingFormData.objects.filter(
-                    batch=obj
-                ).count()
+                number_of_records = obj.batch_form_data.count()
                 data = {
                     "send_to": [assignment.user.email],
                     "listing": [
@@ -1032,107 +1036,10 @@ class CreateBatchSerializer(serializers.Serializer):
             )
         return obj
 
-    def update(self, instance, validated_data):
-        pass
-
-
-class SubmitPendingFormDataSerializer(serializers.ModelSerializer):
-    administration = CustomPrimaryKeyRelatedField(
-        queryset=Administration.objects.none()
-    )
-    name = CustomCharField()
-    geo = CustomListField(required=False, allow_null=True)
-    submitter = CustomCharField(required=False)
-    duration = CustomIntegerField(required=False)
-    uuid = serializers.CharField(required=False)
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.fields.get(
-            "administration"
-        ).queryset = Administration.objects.all()
-
-    class Meta:
-        model = PendingFormData
-        fields = [
-            "name",
-            "geo",
-            "administration",
-            "submitter",
-            "duration",
-            "uuid",
-        ]
-
-
-class SubmitPendingFormDataAnswerSerializer(serializers.ModelSerializer):
-    value = UnvalidatedField(allow_null=False)
-    question = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.fields.get("question").queryset = Questions.objects.all()
-
-    def validate_value(self, value):
-        return value
-
-    def validate(self, attrs):
-        question = attrs.get("question")
-        value = attrs.get("value")
-
-        if (value is None or value == "") and question.required:
-            raise ValidationError(
-                f"Value is required for Question: {question.id}"
-            )
-
-        if isinstance(value, list) and len(value) == 0:
-            raise ValidationError(
-                f"Value is required for Question: {question.id}"
-            )
-
-        if not isinstance(value, list) and question.type in [
-            QuestionTypes.geo,
-            QuestionTypes.option,
-            QuestionTypes.multiple_option,
-        ]:
-            raise ValidationError(
-                f"Valid list value is required for Question: {question.id}"
-            )
-
-        elif not isinstance(value, str) and question.type in [
-            QuestionTypes.text,
-            QuestionTypes.photo,
-            QuestionTypes.date,
-            QuestionTypes.attachment,
-            QuestionTypes.signature,
-        ]:
-            raise ValidationError(
-                f"Valid string value is required for Question: {question.id}"
-            )
-
-        elif not (
-            isinstance(value, int) or isinstance(value, float)) \
-            and question.type in [
-            QuestionTypes.number,
-            QuestionTypes.administration,
-            QuestionTypes.cascade,
-        ]:
-            raise ValidationError(
-                f"Valid number value is required for Question: {question.id}"
-            )
-
-        if question.type == QuestionTypes.administration:
-            attrs["value"] = int(float(value))
-
-        return attrs
-
-    class Meta:
-        model = PendingAnswers
-        fields = ["question", "value"]
-
 
 class SubmitPendingFormSerializer(serializers.Serializer):
-    data = SubmitPendingFormDataSerializer()
-    answer = SubmitPendingFormDataAnswerSerializer(many=True)
+    data = SubmitFormDataSerializer()
+    answer = SubmitFormDataAnswerSerializer(many=True)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -1147,8 +1054,9 @@ class SubmitPendingFormSerializer(serializers.Serializer):
         is_super_admin = user.user_access.role == UserRoleTypes.super_admin
 
         direct_to_data = is_super_admin
-        # check if the form has any approvers in the user's administration
-        # if no approvers found, save directly to form data
+        # Check if the form has any approvers in the user's administration
+        # If no approvers found, save directly to
+        # form data without pending status
         if not direct_to_data:
             adms = [user.user_access.administration.pk]
             if user.user_access.administration.parent:
@@ -1182,22 +1090,13 @@ class SubmitPendingFormSerializer(serializers.Serializer):
             if not form_approval:
                 direct_to_data = True
 
-        # save to pending data
+        obj_data = self.fields.get("data").create(data)
+
         if not direct_to_data:
-            obj_data = self.fields.get("data").create(data)
+            # If not direct to data, set pending status
+            obj_data.is_pending = True
+            obj_data.save()
 
-        # save to form data
-        if direct_to_data:
-            obj_data = FormData.objects.create(
-                name=data.get("name"),
-                form=data.get("form"),
-                administration=data.get("administration"),
-                geo=data.get("geo"),
-                created_by=data.get("created_by"),
-                created=data.get("submitedAt") or timezone.now(),
-            )
-
-        pending_answers = []
         answers = []
 
         for answer in validated_data.get("answer"):
@@ -1251,34 +1150,16 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 # for administration,number question type
                 value = answer.get("value")
 
-            # save to pending answer
-            if not direct_to_data:
-                pending_answers.append(PendingAnswers(
-                    pending_data=obj_data,
-                    question=question,
-                    name=name,
-                    value=value,
-                    options=option,
-                    created_by=self.context.get("user"),
-                    created=data.get("submitedAt") or timezone.now(),
-                ))
+            answers.append(Answers(
+                data=obj_data,
+                question=question,
+                name=name,
+                value=value,
+                options=option,
+                created_by=self.context.get("user"),
+            ))
 
-            # save to form data
-            if direct_to_data:
-                answers.append(Answers(
-                    data=obj_data,
-                    question=question,
-                    name=name,
-                    value=value,
-                    options=option,
-                    created_by=self.context.get("user"),
-                ))
-
-        # bulk create pending answers / answers
-        if pending_answers:
-            PendingAnswers.objects.bulk_create(pending_answers)
-        if answers:
-            Answers.objects.bulk_create(answers)
+        Answers.objects.bulk_create(answers)
 
         if direct_to_data:
             if data.get("uuid"):
@@ -1292,6 +1173,7 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                     # if parent data exists, link the child data
                     obj_data.parent = parent_data
             obj_data.save()
-            obj_data.save_to_file
+            if direct_to_data:
+                obj_data.save_to_file
 
         return obj_data

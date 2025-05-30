@@ -5,11 +5,7 @@ from datetime import datetime
 from django.utils import timezone
 from datetime import timedelta
 from api.v1.v1_forms.constants import QuestionTypes
-from api.v1.v1_data.models import (
-    FormData,
-    PendingAnswers,
-    Answers,
-)
+from api.v1.v1_data.models import Answers
 from api.v1.v1_profile.models import Entity, EntityData
 from faker import Faker
 
@@ -130,37 +126,22 @@ def add_fake_answers(data):
         seed = True
         if question.dependency:
             for d in question.dependency:
-                if isinstance(data, FormData):
-                    prev_answer = Answers.objects.filter(
-                        data=data, question_id=d.get("id")
-                    ).first()
-                else:  # PendingFormData
-                    prev_answer = PendingAnswers.objects.filter(
-                        pending_data=data, question_id=d.get("id")
-                    ).first()
+                prev_answer = Answers.objects.filter(
+                    data=data, question_id=d.get("id")
+                ).first()
                 if prev_answer and prev_answer.options:
                     seed = False
                     for o in prev_answer.options:
                         if o in d.get("options"):
                             seed = True
         if seed:
-            if isinstance(data, FormData):
-                Answers.objects.create(
-                    data=data,
-                    question=question,
-                    name=name,
-                    value=value,
-                    options=option,
-                    created_by=data.created_by,
-                )
-            else:  # PendingFormData
-                PendingAnswers.objects.create(
-                    pending_data=data,
-                    question=question,
-                    name=name,
-                    value=value,
-                    options=option,
-                    created_by=data.created_by,
-                )
+            Answers.objects.create(
+                data=data,
+                question=question,
+                name=name,
+                value=value,
+                options=option,
+                created_by=data.created_by,
+            )
     data.name = " - ".join(meta_name)
     data.save()

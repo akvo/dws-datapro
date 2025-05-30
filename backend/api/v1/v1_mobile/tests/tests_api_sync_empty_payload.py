@@ -3,7 +3,7 @@ from api.v1.v1_profile.models import Levels
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_users.models import SystemUser
 from django.core.management import call_command
-from api.v1.v1_data.models import PendingFormData, PendingAnswers
+from api.v1.v1_data.models import FormData, Answers
 from rest_framework import status
 from utils.custom_helper import CustomPasscode
 
@@ -60,15 +60,15 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
 
-        a_101 = PendingAnswers.objects.filter(
-            question_id=101, pending_data_id=pending_data.id
+        a_101 = Answers.objects.filter(
+            question_id=101, data_id=pending_data.id
         ).first()
         self.assertFalse(a_101)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -103,15 +103,15 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
 
-        a_109 = PendingAnswers.objects.filter(
-            question_id=109, pending_data_id=pending_data.id
+        a_109 = Answers.objects.filter(
+            question_id=109, data_id=pending_data.id
         ).first()
         self.assertFalse(a_109)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -147,16 +147,16 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
 
-        a_109 = PendingAnswers.objects.filter(
-            question_id=109, pending_data_id=pending_data.id
+        a_109 = Answers.objects.filter(
+            question_id=109, data_id=pending_data.id
         ).first()
         self.assertTrue(a_109)
         self.assertEqual(a_109.value, 0)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -190,15 +190,15 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
 
-        a_102 = PendingAnswers.objects.filter(
-            question_id=102, pending_data_id=pending_data.id
+        a_102 = Answers.objects.filter(
+            question_id=102, data_id=pending_data.id
         ).first()
         self.assertFalse(a_102)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -233,14 +233,14 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
-        a_106 = PendingAnswers.objects.filter(
-            question_id=106, pending_data_id=pending_data.id
+        a_106 = Answers.objects.filter(
+            question_id=106, data_id=pending_data.id
         ).first()
         self.assertFalse(a_106)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -275,14 +275,14 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
-        a_105 = PendingAnswers.objects.filter(
-            question_id=105, pending_data_id=pending_data.id
+        a_105 = Answers.objects.filter(
+            question_id=105, data_id=pending_data.id
         ).first()
         self.assertFalse(a_105)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -318,14 +318,14 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
-        a_111 = PendingAnswers.objects.filter(
-            question_id=111, pending_data_id=pending_data.id
+        a_111 = Answers.objects.filter(
+            question_id=111, data_id=pending_data.id
         ).first()
         self.assertFalse(a_111)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -360,14 +360,14 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
-        a_107 = PendingAnswers.objects.filter(
-            question_id=107, pending_data_id=pending_data.id
+        a_107 = Answers.objects.filter(
+            question_id=107, data_id=pending_data.id
         ).first()
         self.assertFalse(a_107)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -402,14 +402,14 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
-        a_108 = PendingAnswers.objects.filter(
-            question_id=108, pending_data_id=pending_data.id
+        a_108 = Answers.objects.filter(
+            question_id=108, data_id=pending_data.id
         ).first()
         self.assertFalse(a_108)
-        total_null_answers = PendingAnswers.objects.filter(
-            pending_data=pending_data,
+        total_null_answers = Answers.objects.filter(
+            data=pending_data,
             name__isnull=True,
             value__isnull=True,
             options__isnull=True,
@@ -446,38 +446,38 @@ class MobileAssignmentApiSyncEmptyPayloadTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        pending_data = PendingFormData.objects.last()
+        pending_data = FormData.objects.last()
         self.assertTrue(pending_data.id)
-        self.assertEqual(pending_data.pending_data_answer.count(), 10)
+        self.assertEqual(pending_data.data_answer.count(), 10)
 
-        a_101 = pending_data.pending_data_answer.filter(
+        a_101 = pending_data.data_answer.filter(
             question_id=101
         ).first()
-        a_102 = pending_data.pending_data_answer.filter(
+        a_102 = pending_data.data_answer.filter(
             question_id=102
         ).first()
-        a_103 = pending_data.pending_data_answer.filter(
+        a_103 = pending_data.data_answer.filter(
             question_id=103
         ).first()
-        a_104 = pending_data.pending_data_answer.filter(
+        a_104 = pending_data.data_answer.filter(
             question_id=104
         ).first()
-        a_105 = pending_data.pending_data_answer.filter(
+        a_105 = pending_data.data_answer.filter(
             question_id=105
         ).first()
-        a_106 = pending_data.pending_data_answer.filter(
+        a_106 = pending_data.data_answer.filter(
             question_id=106
         ).first()
-        a_107 = pending_data.pending_data_answer.filter(
+        a_107 = pending_data.data_answer.filter(
             question_id=107
         ).first()
-        a_108 = pending_data.pending_data_answer.filter(
+        a_108 = pending_data.data_answer.filter(
             question_id=108
         ).first()
-        a_109 = pending_data.pending_data_answer.filter(
+        a_109 = pending_data.data_answer.filter(
             question_id=109
         ).first()
-        a_111 = pending_data.pending_data_answer.filter(
+        a_111 = pending_data.data_answer.filter(
             question_id=111
         ).first()
         self.assertEqual(a_101.name, "Jane Doe")

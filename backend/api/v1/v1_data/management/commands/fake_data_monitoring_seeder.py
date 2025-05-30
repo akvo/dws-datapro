@@ -2,7 +2,7 @@ import pandas as pd
 from django.core.management import BaseCommand
 from faker import Faker
 from api.v1.v1_data.models import (
-    PendingFormData,
+    FormData,
     PendingDataBatch,
     PendingDataApproval,
 )
@@ -19,17 +19,20 @@ fake = Faker()
 
 def seed_data(form, datapoint, user, repeat, approved):
     pendings = []
-    for i in range(repeat):
-        pending_data = PendingFormData.objects.create(
-            name=datapoint.name,
-            geo=datapoint.geo,
-            uuid=datapoint.uuid,
-            form=datapoint.form,
-            administration=datapoint.administration,
-            created_by=user,
-        )
-        add_fake_answers(pending_data)
-        pendings.append(pending_data)
+    for child_form in form.children.all():
+        for i in range(repeat):
+            data = FormData.objects.create(
+                parent=datapoint,
+                name=datapoint.name,
+                geo=datapoint.geo,
+                uuid=datapoint.uuid,
+                form=child_form,
+                administration=datapoint.administration,
+                created_by=user,
+                is_pending=not approved,
+            )
+            add_fake_answers(data)
+            pendings.append(data)
     pending_items = [
         {"administration_id": pending.administration.id, "instance": pending}
         for pending in pendings
@@ -49,7 +52,7 @@ def seed_data(form, datapoint, user, repeat, approved):
             approved=approved,
         )
         batch_items = [i["instance"] for i in items]
-        batch.batch_pending_data_batch.add(*batch_items)
+        batch.batch_form_data.add(*batch_items)
         path = "{0}{1}".format(
             user.user_access.administration.path,
             user.user_access.administration_id,
@@ -73,7 +76,11 @@ def seed_data(form, datapoint, user, repeat, approved):
                     status=approval_status,
                 )
         if batch.approved:
-            for pending in batch.batch_pending_data_batch.all():
+            # Use FormData objects with is_pending=True
+            for pending in batch.batch_form_data.filter(
+                batch=batch,
+                is_pending=True
+            ).all():
                 seed_approved_data(pending)
 
 
@@ -99,7 +106,10 @@ class Command(BaseCommand):
         repeat = options.get("repeat")
         approved = options.get("approved")
 
-        forms = Forms.objects.filter(parent__isnull=True).all()
+        forms = Forms.objects.filter(
+            parent__isnull=True,
+            children__isnull=False,
+        ).all()
         for form in forms:
             if not test:
                 print(f"Seeding - {form.name}")

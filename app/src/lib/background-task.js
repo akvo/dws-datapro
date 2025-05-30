@@ -261,6 +261,7 @@ const syncFormSubmission = async (activeJob = {}) => {
     } else {
       // All succeeded
       UIState.update((s) => {
+        s.refreshPage = true;
         s.isManualSynced = true;
         s.statusBar = {
           type: SYNC_STATUS.success,

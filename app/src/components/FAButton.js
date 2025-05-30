@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     position: 'fixed',
     left: 0,
     right: 0,
-    bottom: 48,
+    bottom: 36,
     alignItems: 'center',
     justifyContent: 'center',
     pointerEvents: 'box-none',
