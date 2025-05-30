@@ -64,7 +64,7 @@ from api.v1.v1_users.functions import (
 
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_forms.constants import FormAccessTypes
-from iwsims.settings import REST_FRAMEWORK, WEBDOMAIN
+from mis.settings import REST_FRAMEWORK, WEBDOMAIN
 from utils.custom_permissions import IsSuperAdmin, IsAdmin
 from utils.custom_serializer_fields import validate_serializers_message
 from utils.default_serializers import DefaultResponseSerializer
@@ -158,10 +158,10 @@ def login(request, version):
     # Add temp user for development purpose
     if not SystemUser.objects.all().count():
         super_admin = SystemUser.objects.create_superuser(
-            email="admin@rush.com",
+            email="admin@akvo.org",
             password="Test105*",
             first_name="Admin",
-            last_name="RUSH",
+            last_name="MIS",
         )
         Access.objects.create(
             user=super_admin,

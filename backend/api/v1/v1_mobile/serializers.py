@@ -1,5 +1,5 @@
 from typing import Any, Dict
-from iwsims.settings import WEBDOMAIN
+from mis.settings import WEBDOMAIN
 from rest_framework import serializers
 from drf_spectacular.utils import extend_schema_field
 from api.v1.v1_forms.models import Forms

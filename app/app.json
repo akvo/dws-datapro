@@ -2,7 +2,7 @@
   "expo": {
     "newArchEnabled": true,
     "name": "DWS DataPro",
-    "slug": "iwsims-mobile",
+    "slug": "dws-datapro-mobile",
     "version": "4.1.1",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.akvo.iwsims",
+      "package": "com.akvo.dws-datapro",
       "versionCode": 411
     },
     "web": {
@@ -42,7 +42,7 @@
           "url": "https://sentry.io/",
           "note": "Use SENTRY_AUTH_TOKEN env to authenticate with Sentry.",
           "organization": "akvo-foundation",
-          "project": "iwsims-mobile",
+          "project": "dws-datapro-mobile",
           "setCommits": true,
           "experimental_android": {
             "enableAndroidGradlePlugin": true

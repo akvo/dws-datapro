@@ -58,7 +58,7 @@ from api.v1.v1_forms.models import Forms, Questions
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
 
-from iwsims.settings import REST_FRAMEWORK
+from mis.settings import REST_FRAMEWORK
 from utils.custom_permissions import (
     IsSuperAdmin,
     IsAdmin,

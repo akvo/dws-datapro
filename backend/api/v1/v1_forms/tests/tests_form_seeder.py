@@ -42,7 +42,7 @@ class FormSeederTestCase(TestCase):
         ][0]
 
     def get_user_token(self):
-        user = {"email": "admin@rush.com", "password": "Test105*"}
+        user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post(
             "/api/v1/login", user, content_type="application/json"
         )

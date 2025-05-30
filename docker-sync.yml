@@ -1,7 +1,5 @@
 ---
 version: "3.9"
 syncs:
-  iwsims-docker-sync:
+  dws-datapro-docker-sync:
     src: "./frontend/node_modules"
-  nmis-mobile-docker-sync:
-    src: "./app/node_modules"

@@ -2,7 +2,7 @@ import json
 import os
 import re
 
-from iwsims.settings import PROD
+from mis.settings import PROD
 from django.core.management import BaseCommand
 
 from api.v1.v1_forms.constants import QuestionTypes, AttributeTypes

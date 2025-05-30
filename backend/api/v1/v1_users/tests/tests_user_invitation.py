@@ -18,7 +18,7 @@ class UserInvitationTestCase(TestCase):
         call_command("administration_seeder", "--test")
         call_command("fake_organisation_seeder")
         call_command("form_seeder", "--test")
-        user_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        user_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         user_response = self.client.post('/api/v1/login',
                                          user_payload,
                                          content_type='application/json')
@@ -37,8 +37,8 @@ class UserInvitationTestCase(TestCase):
         users = response.json()
         self.assertEqual(response.status_code, 200)
         self.assertEqual(users['data'][0]['first_name'], 'Admin')
-        self.assertEqual(users['data'][0]['last_name'], 'RUSH')
-        self.assertEqual(users['data'][0]['email'], 'admin@rush.com')
+        self.assertEqual(users['data'][0]['last_name'], 'MIS')
+        self.assertEqual(users['data'][0]['email'], 'admin@akvo.org')
         self.assertEqual(users['data'][0]['administration'], {
             'id': adm.id,
             'name': adm.name,
@@ -84,23 +84,23 @@ class UserInvitationTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.json().get('data')), 0)
         # search by fullname
-        response = self.client.get("/api/v1/users?search=admin rush",
+        response = self.client.get("/api/v1/users?search=admin mis",
                                    follow=True,
                                    **self.header)
         users = response.json()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(users['data'][0]['email'], 'admin@rush.com')
+        self.assertEqual(users['data'][0]['email'], 'admin@akvo.org')
         self.assertEqual(users['data'][0]['first_name'], 'Admin')
-        self.assertEqual(users['data'][0]['last_name'], 'RUSH')
+        self.assertEqual(users['data'][0]['last_name'], 'MIS')
         # search by email
-        response = self.client.get("/api/v1/users?search=admin@rush",
+        response = self.client.get("/api/v1/users?search=admin@akvo",
                                    follow=True,
                                    **self.header)
         users = response.json()
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(users['data'][0]['email'], 'admin@rush.com')
+        self.assertEqual(users['data'][0]['email'], 'admin@akvo.org')
         self.assertEqual(users['data'][0]['first_name'], 'Admin')
-        self.assertEqual(users['data'][0]['last_name'], 'RUSH')
+        self.assertEqual(users['data'][0]['last_name'], 'MIS')
 
         find_user = SystemUser.objects.filter(
             user_access__role=UserRoleTypes.admin).first()
@@ -599,11 +599,11 @@ class UserInvitationTestCase(TestCase):
         invite_response = self.client.get(
             '/api/v1/invitation/{0}'.format(invite_payload),
             content_type='application/json')
-        self.assertEqual(invite_response.json(), {'name': "Admin RUSH"})
+        self.assertEqual(invite_response.json(), {'name': "Admin MIS"})
         self.assertEqual(invite_response.status_code, 200)
 
     def test_set_user_password(self):
-        user_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        user_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         self.client.post('/api/v1/login',
                          user_payload,
                          content_type='application/json')
@@ -689,7 +689,7 @@ class UserInvitationTestCase(TestCase):
 
     def test_delete_user(self):
         call_command("administration_seeder", "--test")
-        user_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        user_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         user_response = self.client.post('/api/v1/login',
                                          user_payload,
                                          content_type='application/json')
@@ -722,7 +722,7 @@ class UserInvitationTestCase(TestCase):
 
     def test_re_adding_user(self):
         call_command("fake_organisation_seeder", "--repeat", 3)
-        user_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        user_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         user_response = self.client.post('/api/v1/login',
                                          user_payload,
                                          content_type='application/json')

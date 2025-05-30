@@ -1,7 +1,7 @@
 import os
 import requests_mock
 import requests as r
-from iwsims.settings import (
+from mis.settings import (
     BASE_DIR, APP_SHORT_NAME, MASTER_DATA, APK_UPLOAD_SECRET
 )
 from django.test import TestCase

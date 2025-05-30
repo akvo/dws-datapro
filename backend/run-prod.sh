@@ -20,7 +20,7 @@ _term() {
 trap _term SIGTERM
 
 log Starting gunicorn in background
-gunicorn iwsims.wsgi --workers 6 --timeout 300 --bind 0.0.0.0:8000 &
+gunicorn mis.wsgi --workers 6 --timeout 300 --bind 0.0.0.0:8000 &
 
 child=$!
 wait "$child"

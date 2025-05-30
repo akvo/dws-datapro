@@ -38,7 +38,7 @@ from utils.default_serializers import CommonDataSerializer
 from utils.email_helper import send_email, EmailTypes
 from utils.functions import update_date_time_format, get_answer_value
 from utils.functions import get_answer_history
-from iwsims.settings import APP_NAME
+from mis.settings import APP_NAME
 
 
 class SubmitFormDataSerializer(serializers.ModelSerializer):

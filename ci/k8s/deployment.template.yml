@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: iwsims
+  name: dws-datapro
 spec:
   replicas: 1
   strategy:
@@ -12,19 +12,19 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      run: iwsims
+      run: dws-datapro
   template:
     metadata:
       labels:
-        run: iwsims
-        iwsims-version: "${CI_COMMIT}"
+        run: dws-datapro
+        dws-datapro-version: "${CI_COMMIT}"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
     spec:
       containers:
         - name: frontend
-          image: eu.gcr.io/akvo-lumen/iwsims/frontend:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/dws-datapro/frontend:${CI_COMMIT}
           ports:
             - containerPort: 80
           resources:
@@ -69,87 +69,87 @@ spec:
             - name: GOOGLE_SQL_COMPUTE_ZONE
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: google-sql-compute-zone
             - name: GOOGLE_SQL_DB_INSTANCE
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: google-sql-db-instance
             - name: GOOGLE_PROJECT
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: google-project
           volumeMounts:
-            - name: iwsims-secrets
+            - name: dws-datapro-secrets
               mountPath: "/secrets/cloudsql/credentials.json"
-              subPath: iwsims-service-account.json
+              subPath: dws-datapro-service-account.json
               readOnly: true
         - name: backend
-          image: eu.gcr.io/akvo-lumen/iwsims/backend:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/dws-datapro/backend:${CI_COMMIT}
           ports:
             - containerPort: 8000
           env:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: webdomain
             - name: APP_NAME
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: app-name
             - name: APP_SHORT_NAME
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: app-short-name
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -158,12 +158,12 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: apk-upload-secret
           readinessProbe:
             httpGet:
@@ -176,9 +176,9 @@ spec:
               port: 8000
             initialDelaySeconds: 30
           volumeMounts:
-            - name: iwsims-secrets
+            - name: dws-datapro-secrets
               mountPath: /secrets/credentials.json
-              subPath: iwsims-service-account.json
+              subPath: dws-datapro-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -190,67 +190,67 @@ spec:
               cpu: "2000m"
               memory: "2048Mi"
         - name: worker
-          image: eu.gcr.io/akvo-lumen/iwsims/worker:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/dws-datapro/worker:${CI_COMMIT}
           env:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: webdomain
             - name: APP_NAME
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: app-name
             - name: APP_SHORT_NAME
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: app-short-name
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -259,17 +259,17 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: iwsims
+                  name: dws-datapro
                   key: apk-upload-secret
           volumeMounts:
-            - name: iwsims-secrets
+            - name: dws-datapro-secrets
               mountPath: /secrets/credentials.json
-              subPath: iwsims-service-account.json
+              subPath: dws-datapro-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -281,9 +281,9 @@ spec:
               cpu: "1000m"
               memory: "2048Mi"
       volumes:
-        - name: iwsims-secrets
+        - name: dws-datapro-secrets
           secret:
-            secretName: iwsims
+            secretName: dws-datapro
         - name: nfs-pvc
           persistentVolumeClaim:
-            claimName: iwsims
+            claimName: dws-datapro

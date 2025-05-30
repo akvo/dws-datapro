@@ -24,14 +24,14 @@ class FormDataUpdateTestCase(TestCase):
 
     def test_update_datapoint_by_superadmin(self):
         # Login as super admin
-        user = {"email": "admin@rush.com", "password": "Test105*"}
+        user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post('/api/v1/login',
                                 user,
                                 content_type='application/json')
         user = user.json()
         # Assign super admin role to the user
         su_user = SystemUser.objects.filter(
-            email="admin@rush.com"
+            email="admin@akvo.org"
         ).first()
         su_user.user_access.role = UserRoleTypes.super_admin
         su_user.user_access.save()
@@ -156,7 +156,7 @@ class FormDataUpdateTestCase(TestCase):
         self.assertEqual(form.id, 1)
         self.assertEqual(form.name, "Test Form")
 
-        user = {"email": "admin@rush.com", "password": "Test105*"}
+        user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post('/api/v1/login',
                                 user,
                                 content_type='application/json')
@@ -314,7 +314,7 @@ class FormDataUpdateTestCase(TestCase):
 
     def test_update_datapoint_by_reader_access(self):
         user = {
-            "email": "admin@rush.com",
+            "email": "admin@akvo.org",
             "password": "Test105*"
         }
         user = self.client.post(
