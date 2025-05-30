@@ -1,7 +1,7 @@
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: iwsims
+  name: dws-datapro
 spec:
   storageClassName: managed-nfs-storage
   accessModes:

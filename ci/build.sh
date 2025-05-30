@@ -50,7 +50,7 @@ then
     exit 1
 fi
 
-image_prefix="eu.gcr.io/akvo-lumen/iwsims"
+image_prefix="eu.gcr.io/akvo-lumen/dws-datapro"
 
 dc () {
     docker compose \
@@ -111,8 +111,8 @@ worker_build() {
 update_dbdocs() {
     if [[ "${CI_BRANCH}" ==  "main" || "${CI_BRANCH}" ==  "develop" ]]; then
         npm install -g dbdocs
-        # dbdocs build doc/dbml/schema.dbml --project iwsims
-        dbdocs build backend/db.dbml --project "iwsims-$CI_BRANCH"
+        # dbdocs build doc/dbml/schema.dbml --project dws-datapro
+        dbdocs build backend/db.dbml --project "dws-datapro-$CI_BRANCH"
     fi
 }
 
