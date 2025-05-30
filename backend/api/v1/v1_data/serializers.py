@@ -38,7 +38,7 @@ from utils.default_serializers import CommonDataSerializer
 from utils.email_helper import send_email, EmailTypes
 from utils.functions import update_date_time_format, get_answer_value
 from utils.functions import get_answer_history
-from iwsims.settings import APP_SHORT_NAME
+from iwsims.settings import APP_NAME
 
 
 class SubmitFormDataSerializer(serializers.ModelSerializer):
@@ -638,7 +638,7 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
                         "Further approvals may be required "
                         "before data is finalised."
                         "You can also track your data approval in the "
-                        f"{APP_SHORT_NAME} platform "
+                        f"{APP_NAME} platform "
                         "[Data > Manage Submissions > Pending Approval]"
                     ),
                 }
@@ -659,7 +659,7 @@ class ApprovePendingDataRequestSerializer(serializers.Serializer):
                     "listing": listing,
                     "extend_body": (
                         "You can also access the rejected data "
-                        f"in the {APP_SHORT_NAME} platform "
+                        f"in the {APP_NAME} platform "
                         "[My Profile > Data uploads > Rejected]"
                     ),
                 }

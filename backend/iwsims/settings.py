@@ -13,6 +13,9 @@ from datetime import timedelta
 from os import environ
 from pathlib import Path
 
+APP_NAME = environ.get("APP_NAME", "iwsims")
+APP_SHORT_NAME = environ.get("APP_SHORT_NAME", "iwsims")
+
 if 'SENTRY_DSN' in environ:
     import sentry_sdk
     from sentry_sdk.integrations.django import DjangoIntegration
@@ -135,7 +138,7 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,
 }
 SPECTACULAR_SETTINGS = {
-    "TITLE": "RUSH",
+    "TITLE": APP_NAME,
     "DESCRIPTION": "",
     "VERSION": "1.0.0",
     "SORT_OPERATIONS": False,
@@ -224,8 +227,6 @@ AUTH_USER_MODEL = "v1_users.SystemUser"
 # MOBILE ENV VARIABLES
 WEBDOMAIN = environ.get("WEBDOMAIN", "http://localhost:3000")
 APK_UPLOAD_SECRET = environ.get("APK_UPLOAD_SECRET")
-APP_NAME = environ.get("APP_NAME", "iwsims")
-APP_SHORT_NAME = environ.get("APP_SHORT_NAME", "iwsims")
 MASTER_DATA = "./source"
 STORAGE_PATH = environ.get("STORAGE_PATH", "./storage")
 

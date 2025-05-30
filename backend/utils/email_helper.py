@@ -4,7 +4,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from rest_framework import serializers
 from utils.custom_serializer_fields import CustomChoiceField
-from iwsims.settings import EMAIL_FROM, WEBDOMAIN, APP_NAME, APP_SHORT_NAME
+from iwsims.settings import EMAIL_FROM, WEBDOMAIN, APP_NAME
 
 
 class EmailTypes:
@@ -328,7 +328,7 @@ def send_email(
         email_html_message = render_to_string("email/main.html", context)
         msg = EmailMultiAlternatives(
             "{0} - {1}".format(
-                APP_SHORT_NAME,
+                APP_NAME,
                 context.get("subject")
             ),
             "Email plain text",

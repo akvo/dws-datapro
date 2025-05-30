@@ -15,15 +15,15 @@ Object {
     "addAdmDesc": <React.Fragment>
       This page allows you to add administration to the
        
-      Test
+      Test App
        platform.
     </React.Fragment>,
     "addAdministration": "Add Administration",
     "addAttributeDesc": <React.Fragment>
-      This page allows you to add attribute to the
+      This page allows you to add attribute to the 
+      Test App
        
-      Test
-       platform.
+      platform.
     </React.Fragment>,
     "addAttributes": "Add Attribute",
     "addEntities": "Add Entities",
@@ -31,30 +31,30 @@ Object {
     "addEntityData": "Add New",
     "addEntityDesc": <React.Fragment>
       This page allows you to add entity to the 
-      Test
+      Test App
        
       platform.
     </React.Fragment>,
     "addEntityTypeDesc": <React.Fragment>
-      This page allows you to add entity type to the
+      This page allows you to add entity type to the 
+      Test App
        
-      Test
-       platform.
+      platform.
     </React.Fragment>,
     "addNewButton": "Add New",
     "addNewUser": "Add new user",
     "addOptionButton": "Add option",
     "addOrgDesc": <React.Fragment>
-      This page allows you to add organisations to the
+      This page allows you to add organisations to the 
+      Test App
        
-      Test
-       platform.
+      platform.
     </React.Fragment>,
     "addOrganisation": "Add Organization",
     "addUser": "Add User",
     "addUserDescription": <React.Fragment>
       This page allows you to add users to the 
-      Test
+      Test App
        
       platform. You will only be able to add users for regions under your jurisdisction.
       <br />
@@ -201,10 +201,10 @@ Object {
     "deleteOrganisationTitle": "You are about to delete the organization",
     "deleteText": "Delete",
     "deleteUserDesc": <React.Fragment>
-      The User will no longer be able to access the
+      The User will no longer be able to access the 
+      Test App
        
-      Test
-       platform as an Enumrator/Admin etc
+      platform as an Enumrator/Admin etc
     </React.Fragment>,
     "deleteUserHint": "Deleting this user will not delete the data association(s)",
     "deleteUserTitle": "You are about to delete the user",
@@ -215,15 +215,15 @@ Object {
     "editAdmDesc": <React.Fragment>
       This page allows you to edit administration to the
        
-      Test
+      Test App
        platform.
     </React.Fragment>,
     "editAdministration": "Edit Administration",
     "editAttributeDesc": <React.Fragment>
-      This page allows you to edit attribute to the
+      This page allows you to edit attribute to the 
+      Test App
        
-      Test
-       platform.
+      platform.
     </React.Fragment>,
     "editAttributes": "Edit Attribute",
     "editButton": "Edit",
@@ -231,20 +231,20 @@ Object {
     "editEntityData": "Edit data",
     "editEntityDesc": <React.Fragment>
       This page allows you to edit entity to the 
-      Test
+      Test App
        
       platform.
     </React.Fragment>,
     "editEntityTypeDesc": <React.Fragment>
-      This page allows you to edit entity type to the
+      This page allows you to edit entity type to the 
+      Test App
        
-      Test
-       platform.
+      platform.
     </React.Fragment>,
     "editOrgDesc": <React.Fragment>
       This page allows you to edit organisations to the
        
-      Test
+      Test App
        platform.
     </React.Fragment>,
     "editOrganisation": "Edit Organization",
@@ -277,7 +277,7 @@ Object {
     "errorURL": <React.Fragment>
       Please check the URL again or let us take you back to the
        
-      Test
+      Test App
        homepage
     </React.Fragment>,
     "errorUnknown": "An unknown error occurred",
@@ -540,14 +540,14 @@ Object {
     "mobilePanelAddDesc": <React.Fragment>
       This page allows you to add mobile data collectors to the
        
-      Test
+      Test App
        platform.
     </React.Fragment>,
     "mobilePanelButton": "Manage Data Collectors",
     "mobilePanelEditDesc": <React.Fragment>
       This page allows you to edit mobile data collectors to the
        
-      Test
+      Test App
        platform.
     </React.Fragment>,
     "mobilePanelText": <React.Fragment>
@@ -753,7 +753,7 @@ Object {
     "welcomeShort": <React.Fragment>
       Welcome to the 
       <b>
-        Test
+        Test App
       </b>
        platform
     </React.Fragment>,

@@ -35,7 +35,7 @@ describe("Login and Registration", () => {
 
     const welcome = screen.getByTestId("welcome-title");
     expect(welcome.textContent).toBe(
-      `Welcome to the Test platform, ${fakeUser.name}`
+      `Welcome to the Test App platform, ${fakeUser.name}`
     );
 
     expect(screen.getByText(/Confirm Password/i)).toBeInTheDocument();
