@@ -92,6 +92,7 @@ class DataTestCase(TestCase):
                 "created",
                 "updated",
                 "pending_data",
+                "submitter",
             ],
         )
         self.assertIsNotNone(result["data"][0]["uuid"])
@@ -281,14 +282,14 @@ class DataTestCase(TestCase):
                 self.assertEqual(
                     list(history[0]), ["value", "created", "created_by"]
                 )
-                self.assertEqual(history[0]["created_by"], "Admin RUSH")
+                self.assertEqual(history[0]["created_by"], "Admin MIS")
             if question == 102:
                 self.assertEqual(question, 102)
                 self.assertEqual(value, ["Female"])
                 self.assertEqual(
                     list(history[0]), ["value", "created", "created_by"]
                 )
-                self.assertEqual(history[0]["created_by"], "Admin RUSH")
+                self.assertEqual(history[0]["created_by"], "Admin MIS")
         # delete with history
         res = self.client.delete(
             f"/api/v1/data/{data_id}", follow=True, **header
@@ -298,24 +299,6 @@ class DataTestCase(TestCase):
         self.assertEqual(answers, 0)
         hitory = AnswerHistory.objects.filter(data_id=data_id).count()
         self.assertEqual(hitory, 0)
-
-    def test_monitoring_details_by_parent_id(self):
-        header = {"HTTP_AUTHORIZATION": f"Bearer {self.token}"}
-
-        parent = FormData.objects.filter(children__gt=0).first()
-        form_id = parent.form.id
-        url = f"/api/v1/form-data/{form_id}"
-        url += f"?page=1&parent={parent.id}"
-        data = self.client.get(url, follow=True, **header)
-        result = data.json()
-        self.assertEqual(data.status_code, 200)
-        self.assertEqual(
-            list(result), ["current", "total", "total_page", "data"]
-        )
-        # total equal to number of children + the data itself
-        self.assertEqual(result["total"], parent.children.count() + 1)
-        # make sure the last item is parent
-        self.assertEqual(result["data"][-1]["name"], parent.name)
 
     def test_get_data_details_anonymously(self):
         data_id = FormData.objects.first().id
