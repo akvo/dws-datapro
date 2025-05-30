@@ -1,5 +1,5 @@
 #!/bin/bash
-# This script is used to generate new version for iwsims
+# This script is used to generate new version for dws-datapro
 set -euv
 
 CURRENT_TAG=$(git describe --tags --abbrev=0)
