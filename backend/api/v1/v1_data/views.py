@@ -49,6 +49,7 @@ from api.v1.v1_data.serializers import (
     ListBatchCommentSerializer,
     BatchListRequestSerializer,
     SubmitFormDataAnswerSerializer,
+    FormDataSerializer,
 )
 from api.v1.v1_forms.constants import (
     QuestionTypes
@@ -124,7 +125,7 @@ class FormDataAddListView(APIView):
             OpenApiParameter(
                 name="parent",
                 required=False,
-                type=OpenApiTypes.NUMBER,
+                type=OpenApiTypes.STR,
                 location=OpenApiParameter.QUERY,
             ),
         ],
@@ -146,8 +147,9 @@ class FormDataAddListView(APIView):
 
         parent = serializer.validated_data.get("parent")
         if parent:
-            queryset = FormData.objects.filter(
-                uuid=parent.uuid,
+            # Only get the children data
+            queryset = form.form_form_data.filter(
+                uuid=parent,
             )
             queryset = queryset.order_by("-created")
             instance = paginator.paginate_queryset(queryset, request)
@@ -550,6 +552,39 @@ class PendingDataDetailDeleteView(APIView):
             pk=pending_data_id,
             is_pending=True
         )
+        if instance.created_by_id != request.user.id:
+            return Response(
+                {"message": "You are not allowed to perform this action"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        instance.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class DataDetailDeleteView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses=FormDataSerializer,
+        tags=["Data"],
+        summary="To get data by ID",
+    )
+    def get(self, request, data_id, version):
+        data = get_object_or_404(FormData, pk=data_id, is_pending=False)
+        return Response(
+            FormDataSerializer(instance=data).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        responses={
+            204: OpenApiResponse(description="Deletion with no response")
+        },
+        tags=["Data"],
+        summary="To delete data",
+    )
+    def delete(self, request, data_id, version):
+        instance = get_object_or_404(FormData, pk=data_id, is_pending=False)
         if instance.created_by_id != request.user.id:
             return Response(
                 {"message": "You are not allowed to perform this action"},

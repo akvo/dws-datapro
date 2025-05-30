@@ -259,6 +259,34 @@ class ListDataAnswerSerializer(serializers.ModelSerializer):
         fields = ["history", "question", "value"]
 
 
+class FormDataSerializer(serializers.ModelSerializer):
+    answers = serializers.SerializerMethodField()
+
+    @extend_schema_field(ListDataAnswerSerializer(many=True))
+    def get_answers(self, instance):
+        return ListDataAnswerSerializer(
+            instance=instance.data_answer.all(), many=True
+        ).data
+
+    class Meta:
+        model = FormData
+        fields = [
+            "id",
+            "uuid",
+            "name",
+            "form",
+            "administration",
+            "geo",
+            "created_by",
+            "updated_by",
+            "created",
+            "updated",
+            "submitter",
+            "duration",
+            "answers",
+        ]
+
+
 class ListFormDataRequestSerializer(serializers.Serializer):
     administration = CustomPrimaryKeyRelatedField(
         queryset=Administration.objects.none(), required=False
@@ -267,9 +295,7 @@ class ListFormDataRequestSerializer(serializers.Serializer):
         child=CustomPrimaryKeyRelatedField(queryset=Questions.objects.none()),
         required=False,
     )
-    parent = CustomPrimaryKeyRelatedField(
-        queryset=FormData.objects.none(), required=False
-    )
+    parent = serializers.CharField(required=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -277,10 +303,6 @@ class ListFormDataRequestSerializer(serializers.Serializer):
             "administration"
         ).queryset = Administration.objects.all()
         self.fields.get("questions").child.queryset = Questions.objects.all()
-        form_id = self.context.get("form_id")
-        self.fields.get("parent").queryset = FormData.objects.filter(
-            form_id=form_id
-        ).all()
 
 
 class ListFormDataSerializer(serializers.ModelSerializer):
@@ -352,6 +374,7 @@ class ListFormDataSerializer(serializers.ModelSerializer):
             "created",
             "updated",
             "pending_data",
+            "submitter",
         ]
 
 
