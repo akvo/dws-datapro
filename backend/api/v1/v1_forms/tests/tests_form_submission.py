@@ -13,7 +13,7 @@ class FormSubmissionTestCase(TestCase):
         call_command("administration_seeder", "--test")
         call_command("fake_organisation_seeder", "--repeat", 3)
         call_command("form_seeder", "--test")
-        user = {"email": "admin@rush.com", "password": "Test105*"}
+        user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post('/api/v1/login',
                                 user,
                                 content_type='application/json')

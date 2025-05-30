@@ -13,7 +13,7 @@ import json
 from utils import storage
 
 
-class FormData(models.Model):
+class FormData(SoftDeletes):
     parent = models.ForeignKey(
         "self",
         on_delete=models.CASCADE,
@@ -46,6 +46,17 @@ class FormData(models.Model):
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(default=None, null=True)
+    # Added fields from PendingFormData
+    batch = models.ForeignKey(
+        to="PendingDataBatch",
+        on_delete=models.SET_NULL,
+        default=None,
+        null=True,
+        related_name="batch_form_data",
+    )
+    duration = models.IntegerField(default=0)
+    submitter = models.CharField(max_length=255, default=None, null=True)
+    is_pending = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -179,58 +190,6 @@ class PendingDataBatchComments(models.Model):
         db_table = "batch_comment"
 
 
-class PendingFormData(SoftDeletes):
-    name = models.TextField()
-    form = models.ForeignKey(
-        to=Forms,
-        on_delete=models.CASCADE,
-        related_name="pending_form_form_data",
-    )
-    data = models.ForeignKey(
-        to=FormData,
-        on_delete=models.CASCADE,
-        related_name="pending_data_form_data",
-        default=None,
-        null=True,
-    )
-    administration = models.ForeignKey(
-        to=Administration,
-        on_delete=models.PROTECT,
-        related_name="administration_pending_form_data",
-    )  # noqa
-    geo = models.JSONField(null=True, default=None)
-    uuid = models.CharField(max_length=255, default=uuid.uuid4, null=True)
-    batch = models.ForeignKey(
-        to=PendingDataBatch,
-        on_delete=models.SET_NULL,
-        default=None,
-        null=True,
-        related_name="batch_pending_data_batch",
-    )
-    created_by = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.CASCADE,
-        related_name="pending_form_data_created",
-    )
-    updated_by = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.PROTECT,
-        related_name="pending_form_data_updated",
-        default=None,
-        null=True,
-    )
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(default=None, null=True)
-    duration = models.IntegerField(default=0)
-    submitter = models.CharField(max_length=255, default=None, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = "pending_data"
-
-
 class PendingDataApproval(models.Model):
     batch = models.ForeignKey(
         to=PendingDataBatch,
@@ -259,64 +218,6 @@ class PendingDataApproval(models.Model):
         db_table = "pending_data_approval"
 
 
-class PendingAnswers(models.Model):
-    pending_data = models.ForeignKey(
-        to=PendingFormData,
-        on_delete=models.CASCADE,
-        related_name="pending_data_answer",
-    )
-    question = models.ForeignKey(
-        to=Questions,
-        on_delete=models.CASCADE,
-        related_name="question_pending_answer",
-    )
-    name = models.TextField(null=True, default=None)
-    value = models.FloatField(null=True, default=None)
-    options = models.JSONField(default=None, null=True)
-    created_by = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.CASCADE,
-        related_name="pending_answer_created",
-    )
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(default=None, null=True)
-
-    def __str__(self):
-        return str(self.id)
-
-    class Meta:
-        db_table = "pending_answer"
-
-
-class PendingAnswerHistory(models.Model):
-    pending_data = models.ForeignKey(
-        to=PendingFormData,
-        on_delete=models.CASCADE,
-        related_name="pending_data_answer_history",
-    )
-    question = models.ForeignKey(
-        to=Questions,
-        on_delete=models.CASCADE,
-        related_name="question_pending_answer_history",
-    )
-    name = models.TextField(null=True, default=None)
-    value = models.FloatField(null=True, default=None)
-    options = models.JSONField(default=None, null=True)
-    created_by = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.PROTECT,
-        related_name="pending_answer_history_created",
-    )
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(default=None, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = "pending_answer_history"
-
-
 class Answers(models.Model):
     data = models.ForeignKey(
         to=FormData, on_delete=models.CASCADE, related_name="data_answer"
@@ -332,6 +233,8 @@ class Answers(models.Model):
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(default=None, null=True)
+    # store the order of the repeatable question
+    index = models.IntegerField(default=0)
 
     def __str__(self):
         return self.data.name

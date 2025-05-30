@@ -1,25 +1,18 @@
-import React, { useMemo, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Linking, Alert, StyleSheet, Text } from 'react-native';
 import { Icon, Dialog, Button } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
 import { BaseLayout } from '../../components';
-import { config } from './config';
 import { BuildParamsState, UIState } from '../../store';
 import { i18n, api } from '../../lib';
 
 const AboutHome = () => {
-  const { appVersion, apkURL } = BuildParamsState.useState((s) => s);
+  const { appVersion, apkURL, appName } = BuildParamsState.useState((s) => s);
   const { lang } = UIState.useState((s) => s);
-  const nonEnglish = lang !== 'en';
   const trans = i18n.text(lang);
   const [visible, setVisible] = useState(false);
   const [checking, setChecking] = useState(false);
   const [updateInfo, setUpdateInfo] = useState({ status: null, text: '' });
-
-  const list = useMemo(() => {
-    const findConfig = config.find((c) => c?.id === 1);
-    return findConfig?.fields || [];
-  }, []);
 
   const handleCheckAppVersion = () => {
     setChecking(true);
@@ -57,24 +50,25 @@ const AboutHome = () => {
   }, [apkURL]);
 
   return (
-    <BaseLayout title="About" rightComponent={false}>
+    <BaseLayout title={trans.about} rightComponent={false}>
       <BaseLayout.Content>
         <View>
-          {list.map((l) => {
-            const itemTitle = nonEnglish ? i18n.transform(lang, l)?.label : l.label;
-            const itemDesc = nonEnglish
-              ? i18n.transform(lang, l?.description)?.name
-              : l?.description;
-            const subtitle = l.type === 'text' ? itemDesc : appVersion || itemDesc;
-            return (
-              <View key={l.id} style={styles.listItem}>
-                <View style={styles.listItemContent}>
-                  <Text style={styles.listItemTitle}>{itemTitle}</Text>
-                  <Text style={styles.listItemSubtitle}>{subtitle}</Text>
-                </View>
-              </View>
-            );
-          })}
+          {/* About App Info */}
+          <View style={styles.listItem}>
+            <View style={styles.listItemContent}>
+              <Text style={styles.listItemTitle}>{`${trans.about} ${appName}`}</Text>
+              <Text style={styles.listItemSubtitle}>{trans.aboutAppDescription}</Text>
+            </View>
+          </View>
+
+          {/* App Version */}
+          <View style={styles.listItem}>
+            <View style={styles.listItemContent}>
+              <Text style={styles.listItemTitle}>{trans.appVersionLabel}</Text>
+              <Text style={styles.listItemSubtitle}>{appVersion}</Text>
+            </View>
+          </View>
+
           {/* Update button */}
           <Button
             title={trans.updateApp}
@@ -118,8 +112,8 @@ const styles = StyleSheet.create({
   listItem: {
     borderBottomWidth: 1,
     borderBottomColor: '#ddd',
-    paddingVertical: 15,
-    paddingHorizontal: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
   },
   listItemContent: {
     flexDirection: 'column',
@@ -129,6 +123,7 @@ const styles = StyleSheet.create({
   },
   listItemSubtitle: {
     color: '#666',
+    paddingTop: 14,
   },
   updateButton: {
     flexDirection: 'row',

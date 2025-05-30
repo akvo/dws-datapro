@@ -1,4 +1,4 @@
-from iwsims.settings import WEBDOMAIN
+from mis.settings import WEBDOMAIN
 from django.test import TestCase
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_profile.models import Administration, Access

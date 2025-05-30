@@ -127,6 +127,9 @@ const uiText = {
     datapointLabel: 'Datapoint',
     viewDetails: 'View details',
     monitoringForms: 'Monitoring Forms',
+    aboutAppDescription:
+      'The Fiji Department of Water & Sewerage (DWS) DataPro is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji.',
+    appVersionLabel: 'App Version',
   },
   fr: {
     latitude: 'Latitude',
@@ -248,6 +251,10 @@ const uiText = {
     datapointLabel: 'Point de données',
     viewDetails: 'Voir les détails',
     monitoringForms: 'Formulaires de surveillance',
+    about: 'À propos',
+    aboutAppDescription:
+      "La plateforme Fiji Department of Water & Sewerage (DWS) DataPro est conçue pour améliorer la gestion des services d'eau et d'assainissement aux Fidji.",
+    appVersionLabel: 'Version de l’application',
   },
 };
 

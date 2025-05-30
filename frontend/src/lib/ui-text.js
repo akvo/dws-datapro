@@ -2,33 +2,6 @@ import React, { Fragment } from "react";
 
 const uiText = {
   en: {
-    // Home page
-    welcome: <Fragment>DWS DataPro</Fragment>,
-    welcomeDesc: <Fragment>DWS DataPro</Fragment>,
-    countdownTitle: "Time remaining to achieve national RUSH targets:",
-    year: "Year",
-    month: "Month",
-    day: "Day",
-    hour: "Hour",
-    minute: "Minute",
-    second: "Second",
-    welcomeCta: "Explore National Data",
-    service1Text:
-      "DWS DataPro offers real-time data for prompt decision-maker access.",
-    service2Text:
-      "Identifying needs enables targeted interventions and efficient resource deployment.",
-    service3Text:
-      "Real-time insights optimize sanitation metrics for efficient resource allocation.",
-    aboutRush: "About RUSH",
-    aboutText: <></>,
-    aboutHighlight: <Fragment></Fragment>,
-    learnMoreButton: "Learn more",
-    realTime: "Real-Time Monitoring and Information System (IWSIMS)",
-    reportText: "Report generation and visualizations.",
-    frameworkText: "4 M&E Frameworks",
-    contactText: "Contact Us",
-    contactDesText: "Get in touch with us for support or feedback.",
-    feedbackBtn: "Send Feedback",
     // Login
     loginLoadingTex: (
       <Fragment>
@@ -42,8 +15,12 @@ const uiText = {
     errorPageNA: "Oops, this page is not available",
     errorAuth: "You are not authorised to access this page",
     errorUnknown: "An unknown error occurred",
-    errorURL:
-      "Please check the URL again or let us take you back to the RUSH homepage",
+    errorURL: (
+      <Fragment>
+        Please check the URL again or let us take you back to the{" "}
+        {window.appConfig.name} homepage
+      </Fragment>
+    ),
     errorVerifyCreds:
       "Please verify your credentials for the requested resource",
     backHome: "Back to Homepage",
@@ -53,71 +30,6 @@ const uiText = {
     errorSomething: "Something went wrong",
     errorMandatoryFields: "Please answer all the mandatory questions",
     errorFileUpload: "Could not upload file",
-    // Footer
-    footerAboutTitle: "About Data",
-    footerAboutDescription: "",
-    footerDonorSupport:
-      "DWS DataPro was developed with technical and financial support from UNICEF, USAID, and the Government of Japan. Developed by Akvo.",
-    footerContactTitle: "Contacts",
-    footerContactAddress: "",
-    footerContactPhone: "+254-20-2717077",
-    footerContactEmail: "rushiwsims.system@health.go.ke",
-    footerContactFeedback: {
-      text: "Feedback Form",
-      url: "https://docs.google.com/forms/d/e/1FAIpQLSf5rjD66CCcMWYgFwkNp8Xb1lRJoec1CwhhPnjOd-mU84ktPA/viewform",
-    },
-    footerExternalLinkTitle: "External Links",
-    footerExternalLinkItems: [
-      {
-        text: "JMP",
-        url: "https://washdata.org/how-we-work/about-jmp#:~:text=Background,hygiene%20(WASH)%20since%201990",
-      },
-      {
-        text: "CLTS DWS DataPro",
-        url: " http://wash.health.go.ke/clts/index.jsp",
-      },
-      {
-        text: "GLAAS",
-        url: "https://www.who.int/teams/environment-climate-change-and-health/water-sanitation-and-health/monitoring-and-evidence/wash-systems-monitoring/un-water-global-analysis-and-assessment-of-sanitation-and-drinking-water",
-      },
-    ],
-    footerResourcesTitle: "Resources",
-    footerResourcesItems: [
-      {
-        text: "International Resources",
-        url: "#",
-      },
-      {
-        text: "National Resources",
-        url: "#",
-      },
-      {
-        text: "County Resources",
-        url: "#",
-      },
-    ],
-    footerQuickLinkTitle: "Quick Links",
-    footerQuickLinkItems: [
-      {
-        text: "Read the Docs",
-        url: "/documentation/",
-      },
-    ],
-    footerLegalLinkItems: [
-      {
-        text: "Privacy Policy",
-        url: "#",
-      },
-      {
-        text: "Terms & Conditions",
-        url: "#",
-      },
-      {
-        text: "Cookie Policy",
-        url: "#",
-      },
-    ],
-    copyright: "© 2022 — Ministry of Health",
     // Header Links
     controlCenter: "Control Center",
     myProfile: "My Profile",
@@ -424,7 +336,11 @@ const uiText = {
     instructionsMailed: "Instructions mailed successfully",
     sendInstructions: "Send Instructions",
     // Reset Password
-    welcomeShort: "Welcome to RUSH",
+    welcomeShort: (
+      <Fragment>
+        Welcome to the <b>{window.appConfig.name}</b> platform
+      </Fragment>
+    ),
     resetHint: (
       <Fragment>
         Please set your password for the platform.
@@ -488,8 +404,12 @@ const uiText = {
     deleteUserHint:
       "Deleting this user will not delete the data association(s)",
     deleteUserTitle: "You are about to delete the user",
-    deleteUserDesc:
-      "The User will no longer be able to access the RUSH platform as an Enumrator/Admin etc",
+    deleteUserDesc: (
+      <Fragment>
+        The User will no longer be able to access the {window.appConfig.name}{" "}
+        platform as an Enumrator/Admin etc
+      </Fragment>
+    ),
     userAssociations: "This user has following data association(s)",
     organisationsLoadFail: "Could not load organizations",
     organisationDeleteFail: "Could not delete organization",
@@ -551,10 +471,18 @@ const uiText = {
     mobileSelectAdm: "Select administrations...",
     mobileSelectForms: "Select forms...",
     mobileConfirmDeletion: "Are you sure?",
-    mobilePanelAddDesc:
-      "This page allows you to add mobile data collectors to the RUSH platform.",
-    mobilePanelEditDesc:
-      "This page allows you to edit mobile data collectors to the RUSH platform.",
+    mobilePanelAddDesc: (
+      <Fragment>
+        This page allows you to add mobile data collectors to the{" "}
+        {window.appConfig.name} platform.
+      </Fragment>
+    ),
+    mobilePanelEditDesc: (
+      <Fragment>
+        This page allows you to edit mobile data collectors to the{" "}
+        {window.appConfig.name} platform.
+      </Fragment>
+    ),
     mobileErrDelete: "Unable to delete assingment",
     mobileConfirmDelete: "Are you sure you want to delete this assignment?",
     mobileSuccessAdded: "Mobile assignment added",
@@ -621,24 +549,66 @@ const uiText = {
     entityType: "Entity Type",
     searchEntityType: "Enter name...",
     searchEntity: "Enter name...",
-    addOrgDesc:
-      "This page allows you to add organisations to the RUSH platform.",
-    addEntityDesc: "This page allows you to add entity to the RUSH platform.",
-    addEntityTypeDesc:
-      "This page allows you to add entity type to the RUSH platform.",
-    addAttributeDesc:
-      "This page allows you to add attribute to the RUSH platform.",
-    addAdmDesc:
-      "This page allows you to add administration to the RUSH platform.",
-    editOrgDesc:
-      "This page allows you to edit organisations to the RUSH platform.",
-    editEntityDesc: "This page allows you to edit entity to the RUSH platform.",
-    editEntityTypeDesc:
-      "This page allows you to edit entity type to the RUSH platform.",
-    editAttributeDesc:
-      "This page allows you to edit attribute to the RUSH platform.",
-    editAdmDesc:
-      "This page allows you to edit administration to the RUSH platform.",
+    addOrgDesc: (
+      <Fragment>
+        This page allows you to add organisations to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    addEntityDesc: (
+      <Fragment>
+        This page allows you to add entity to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    addEntityTypeDesc: (
+      <Fragment>
+        This page allows you to add entity type to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    addAttributeDesc: (
+      <Fragment>
+        This page allows you to add attribute to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    addAdmDesc: (
+      <Fragment>
+        This page allows you to add administration to the{" "}
+        {window.appConfig.name} platform.
+      </Fragment>
+    ),
+    editOrgDesc: (
+      <Fragment>
+        This page allows you to edit organisations to the{" "}
+        {window.appConfig.name} platform.
+      </Fragment>
+    ),
+    editEntityDesc: (
+      <Fragment>
+        This page allows you to edit entity to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    editEntityTypeDesc: (
+      <Fragment>
+        This page allows you to edit entity type to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    editAttributeDesc: (
+      <Fragment>
+        This page allows you to edit attribute to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    editAdmDesc: (
+      <Fragment>
+        This page allows you to edit administration to the{" "}
+        {window.appConfig.name} platform.
+      </Fragment>
+    ),
     successAddedOrg: "Organisation added",
     successUpdatedOrg: "Organisation updated",
     successDeletedOrg: "Organisation deleted",
@@ -731,6 +701,100 @@ const uiText = {
     updateDataButton: "Update data",
     updateDataError: "Unable to update data",
     requiredError: "{{field}} is required",
+    helloText: "Hello",
+    // User Management
+    addUserDescription: (
+      <Fragment>
+        This page allows you to add users to the {window.appConfig.name}{" "}
+        platform. You will only be able to add users for regions under your
+        jurisdisction.
+        <br />
+        Once you have added the user, the user will be notified by email to set
+        their password and access the platform
+      </Fragment>
+    ),
+    // Home Page
+    homeQuickLinks: [
+      { text: "Privacy Policy", href: "/privacy-policy" },
+      { text: "Terms & Conditions", href: "/terms-n-conditions" },
+      { text: "Cookie Policy", href: "/cookie-policy" },
+    ],
+    homeJumbotronTitle: <Fragment>{window.appConfig.name}</Fragment>,
+    homeJumbotronSubtitle:
+      "The Fiji Department of Water & Sewerage (DWS) DataPro is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji.",
+    homeJumbotronImage: {
+      src: "https://images.unsplash.com/photo-1642450909999-7106494ef779?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      alt: "Water landscape",
+    },
+    homeMandateTitle: "Our Mandate",
+    homeMandateText:
+      "The Department of Water and Sewerage is mandated with the responsibility of ensuring a sustainable water and sewerage sector through the development of innovative policies, efficient service delivery, and rigorous compliance monitoring.",
+    homeStructureTitle: "Department Structure",
+    homeStructureText:
+      "The Department is headed by the Director of Water and Sewerage with the Technical Unit responsible for monitoring and compliance and Policy Unit responsible for policy and regulatory matters, supported by common cadre support staff.",
+    homeStructureImage: {
+      src: "https://images.unsplash.com/photo-1744157801849-5e090acbdf84?q=80&w=2089&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+      alt: "Water resources",
+    },
+    homeKeyRolesTitle: "Key Roles and Responsibilities",
+    homeKeyRolesText:
+      "The key roles and responsibilities of the Department include policy and legislation development, technical and policy advisory, compliance monitoring, and Water Authority of Fiji oversight.",
+    homeKeyRolesItems: [
+      {
+        imgSrc:
+          "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        imgAlt: "Water policy",
+        title: "Policy & Legislation",
+        text: "Formulating regulatory frameworks and policies to promote a sustainable water and sewerage sector. Providing expert advice on water and sewerage issues to support effective governance.",
+        type: "right",
+      },
+      {
+        imgSrc:
+          "https://images.unsplash.com/photo-1708807472445-d33589e6b090?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        imgAlt: "Compliance monitoring",
+        title: "Monitoring & Oversight",
+        text: "Overseeing adherence to established policies, legislation, and industry standards. Serving as the primary government agency responsible for monitoring the activities of the Water Authority of Fiji.",
+        type: "left",
+      },
+      {
+        imgSrc: "/assets/technical-advisory.jpg",
+        imgAlt: "Technical and policy advisory",
+        title: "Technical and Policy Advisory",
+        text: "Providing expert advice on water and sewerage issues to support effective governance and operational efficiency.",
+        type: "right",
+      },
+      {
+        imgSrc:
+          "https://plus.unsplash.com/premium_photo-1661964131234-fda88ca041c5?q=80&w=2071&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
+        imgAlt: "Compliance monitoring",
+        title: "Water Authority of Fiji Oversight",
+        text: "Serving as the primary government agency responsible for monitoring the activities of the Water Authority of Fiji and ensuring compliance with national regulations.",
+        type: "left",
+      },
+    ],
+    homeFooterQuickLinksTitle: "Quick Links",
+    homeFooterContactTitle: "Contact Us",
+    homeFooterContactDetails: [
+      "Department of Water and Sewerage",
+      "Ministry of Public Works and Meteorological Services, and Transport",
+    ],
+    homeFooterContactAddress: [
+      "Private Mail Bag, Suva, Fiji",
+      "Level 4, Nasilivata House, Ratu Mara Road,",
+      "Samabula, Suva",
+    ],
+    homeFooterContactPhone: "(+679) 3384111",
+    homeFooterAboutTitle: <Fragment>About {window.appConfig.name}</Fragment>,
+    homeFooterAboutText: (
+      <Fragment>
+        The Fiji {window.appConfig.name} is a comprehensive platform designed to
+        enhance the management of water and sewerage services in Fiji. It serves
+        as a centralized hub for data collection, analysis, and reporting,
+        enabling informed decision-making and efficient resource allocation.
+      </Fragment>
+    ),
+    homeFooterCopyrightText: "© 2025 Department of Water and Sewerage",
+    homeFooterPoweredByText: "Powered by",
   },
 
   de: {},

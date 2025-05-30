@@ -2,8 +2,8 @@ import buildJson from './build.json';
 
 const defaultBuildParams = {
   ...buildJson,
-  serverURL: 'https://iwsims.akvo.org/api/v1/device',
-  apkURL: 'https://iwsims.akvo.org/app',
+  serverURL: 'https://dws-datapro.akvo.org/api/v1/device',
+  apkURL: 'https://dws-datapro.akvo.org/app',
 };
 
 export default defaultBuildParams;

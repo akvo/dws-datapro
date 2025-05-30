@@ -61,7 +61,7 @@ class UpdateAdministrationPathTestCase(TestCase):
             geo_config=geo_config
         )
 
-        user_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        user_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         user_response = self.client.post(
             "/api/v1/login", user_payload, content_type="application/json"
         )

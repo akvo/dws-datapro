@@ -1,7 +1,7 @@
 from django.test import TestCase
 from api.v1.v1_profile.models import Levels
 from api.v1.v1_forms.models import Forms
-from api.v1.v1_data.models import FormData, PendingFormData
+from api.v1.v1_data.models import FormData, Answers
 from api.v1.v1_users.models import SystemUser
 from django.core.management import call_command
 from rest_framework import status
@@ -63,18 +63,21 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
         form_data = FormData.objects.filter(
             form=self.form,
             name=payload["name"],
+            is_pending=False
         ).first()
         self.assertIsNone(form_data)
 
-        pending_form_data = PendingFormData.objects.filter(
+        pending_form_data = FormData.objects.filter(
             form=self.form,
             name=payload["name"],
             submitter=self.mobile_user.name,
+            is_pending=True
         ).first()
 
         self.assertIsNotNone(pending_form_data)
 
-        repeat_answers = pending_form_data.pending_data_answer.filter(
+        repeat_answers = Answers.objects.filter(
             question__pk=661,
+            data=pending_form_data
         ).count()
         self.assertEqual(repeat_answers, 3)

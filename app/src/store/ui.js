@@ -9,6 +9,7 @@ const UIState = new Store({
   networkType: null,
   isManualSynced: false,
   statusBar: null,
+  refreshPage: false,
 });
 
 export default UIState;

@@ -2,7 +2,7 @@ import os
 import sqlite3
 import pandas as pd
 import logging
-from iwsims.settings import MASTER_DATA, STORAGE_PATH, COUNTRY_NAME
+from mis.settings import MASTER_DATA, STORAGE_PATH, COUNTRY_NAME
 from api.v1.v1_profile.models import Administration
 
 logger = logging.getLogger(__name__)

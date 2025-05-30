@@ -1,4 +1,4 @@
-from iwsims.settings import WEBDOMAIN
+from mis.settings import WEBDOMAIN
 from .serializers import (
     UploadImagesSerializer,
     AttachmentsSerializer,

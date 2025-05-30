@@ -25,7 +25,7 @@ module.exports = function (app) {
       target: "http://localhost:3000",
       changeOrigin: true,
       pathRewrite: {
-        "^/app": "/apk/iwsims.apk",
+        "^/app": "/apk/dws-datapro.apk",
       },
     })
   );

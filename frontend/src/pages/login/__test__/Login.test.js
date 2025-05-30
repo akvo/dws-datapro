@@ -34,7 +34,9 @@ describe("Login and Registration", () => {
     });
 
     const welcome = screen.getByTestId("welcome-title");
-    expect(welcome.textContent).toBe(`Welcome to RUSH, ${fakeUser.name}`);
+    expect(welcome.textContent).toBe(
+      `Welcome to the Test App platform, ${fakeUser.name}`
+    );
 
     expect(screen.getByText(/Confirm Password/i)).toBeInTheDocument();
     expect(screen.getByText(/Set New Password/i)).toBeInTheDocument();

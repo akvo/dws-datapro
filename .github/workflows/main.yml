@@ -1,4 +1,4 @@
-name: IWSIMS CI
+name: DWS DataPro CI
 
 on:
   push:
@@ -7,7 +7,7 @@ on:
 
 jobs:
   build_and_deploy_jobs:
-    name: IWSIMS Build and Deploy Jobs
+    name: DWS DataPro Build and Deploy Jobs
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,15 +30,15 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Create credentials folder
-        run: mkdir /home/runner/work/iwsims-demo/credentials
+        run: mkdir /home/runner/work/dws-datapro/credentials
         shell: bash
 
       - name: Write gcp deployment secret to file
-        run: echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" | base64 --decode > /home/runner/work/iwsims-demo/credentials/gcp.json
+        run: echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" | base64 --decode > /home/runner/work/dws-datapro/credentials/gcp.json
         shell: bash
 
       - name: Write gcp deployment secret to file
-        run: echo "${{ secrets.IWSIMS_SERVICE_ACCOUNT }}" | base64 --decode > /home/runner/work/iwsims-demo/credentials/iwsims-service-account.json
+        run: echo "${{ secrets.DWS_DATAPRO_SERVICE_ACCOUNT }}" | base64 --decode > /home/runner/work/dws-datapro/credentials/dws-datapro-service-account.json
         shell: bash
 
       - name: Get changed files
@@ -69,8 +69,8 @@ jobs:
           CI_PULL_REQUEST: ${{ env.PULL_REQUEST_EVENT }}
           CLOUDSDK_CORE_DISABLE_PROMPTS: 1
           COMPOSE_INTERACTIVE_NO_CLI: 1
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_IWSIMS_TOKEN }}
-          SERVICE_ACCOUNT: "/home/runner/work/iwsims-demo/credentials"
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_DWS_DATAPRO_TOKEN }}
+          SERVICE_ACCOUNT: "/home/runner/work/dws-datapro/credentials"
           DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
@@ -85,8 +85,8 @@ jobs:
           CI_PULL_REQUEST: ${{ env.PULL_REQUEST_EVENT }}
           CLOUDSDK_CORE_DISABLE_PROMPTS: 1
           COMPOSE_INTERACTIVE_NO_CLI: 1
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_IWSIMS_TOKEN }}
-          SERVICE_ACCOUNT: "/home/runner/work/iwsims-demo/credentials"
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_DWS_DATAPRO_TOKEN }}
+          SERVICE_ACCOUNT: "/home/runner/work/dws-datapro/credentials"
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           ./ci/deploy.sh

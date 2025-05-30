@@ -16,7 +16,7 @@ RUN set -e; \
 copy . /app/
 
 # Add the cron job
-RUN crontab /app/iwsims-cron
+RUN crontab /app/mis-cron
 
 # Create the log file to be able to run tail
 RUN touch /app/cron.log

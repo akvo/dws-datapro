@@ -12,7 +12,7 @@ fi
 [[ "${CI_PULL_REQUEST}" ==  "true" ]] && { echo "Pull request. Skip deploy"; exit 0; }
 
 auth () {
-    gcloud auth activate-service-account --key-file=/home/runner/work/iwsims-demo/credentials/gcp.json
+    gcloud auth activate-service-account --key-file=/home/runner/work/dws-datapro/credentials/gcp.json
     gcloud config set project akvo-lumen
     gcloud config set container/cluster europe-west1-d
     gcloud config set compute/zone europe-west1-d
@@ -21,7 +21,7 @@ auth () {
 }
 
 push_image () {
-    prefix="eu.gcr.io/akvo-lumen/iwsims"
+    prefix="eu.gcr.io/akvo-lumen/dws-datapro"
     docker push "${prefix}/${1}:${CI_COMMIT}"
 }
 

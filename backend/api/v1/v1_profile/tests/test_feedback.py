@@ -7,7 +7,7 @@ class FeedbackTestCase(TestCase):
     def test_send_feedback(self):
         payload = {
             "name": "Test Feedback",
-            "email": "admin@rush.com",
+            "email": "admin@akvo.org",
             "message": "This is message."
         }
         feedback = self.client.post(

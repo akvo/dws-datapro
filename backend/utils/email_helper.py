@@ -4,7 +4,7 @@ from django.core.mail import EmailMultiAlternatives
 from django.template.loader import render_to_string
 from rest_framework import serializers
 from utils.custom_serializer_fields import CustomChoiceField
-from iwsims.settings import EMAIL_FROM, WEBDOMAIN
+from mis.settings import EMAIL_FROM, WEBDOMAIN, APP_NAME
 
 
 class EmailTypes:
@@ -58,17 +58,16 @@ def email_context(context: dict, type: str):
         {
             "webdomain": WEBDOMAIN,
             "logo": f"{WEBDOMAIN}/logo.png",
-            "site_name": "MOH",
+            "site_name": APP_NAME,
         }
     )
     if type == EmailTypes.user_register:
         context.update(
             {
                 "subject": "Registration",
-                "body": """Welcome!,
+                "body": f"""Welcome!,
                 You are receiving this email because you Signed up to
-                the the National Sanitation and Hygiene Real-Time
-                Monitoring System.
+                the {APP_NAME}.
                 .""",
                 "image": f"{WEBDOMAIN}/email-icons/check-circle.png",
                 "success_text": "Successfully Registered",
@@ -83,8 +82,8 @@ def email_context(context: dict, type: str):
                 "body": """Congratulations!! You are now a verified user,
                     with great power comes great responsibility""",
                 "image": f"{WEBDOMAIN}/email-icons/user.png",
-                "info_text": "You can now view, upload and export out data from \
-                the following regions.",
+                "info_text": "You can now view, upload and export out \
+                data from the following regions.",
                 "user_credentials": [
                     {"location": "Kisumu", "credential": "Admin"},
                     {"location": "Nakuru", "credential": "View Only"},
@@ -121,8 +120,10 @@ def email_context(context: dict, type: str):
         context.update(
             {
                 "subject": "New Invitation",
-                "body": f"""You have been invited to the Rural Urban Sanitation
-            and Hygiene (RUSH) monitoring platform by {admin}""",
+                "body": (
+                    "You have been invited to "
+                    f"the {APP_NAME} by {admin}"
+                ),
                 "extend_body": """Please click on the button below
             to set your password and finalise your account setup.""",
                 "align": "left",
@@ -139,8 +140,10 @@ def email_context(context: dict, type: str):
         context.update(
             {
                 "subject": "Profile Updated",
-                "body": f"""Your profile on the Rural Urban Sanitation and Hygiene
-            (RUSH) monitoring platform has been updated by {admin}""",
+                "body": (
+                    f"Your profile on the {APP_NAME} "
+                    f"has been updated by {admin}"
+                ),
                 "align": "left",
                 "explore_button": True,
             }
@@ -211,7 +214,7 @@ def email_context(context: dict, type: str):
                 "info_text": "There is data that is pending your approval!",
                 "extend_body": """
             To approve/reject this data submission please visit
-            the RUSH platform [My Profile > Approvals Section > View All]
+            the platform [Data > Manage Approvals] page.
             """,
                 "align": "left",
                 "explore_button": True,
@@ -236,12 +239,12 @@ def email_context(context: dict, type: str):
         context.update(
             {
                 "subject": "Upload Error",
-                "info_text": """Your data upload the the RUSH platform failed
+                "info_text": f"""Your data upload the {APP_NAME} failed
             validation checks.""",
                 "image": f"{WEBDOMAIN}/email-icons/close-circle.png",
                 "failed_text": "Upload Error",
-                "extend_body": """The validation errors are attachedin this email.
-            It list all the validation errors that were
+                "extend_body": """The validation errors are attached in \
+            this email. It list all the validation errors that were
             found along with the cell number.
             Do note all data upload will need to conform to the questionnaire.
             Please fix the validation errors and upload again.""",
@@ -324,7 +327,10 @@ def send_email(
 
         email_html_message = render_to_string("email/main.html", context)
         msg = EmailMultiAlternatives(
-            "RUSH - {0}".format(context.get("subject")),
+            "{0} - {1}".format(
+                APP_NAME,
+                context.get("subject")
+            ),
             "Email plain text",
             EMAIL_FROM,
             context.get("send_to"),

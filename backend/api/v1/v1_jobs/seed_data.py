@@ -6,9 +6,7 @@ import numpy as np
 
 from django.utils import timezone
 from api.v1.v1_data.models import (
-    PendingAnswers,
     PendingDataBatch,
-    PendingFormData,
     PendingDataApproval,
     Answers,
     FormData,
@@ -24,10 +22,6 @@ from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.constants import UserRoleTypes
 from utils.email_helper import send_email, EmailTypes
 from uuid import uuid4
-
-# import logging
-# logger = logging.getLogger("iwsims")
-# logger.warning("This is log message")
 
 
 def get_geo_value(aw):
@@ -91,7 +85,8 @@ def collect_answers(user: SystemUser, dp: dict, qs: dict, data_id):
             aw = None if math.isnan(aw) else aw
         valid = True
 
-        answer = PendingAnswers(question_id=q.id, created_by=user)
+        # Create an Answers object instead of PendingAnswers
+        answer = Answers(question_id=q.id, created_by=user)
         if q.type == QuestionTypes.administration:
             if isinstance(aw, str):
                 adm = get_administration(aw=aw)
@@ -241,6 +236,7 @@ def save_data(user: SystemUser, dp: dict, qs: dict, form_id: int, batch_id):
         return None
     if is_super_admin:
         try:
+            # Superadmin can directly update FormData
             FormData.objects.filter(pk=data_id).update(
                 name=name,
                 form_id=form_id,
@@ -249,9 +245,11 @@ def save_data(user: SystemUser, dp: dict, qs: dict, form_id: int, batch_id):
                 updated_by=user,
                 updated=timezone.now(),
                 uuid=temp.get("uuid"),
+                is_pending=False,
             )
             data = FormData.objects.get(pk=data_id)
         except FormData.DoesNotExist:
+            # Create new FormData without pending status (directly approved)
             data = FormData.objects.create(
                 name=name,
                 form_id=form_id,
@@ -260,40 +258,39 @@ def save_data(user: SystemUser, dp: dict, qs: dict, form_id: int, batch_id):
                 created_by=user,
                 uuid=temp.get("uuid"),
                 parent=parent,
+                is_pending=False,
             )
     else:
-        # same logic as backend/api/v1/v1_data/views.py line 258
-        data = PendingFormData.objects.create(
+        # Non-superadmin creates FormData with is_pending=True
+        data = FormData.objects.create(
             name=name,
             form_id=form_id,
             administration_id=administration,
             geo=geo,
-            data_id=data_id,
             batch_id=batch_id,
             created_by=user,
             uuid=temp.get("uuid"),
+            parent=parent,
+            is_pending=True,
         )
 
-    if is_super_admin:
-        answer_to_create = []
-        for val in answerlist:
-            answer_to_create.append(
-                Answers(
-                    data=data,
-                    question_id=val.question_id,
-                    name=val.name,
-                    value=val.value,
-                    options=val.options,
-                    created_by=val.created_by,
-                )
+    # Always create Answers objects (not PendingAnswers)
+    answer_to_create = []
+    for val in answerlist:
+        answer_to_create.append(
+            Answers(
+                data=data,
+                question_id=val.question_id,
+                name=val.name,
+                value=val.value,
+                options=val.options,
+                created_by=val.created_by,
             )
-        Answers.objects.bulk_create(answer_to_create)
-        if answer_history_list:
-            AnswerHistory.objects.bulk_create(answer_history_list)
-    else:
-        for val in answerlist:
-            val.pending_data = data
-        PendingAnswers.objects.bulk_create(answerlist)
+        )
+    Answers.objects.bulk_create(answer_to_create)
+    # Create answer history if needed
+    if answer_history_list:
+        AnswerHistory.objects.bulk_create(answer_history_list)
     return data
 
 
@@ -326,6 +323,7 @@ def seed_excel_data(job: Jobs, test: bool = False):
             questions.update({id: question})
     df = df.rename(columns=columns)
     datapoints = df.to_dict("records")
+    batch = None
     if not is_super_admin:
         batch = PendingDataBatch.objects.create(
             form_id=form_id,
@@ -335,24 +333,14 @@ def seed_excel_data(job: Jobs, test: bool = False):
         )
     records = []
     for datapoint in datapoints:
-        if is_super_admin:
-            data: FormData = save_data(
-                user=job.user,
-                dp=datapoint,
-                qs=questions,
-                form_id=form_id,
-                batch_id=None,
-            )
-            answer_count = data.data_answer.count() if data else 0
-        else:
-            data: PendingFormData = save_data(
-                user=job.user,
-                dp=datapoint,
-                qs=questions,
-                form_id=form_id,
-                batch_id=batch.id,
-            )
-            answer_count = data.pending_data_answer.count() if data else 0
+        data = save_data(
+            user=job.user,
+            dp=datapoint,
+            qs=questions,
+            form_id=form_id,
+            batch_id=batch.id if batch else None,
+        )
+        answer_count = data.data_answer.count() if data else 0
         if answer_count:
             records.append(data)
         if answer_count == 0 and data:
@@ -374,12 +362,12 @@ def seed_excel_data(job: Jobs, test: bool = False):
                 ],
             }
             send_email(context=context, type=EmailTypes.unchanged_data)
-        if not is_super_admin:
+        if not is_super_admin and batch:
             batch.delete()
         if not test:
             os.remove(file)
         return None
-    if not is_super_admin:
+    if not is_super_admin and batch:
         path = "{0}{1}".format(
             batch.administration.path, batch.administration_id
         )

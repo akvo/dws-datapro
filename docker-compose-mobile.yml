@@ -9,11 +9,13 @@ services:
     image: akvo/akvo-node-18-alpine:20250306.055839.23cadbd
     command: ["./start.sh"]
     volumes:
-      - iwsims-docker-mobile-sync:/app/node_modules:nocopy
+      - dws-datapro-docker-mobile-sync:/app/node_modules:nocopy
       - ./app:/app:delegated
       - ./.git:/app/.git:ro
     working_dir: /app
     environment:
+      - APP_NAME=${APP_NAME}
+      - APP_SHORT_NAME=${APP_SHORT_NAME}
       - BACKEND_IP_ADDRESS=${IP_ADDRESS}
       - EXPO_TOKEN
       - SENTRY_ENV=${SENTRY_MOBILE_ENV}
@@ -21,5 +23,5 @@ services:
       - SENTRY_AUTH_TOKEN=${SENTRY_MOBILE_AUTH_TOKEN}
     network_mode: service:mainnetwork
 volumes:
-  iwsims-docker-mobile-sync:
+  dws-datapro-docker-mobile-sync:
     external: true

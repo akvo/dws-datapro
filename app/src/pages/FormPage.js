@@ -92,7 +92,7 @@ const FormPage = ({ navigation, route }) => {
         submitted: 0,
         duration: surveyDuration,
         json: currentValues || {},
-        uuid: route.params?.uuid,
+        uuid: route.params?.uuid || Crypto.randomUUID(),
       };
 
       const duration = getDurationInMinutes(surveyStart) + surveyDuration;

@@ -1,5 +1,5 @@
 import os
-from iwsims.settings import STORAGE_PATH
+from mis.settings import STORAGE_PATH
 from django.test import TestCase
 from django.core.management import call_command
 from utils import storage
@@ -16,7 +16,7 @@ def generate_image(filename: str, extension: str = "jpg"):
 class ImageUploadTest(TestCase):
     def setUp(self):
         call_command("administration_seeder", "--test")
-        user_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        user_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         user_response = self.client.post(
             "/api/v1/login", user_payload, content_type="application/json"
         )

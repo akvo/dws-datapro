@@ -8,8 +8,6 @@ import {
 } from "./constants";
 
 const config = {
-  siteTitle: "RUSH",
-  siteSubTitle: "",
   siteLogo: "/logo-full.png",
   trainedStatus: [
     {

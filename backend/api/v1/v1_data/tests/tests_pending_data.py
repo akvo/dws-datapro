@@ -5,7 +5,7 @@ from django.test.utils import override_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.v1.v1_data.constants import DataApprovalStatus
-from api.v1.v1_data.models import PendingFormData, PendingDataBatch
+from api.v1.v1_data.models import FormData, PendingDataBatch
 from api.v1.v1_data.models import PendingDataApproval
 from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_forms.models import Forms
@@ -22,7 +22,7 @@ class PendingDataTestCase(TestCase):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
 
-        admin_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        admin_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         user_response = self.client.post('/api/v1/login',
                                          admin_payload,
                                          content_type='application/json')
@@ -71,8 +71,8 @@ class PendingDataTestCase(TestCase):
                 ], list(response.json()[0]))
 
         user_form = Forms.objects.get(pk=1)
-        pending_form_data = PendingFormData.objects.filter(
-            form=user_form).all()
+        pending_form_data = FormData.objects.filter(
+            form=user_form, is_pending=True).all()
         values = list(pending_form_data.values_list('id', flat=True))
         payload = {
             "name": "Test Batch",
@@ -260,7 +260,7 @@ class PendingDataTestCase(TestCase):
 
         # update rejected data
         batch_id = response.json().get('batch')[0]['id']
-        pending_data = PendingFormData.objects.filter(
+        pending_data = FormData.objects.filter(
             batch=batch_id).first()
         question = Questions.objects.filter(
             form=pending_data.form.id, type=QuestionTypes.text).first()
@@ -320,121 +320,181 @@ class SoftDeletesPendingDataTestCase(TestCase):
         self.form = Forms.objects.create(name='test')
 
     def create_pending_data(self, name):
-        return PendingFormData.objects.create(
+        return FormData.objects.create(
             name=name,
             administration=self.administration,
             created_by=self.user,
-            form=self.form)
+            form=self.form,
+            is_pending=True)
 
     def test_initial_state(self):
         pending_data = self.create_pending_data('test')
         self.assertIsNone(pending_data.deleted_at)
-        self.assertEqual(1, PendingFormData.objects.count())
-        self.assertEqual(0, PendingFormData.objects_deleted.count())
-        self.assertEqual(1, PendingFormData.objects_with_deleted.count())
+        self.assertEqual(
+            1, FormData.objects.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            0, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            1, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_soft_delete(self):
         pending_data = self.create_pending_data('test')
         pending_data.delete()
         self.assertIsNotNone(pending_data.deleted_at)
-        self.assertEqual(0, PendingFormData.objects.count())
-        self.assertEqual(1, PendingFormData.objects_deleted.count())
-        self.assertEqual(1, PendingFormData.objects_with_deleted.count())
+        self.assertEqual(0, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            1, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            1, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_soft_delete_2(self):
         pending_data = self.create_pending_data('test')
         pending_data.soft_delete()
         self.assertIsNotNone(pending_data.deleted_at)
-        self.assertEqual(0, PendingFormData.objects.count())
-        self.assertEqual(1, PendingFormData.objects_deleted.count())
-        self.assertEqual(1, PendingFormData.objects_with_deleted.count())
+        self.assertEqual(0, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            1, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            1, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_hard_delete(self):
         pending_data = self.create_pending_data('test')
         pending_data.delete(hard=True)
-        self.assertEqual(0, PendingFormData.objects.count())
-        self.assertEqual(0, PendingFormData.objects_deleted.count())
-        self.assertEqual(0, PendingFormData.objects_with_deleted.count())
+        self.assertEqual(0, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            0, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            0, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_hard_delete_2(self):
         pending_data = self.create_pending_data('test')
         pending_data.hard_delete()
-        self.assertEqual(0, PendingFormData.objects.count())
-        self.assertEqual(0, PendingFormData.objects_deleted.count())
-        self.assertEqual(0, PendingFormData.objects_with_deleted.count())
+        self.assertEqual(0, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            0,
+            FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            0,
+            FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_restore(self):
         pending_data = self.create_pending_data('test')
         pending_data.delete()
 
-        self.assertEqual(1, PendingFormData.objects_deleted.count())
-
-        tobe_restored = PendingFormData.objects_deleted.first()
+        self.assertEqual(
+            1, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        tobe_restored = FormData.objects_deleted.filter(
+            is_pending=True
+        ).first()
         self.assertIsNotNone(tobe_restored.deleted_at)
 
         tobe_restored.restore()
-        self.assertEqual(1, PendingFormData.objects.count())
-        self.assertEqual(0, PendingFormData.objects_deleted.count())
-        self.assertEqual(1, PendingFormData.objects_with_deleted.count())
+        self.assertEqual(1, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            0, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            1, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_bulk_soft_delete(self):
         self.create_pending_data('test #1')
         self.create_pending_data('test #2')
         self.create_pending_data('example')
 
-        self.assertEqual(3, PendingFormData.objects.count())
+        self.assertEqual(3, FormData.objects.filter(is_pending=True).count())
 
-        PendingFormData.objects.filter(name__startswith='test').delete()
-        self.assertEqual(1, PendingFormData.objects.count())
-        self.assertEqual(2, PendingFormData.objects_deleted.count())
-        self.assertEqual(3, PendingFormData.objects_with_deleted.count())
+        FormData.objects.filter(
+            name__startswith='test', is_pending=True
+        ).delete()
+        self.assertEqual(1, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            2, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            3, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_bulk_soft_delete_2(self):
         self.create_pending_data('test #1')
         self.create_pending_data('test #2')
         self.create_pending_data('example')
 
-        self.assertEqual(3, PendingFormData.objects.count())
+        self.assertEqual(3, FormData.objects.filter(is_pending=True).count())
 
-        PendingFormData.objects.filter(name__startswith='test').soft_delete()
-        self.assertEqual(1, PendingFormData.objects.count())
-        self.assertEqual(2, PendingFormData.objects_deleted.count())
-        self.assertEqual(3, PendingFormData.objects_with_deleted.count())
+        FormData.objects.filter(
+            name__startswith='test', is_pending=True
+        ).soft_delete()
+        self.assertEqual(1, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            2, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            3, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_bulk_hard_delete(self):
         self.create_pending_data('test #1')
         self.create_pending_data('test #2')
         self.create_pending_data('example')
 
-        PendingFormData.objects.filter(
-            name__startswith='test').delete(hard=True)
-        self.assertEqual(1, PendingFormData.objects.count())
-        self.assertEqual(0, PendingFormData.objects_deleted.count())
-        self.assertEqual(1, PendingFormData.objects_with_deleted.count())
+        FormData.objects.filter(
+            name__startswith='test', is_pending=True).delete(hard=True)
+        self.assertEqual(1, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            0, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            1, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_bulk_hard_delete_2(self):
         self.create_pending_data('test #1')
         self.create_pending_data('test #2')
         self.create_pending_data('example')
 
-        PendingFormData.objects.filter(
-            name__startswith='test').hard_delete()
-        self.assertEqual(1, PendingFormData.objects.count())
-        self.assertEqual(0, PendingFormData.objects_deleted.count())
-        self.assertEqual(1, PendingFormData.objects_with_deleted.count())
+        FormData.objects.filter(
+            name__startswith='test', is_pending=True).hard_delete()
+        self.assertEqual(1, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            0, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            1, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
     def test_bulk_restore(self):
         self.create_pending_data('test #1')
         self.create_pending_data('test #2')
         self.create_pending_data('example')
 
-        PendingFormData.objects.delete()
-        self.assertEqual(0, PendingFormData.objects.count())
-        self.assertEqual(3, PendingFormData.objects_deleted.count())
-        self.assertEqual(3, PendingFormData.objects_with_deleted.count())
+        FormData.objects.filter(is_pending=True).delete()
+        self.assertEqual(0, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            3, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            3, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )
 
-        PendingFormData.objects_with_deleted.filter(
-            name__startswith='test').restore()
-        self.assertEqual(2, PendingFormData.objects.count())
-        self.assertEqual(1, PendingFormData.objects_deleted.count())
-        self.assertEqual(3, PendingFormData.objects_with_deleted.count())
+        FormData.objects_with_deleted.filter(
+            name__startswith='test', is_pending=True).restore()
+        self.assertEqual(2, FormData.objects.filter(is_pending=True).count())
+        self.assertEqual(
+            1, FormData.objects_deleted.filter(is_pending=True).count()
+        )
+        self.assertEqual(
+            3, FormData.objects_with_deleted.filter(is_pending=True).count()
+        )

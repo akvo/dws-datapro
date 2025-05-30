@@ -14,6 +14,7 @@ const FormState = new Store({
   entityOptions: {},
   repeats: {}, // to store repeatable question groups: { groupId: [0, 1, 2, ...] }
   forceUpdateToken: null, // to force re-render when needed
+  previousForm: null,
 });
 
 export default FormState;

@@ -19,7 +19,7 @@ Prerequisites
 *   `jq` installed for JSON processing.
 *   Docker installed and running.
 *   A JSON template file named `household_submission.json` in the script's directory.
-*   JMeter test plan file named `iwsims_stress_test.jmx` in the script's directory.
+*   JMeter test plan file named `mis_stress_test.jmx` in the script's directory.
 
 Example Command
 ---------------

@@ -19,21 +19,28 @@ services:
       - ${STORAGE_PATH}/apk:/app/public/apk:delegated
       - ${STORAGE_PATH}/master_data:/app/public/master_data:delegated
       - ${STORAGE_PATH}/cronjob_results:/app/public/cronjob_results:delegated
+    environment:
+      - APP_NAME=$APP_NAME
+      - APP_SHORT_NAME=$APP_SHORT_NAME
   worker:
     volumes:
-      - ../akvo-config/k8s-secrets/test/iwsims:/credentials/:ro
+      - ../akvo-config/k8s-secrets/test/dws-datapro:/credentials/:ro
       - ${STORAGE_PATH}:/app/storage:delegated
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/iwsims-service-account.json
+      - APP_NAME=$APP_NAME
+      - APP_SHORT_NAME=$APP_SHORT_NAME
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/dws-datapro-service-account.json
       - MAILJET_APIKEY=$MAILJET_APIKEY
       - MAILJET_SECRET=$MAILJET_SECRET
       - WEBDOMAIN=http://localhost:3000
   backend:
     volumes:
-      - ../akvo-config/k8s-secrets/test/iwsims:/credentials/:ro
+      - ../akvo-config/k8s-secrets/test/dws-datapro:/credentials/:ro
       - ${STORAGE_PATH}:/app/storage:delegated
     environment:
-      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/iwsims-service-account.json
+      - APP_NAME=$APP_NAME
+      - APP_SHORT_NAME=$APP_SHORT_NAME
+      - GOOGLE_APPLICATION_CREDENTIALS=/credentials/dws-datapro-service-account.json
       - MAILJET_APIKEY=$MAILJET_APIKEY
       - MAILJET_SECRET=$MAILJET_SECRET
       - WEBDOMAIN=$WEBDOMAIN

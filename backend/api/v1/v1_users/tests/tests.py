@@ -28,16 +28,16 @@ class SystemUserTestCase(TestCase):
     def test_create_super_user(self):
         call_command("createsuperuser",
                      interactive=False,
-                     email="admin@rush.com",
+                     email="admin@akvo.org",
                      first_name="Admin",
-                     last_name="RUSH")
+                     last_name="MIS")
         call_command("administration_seeder", "--test")
         call_command("fake_organisation_seeder", "--repeat", 3)
         user = SystemUser.objects.first()
         organisation = Organisation.objects.first()
         user.organisation = organisation
         user.save()
-        self.assertEqual('admin@rush.com', user.email)
+        self.assertEqual('admin@akvo.org', user.email)
         self.assertTrue(user.is_superuser)
         self.assertEqual('Admin', user.first_name)
         self.assertEqual(organisation.id, user.organisation.id)
@@ -64,7 +64,7 @@ class SystemUserEndpointsTestCase(TestCase):
                                         level=level)
         administration.save()
         self.assertEqual(0, SystemUser.objects.count())
-        user = {"email": "admin@rush.com", "password": "Test105*"}
+        user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post('/api/v1/login',
                                 user,
                                 content_type='application/json')
@@ -78,20 +78,20 @@ class SystemUserEndpointsTestCase(TestCase):
             "expiration_time",
         ]), set(list(user)))
 
-        user = {"email": "admin@rush.com", "password": "Test105"}
+        user = {"email": "admin@akvo.org", "password": "Test105"}
         user = self.client.post('/api/v1/login',
                                 user,
                                 content_type='application/json')
         self.assertEqual(user.status_code, 401)
 
-        user = {"email": "admin@rush.com"}
+        user = {"email": "admin@akvo.org"}
         user = self.client.post('/api/v1/login',
                                 user,
                                 content_type='application/json')
         self.assertEqual(user.status_code, 400)
 
         # test forgor password to valid email
-        user = {"email": "admin@rush.com"}
+        user = {"email": "admin@akvo.org"}
         user = self.client.post('/api/v1/user/forgot-password',
                                 user,
                                 content_type='application/json')

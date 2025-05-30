@@ -2,8 +2,7 @@ from django.test import TestCase
 from django.core.management import call_command
 from django.db.models import ProtectedError
 
-from api.v1.v1_data.models import Forms, FormData, PendingFormData, \
-    PendingAnswers, PendingAnswerHistory
+from api.v1.v1_data.models import Forms, FormData, AnswerHistory
 from api.v1.v1_users.models import SystemUser
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
@@ -77,15 +76,15 @@ class UpdatePendingDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data, {"message": "ok"})
-        form_data = FormData.objects.filter(form_id=form_id).count()
+        form_data = FormData.objects.filter(
+            form_id=form_id, is_pending=False
+        ).count()
         self.assertEqual(form_data, 0)
-        pending_form_data = PendingFormData.objects.filter(
-            form_id=form_id).first()
+        pending_form_data = FormData.objects.filter(
+            form_id=form_id, is_pending=True).first()
         self.assertEqual(pending_form_data.name, "Testing Data Entry")
-        pending_data_id = pending_form_data.id
-        pending_answers = PendingAnswers.objects.filter(
-            pending_data_id=pending_form_data.id).count()
-        self.assertGreater(pending_answers, 0)
+        pending_answers = pending_form_data.data_answer.count()
+        self.assertEqual(pending_answers, 7)
 
         # get list of pending data
         data = self.client.get(
@@ -94,11 +93,11 @@ class UpdatePendingDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data['data'][0]['name'], "Testing Data Entry")
-        self.assertEqual(data['data'][0]['pending_answer_history'], False)
+        self.assertEqual(data['data'][0]['answer_history'], False)
 
         # get pending data detail / answers
         data = self.client.get(
-            '/api/v1/pending-data/{0}'.format(pending_data_id),
+            '/api/v1/pending-data/{0}'.format(pending_form_data.id),
             **{'HTTP_AUTHORIZATION': f'Bearer {token}'})
         self.assertEqual(data.status_code, 200)
         data = data.json()
@@ -125,20 +124,20 @@ class UpdatePendingDataTestCase(TestCase, ProfileTestHelperMixin):
         }]
         data = self.client.put(
             '/api/v1/form-pending-data/{0}?pending_data_id={1}'
-            .format(form_id, pending_data_id),
+            .format(form_id, pending_form_data.id),
             payload,
             content_type='application/json',
             **{'HTTP_AUTHORIZATION': f'Bearer {token}'})
         self.assertEqual(data.status_code, 200)
         data = data.json()
+        pending_form_data.refresh_from_db()
+
         self.assertEqual(data, {"message": "update success"})
-        pending_form_data = PendingFormData.objects.filter(
-            pk=pending_data_id).first()
         self.assertTrue(pending_form_data.updated is not None)
         self.assertEqual(pending_form_data.updated_by.id, user_id)
-        pending_answer_history = PendingAnswerHistory.objects.filter(
-            pending_data=pending_data_id).count()
-        self.assertGreater(pending_answer_history, 0)
+        answer_history = AnswerHistory.objects.filter(
+            data=pending_form_data.id).count()
+        self.assertGreater(answer_history, 0)
 
         # get list of pending data
         data = self.client.get(
@@ -147,11 +146,11 @@ class UpdatePendingDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(data.status_code, 200)
         data = data.json()
         self.assertEqual(data['data'][0]['name'], "Testing Data Entry")
-        self.assertEqual(data['data'][0]['pending_answer_history'], True)
+        self.assertEqual(data['data'][0]['answer_history'], True)
 
         # get pending data detail / answers
         data = self.client.get(
-            '/api/v1/pending-data/{0}'.format(pending_data_id),
+            '/api/v1/pending-data/{0}'.format(pending_form_data.id),
             **{'HTTP_AUTHORIZATION': f'Bearer {token}'})
         self.assertEqual(data.status_code, 200)
         data = data.json()

@@ -2,6 +2,7 @@ import { Store } from 'pullstate';
 import defaultBuildParams from '../build';
 
 const BuildParamsState = new Store({
+  appName: defaultBuildParams?.appName,
   authenticationType: defaultBuildParams?.authenticationType || [
     'code_assignment',
     'username',

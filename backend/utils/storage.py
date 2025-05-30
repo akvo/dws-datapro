@@ -1,5 +1,5 @@
 import os
-from iwsims.settings import STORAGE_PATH
+from mis.settings import STORAGE_PATH
 from pathlib import Path
 import shutil
 

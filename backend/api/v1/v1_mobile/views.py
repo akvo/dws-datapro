@@ -9,10 +9,10 @@ from api.v1.v1_mobile.authentication import (
     IsMobileAssignment,
     MobileAssignmentToken,
 )
-from iwsims.settings import (
+from mis.settings import (
     MASTER_DATA,
     BASE_DIR,
-    APP_NAME,
+    APP_SHORT_NAME,
     APK_UPLOAD_SECRET,
     WEBDOMAIN,
 )
@@ -360,7 +360,7 @@ def download_apk_file(request, version):
         return Response(
             {"message": "APK not found."}, status=status.HTTP_404_NOT_FOUND
         )
-    file_name = f"{APP_NAME}-{apk.apk_version}.apk"
+    file_name = f"{APP_SHORT_NAME}-{apk.apk_version}.apk"
     cache_file_name = os.path.join(apk_path, file_name)
     if os.path.exists(cache_file_name):
         # Get the file's content type
@@ -440,12 +440,15 @@ def upload_apk_file(request, version):
         return HttpResponse(
             {"message": "File not found."}, status=status.HTTP_404_NOT_FOUND
         )
-    filename = f"{APP_NAME}-{apk_version}.apk"
+    filename = f"{APP_SHORT_NAME}-{apk_version}.apk"
     cache_file_name = os.path.join(apk_path, filename)
     file_cache = open(cache_file_name, "wb")
     file_cache.write(download.content)
     file_cache.close()
-    storage.upload(cache_file_name, folder="apk", filename=f"{APP_NAME}.apk")
+    storage.upload(
+        cache_file_name, folder="apk",
+        filename=f"{APP_SHORT_NAME}.apk"
+    )
     serializer.save()
     return Response({"message": "ok"}, status=status.HTTP_201_CREATED)
 
