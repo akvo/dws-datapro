@@ -9,7 +9,7 @@ from api.v1.v1_jobs.models import Jobs
 from api.v1.v1_jobs.constants import JobTypes, JobStatus
 from api.v1.v1_profile.job import download_master_data
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
-from iwsims.settings import STORAGE_PATH
+from mis.settings import STORAGE_PATH
 
 
 @override_settings(USE_TZ=False)

@@ -1,4 +1,4 @@
-from iwsims.settings import COUNTRY_NAME
+from mis.settings import COUNTRY_NAME
 
 
 class UserRoleTypes:
