@@ -6,7 +6,7 @@ from django.utils.timezone import make_aware
 
 from faker import Faker
 
-from iwsims.settings import COUNTRY_NAME
+from mis.settings import COUNTRY_NAME
 from api.v1.v1_data.models import FormData
 from api.v1.v1_forms.models import Forms, UserForms, FormApprovalAssignment
 from api.v1.v1_profile.constants import UserRoleTypes

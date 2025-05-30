@@ -4,7 +4,7 @@ import pandas as pd
 from django.core.management import BaseCommand
 from faker import Faker
 
-from iwsims.settings import COUNTRY_NAME
+from mis.settings import COUNTRY_NAME
 from api.v1.v1_data.models import (
     PendingFormData,
     PendingDataApproval,

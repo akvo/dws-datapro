@@ -17,7 +17,7 @@ class DataTestCase(TestCase):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
 
-        user_payload = {"email": "admin@rush.com", "password": "Test105*"}
+        user_payload = {"email": "admin@akvo.org", "password": "Test105*"}
         user_response = self.client.post(
             "/api/v1/login", user_payload, content_type="application/json"
         )
@@ -281,14 +281,14 @@ class DataTestCase(TestCase):
                 self.assertEqual(
                     list(history[0]), ["value", "created", "created_by"]
                 )
-                self.assertEqual(history[0]["created_by"], "Admin RUSH")
+                self.assertEqual(history[0]["created_by"], "Admin MIS")
             if question == 102:
                 self.assertEqual(question, 102)
                 self.assertEqual(value, ["Female"])
                 self.assertEqual(
                     list(history[0]), ["value", "created", "created_by"]
                 )
-                self.assertEqual(history[0]["created_by"], "Admin RUSH")
+                self.assertEqual(history[0]["created_by"], "Admin MIS")
         # delete with history
         res = self.client.delete(
             f"/api/v1/data/{data_id}", follow=True, **header

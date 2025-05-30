@@ -1,7 +1,7 @@
 import os
 import uuid
 from utils import storage
-from iwsims.settings import STORAGE_PATH
+from mis.settings import STORAGE_PATH
 from django.test.utils import override_settings
 from django.test import TestCase
 
