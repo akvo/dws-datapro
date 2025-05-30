@@ -9,7 +9,7 @@ from api.v1.v1_mobile.authentication import (
     IsMobileAssignment,
     MobileAssignmentToken,
 )
-from iwsims.settings import (
+from mis.settings import (
     MASTER_DATA,
     BASE_DIR,
     APP_SHORT_NAME,
