@@ -12,7 +12,7 @@ else
 fi
 
 AUTH_CODE=$1
-URL="https://iwsims.akvotest.org/api/v1/device/sync"
+URL="https://dws-datapro.akvotest.org/api/v1/device/sync"
 
 # jq function to generate a random UUID
 generate_uuid() {
@@ -75,7 +75,7 @@ docker run -i \
     -w ${PWD} \
     alpine/jmeter \
     -n \
-    -t iwsims_stress_test.jmx \
+    -t mis_stress_test.jmx \
     -Jdatafile=./tmp/$current_date/jmeter_data.csv \
     -Jauthcode=$AUTH_CODE \
     -Jrampup=$3 \
