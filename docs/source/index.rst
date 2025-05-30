@@ -1,9 +1,9 @@
-.. IWSIMS documentation master file, created by
+.. DWS Datapro documentation master file, created by
    sphinx-quickstart on Wed May 25 01:39:41 2022.
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to IWSIMS's documentation!
+Welcome to DWS Datapro's documentation!
 =================================
 
 |Build Status| |Repo Size| |Languages| |Issues| |Last Commit| |Coverage
@@ -77,15 +77,15 @@ Real Time Monitoring Information Systems
 
    deployment
 
-.. |Build Status| image:: https://akvo.semaphoreci.com/badges/iwsims/branches/main.svg?style=shields
-   :target: https://akvo.semaphoreci.com/projects/iwsims
-.. |Repo Size| image:: https://img.shields.io/github/repo-size/akvo/iwsims
-   :target: https://img.shields.io/github/repo-size/akvo/iwsims
-.. |Languages| image:: https://img.shields.io/github/languages/count/akvo/iwsims
-   :target: https://img.shields.io/github/languages/count/akvo/iwsims
-.. |Issues| image:: https://img.shields.io/github/issues/akvo/iwsims
-   :target: https://img.shields.io/github/issues/akvo/iwsims
-.. |Last Commit| image:: https://img.shields.io/github/last-commit/akvo/iwsims/main
-   :target: https://img.shields.io/github/last-commit/akvo/iwsims/main
-.. |Coverage Status| image:: https://coveralls.io/repos/github/akvo/iwsims/badge.svg
-   :target: https://coveralls.io/github/akvo/iwsims
+.. |Build Status| image:: https://akvo.semaphoreci.com/badges/dws-datapro/branches/main.svg?style=shields
+   :target: https://akvo.semaphoreci.com/projects/dws-datapro
+.. |Repo Size| image:: https://img.shields.io/github/repo-size/akvo/dws-datapro
+   :target: https://img.shields.io/github/repo-size/akvo/dws-datapro
+.. |Languages| image:: https://img.shields.io/github/languages/count/akvo/dws-datapro
+   :target: https://img.shields.io/github/languages/count/akvo/dws-datapro
+.. |Issues| image:: https://img.shields.io/github/issues/akvo/dws-datapro
+   :target: https://img.shields.io/github/issues/akvo/dws-datapro
+.. |Last Commit| image:: https://img.shields.io/github/last-commit/akvo/dws-datapro/main
+   :target: https://img.shields.io/github/last-commit/akvo/dws-datapro/main
+.. |Coverage Status| image:: https://coveralls.io/repos/github/akvo/dws-datapro/badge.svg
+   :target: https://coveralls.io/github/akvo/dws-datapro
