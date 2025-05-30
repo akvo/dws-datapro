@@ -16,7 +16,7 @@ from api.v1.v1_forms.models import (
 from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration, Entity
 from api.v1.v1_users.models import SystemUser
-from iwsims.settings import FORM_GEO_VALUE
+from mis.settings import FORM_GEO_VALUE
 from utils.custom_serializer_fields import (
     CustomChoiceField,
     CustomPrimaryKeyRelatedField,
