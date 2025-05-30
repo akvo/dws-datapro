@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./style.scss";
 import {
   Row,
@@ -12,6 +12,10 @@ import {
   Button,
   Space,
   Dropdown,
+  Tabs,
+  Select,
+  Tag,
+  Tooltip,
 } from "antd";
 import {
   LeftCircleOutlined,
@@ -27,8 +31,16 @@ import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
 
 const { Title } = Typography;
+const { TabPane } = Tabs;
 
 const MonitoringDetail = () => {
+  const { form, parentId } = useParams();
+  const navigate = useNavigate();
+
+  const { language, selectedFormData, forms } = store.useState((s) => s);
+  const childrenForms = forms.filter((f) => `${f.content?.parent}` === form);
+  const defaultFormId = childrenForms[0]?.id || form;
+
   const { notify } = useNotification();
   const [loading, setLoading] = useState(false);
   const [dataset, setDataset] = useState([]);
@@ -39,13 +51,10 @@ const MonitoringDetail = () => {
   const [deleting, setDeleting] = useState(false);
   const [editedRecord, setEditedRecord] = useState({});
   const [editable, setEditable] = useState(false);
-  const { form, parentId } = useParams();
-  const navigate = useNavigate();
+  const [dataTab, setDataTab] = useState("registration-data");
+  const [selectedForm, setSelectedForm] = useState(defaultFormId);
 
-  const { language, selectedFormData, forms } = store.useState((s) => s);
   const { active: activeLang } = language;
-  const childrenForms = forms.filter((f) => `${f.content?.parent}` === form);
-
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
@@ -75,22 +84,29 @@ const MonitoringDetail = () => {
 
   const columns = [
     {
-      title: "Last Updated",
+      title: text.lastUpdatedCol,
       dataIndex: "updated",
       render: (cell, row) => cell || row.created,
     },
     {
-      title: "Name",
+      title: text.nameCol,
       dataIndex: "name",
       key: "name",
     },
     {
-      title: "Form",
-      dataIndex: "form",
-      render: (formId) => forms.find((f) => f.id === formId)?.name || "N/A",
+      title: text.channelCol,
+      dataIndex: "submitter",
+      render: (submitter) =>
+        submitter ? (
+          <Tooltip title={submitter}>
+            <Tag color="green">{text.mobileAppText}</Tag>
+          </Tooltip>
+        ) : (
+          <Tag color="blue">{text.webformText}</Tag>
+        ),
     },
     {
-      title: "User",
+      title: text.userCol,
       dataIndex: "created_by",
     },
     Table.EXPAND_COLUMN,
@@ -132,35 +148,51 @@ const MonitoringDetail = () => {
   };
 
   useEffect(() => {
-    if (form && !updateRecord) {
-      setLoading(true);
-      const url = `/form-data/${form}/?page=${currentPage}&parent=${parentId}`;
-      api
-        .get(url)
-        .then((res) => {
-          setDataset(res.data.data);
-          setTotalCount(res.data.total);
-          setUpdateRecord(null);
-          setLoading(false);
-        })
-        .catch(() => {
-          setDataset([]);
-          setTotalCount(0);
-          setLoading(false);
-        });
-    }
-  }, [form, currentPage, updateRecord, parentId]);
-
-  useEffect(() => {
     if (questionGroups.length === 0 && dataset.length > 0) {
       store.update((s) => {
         s.questionGroups = window.forms.find(
           (f) => f.id === dataset[0]?.form
         ).content.question_group;
-        s.selectedFormData = dataset[0];
       });
     }
   }, [questionGroups, dataset]);
+
+  const fetchDatapoint = useCallback(async () => {
+    if (parentId) {
+      const { data: apiData } = await api.get(`/data-details/${parentId}`);
+      store.update((s) => {
+        s.selectedFormData = apiData;
+      });
+    }
+  }, [parentId]);
+
+  useEffect(() => {
+    fetchDatapoint();
+  }, [fetchDatapoint]);
+
+  const fetchMonitoringData = useCallback(async () => {
+    try {
+      if (updateRecord) {
+        setUpdateRecord(false);
+
+        setLoading(true);
+        const parentUUID = selectedFormData?.uuid;
+        const url = `/form-data/${selectedForm}/?page=${currentPage}&parent=${parentUUID}`;
+        const { data: apiData } = await api.get(url);
+        const { data: dataList, total } = apiData || {};
+        setDataset(dataList);
+        setTotalCount(total);
+        setLoading(false);
+      }
+    } catch {
+      setUpdateRecord(false);
+      setLoading(false);
+    }
+  }, [currentPage, updateRecord, selectedForm, selectedFormData]);
+
+  useEffect(() => {
+    fetchMonitoringData();
+  }, [fetchMonitoringData]);
 
   return (
     <div id="manageData">
@@ -206,62 +238,102 @@ const MonitoringDetail = () => {
             </Col>
           </Row>
           <Divider />
-          <Title>{selectedFormData?.name || dataset?.[0]?.name}</Title>
+          <Title>{selectedFormData?.name || text.loadingText}</Title>
           <div
             style={{ padding: "16px 0 0", minHeight: "40vh" }}
             bodystyle={{ padding: 0 }}
           >
-            <ConfigProvider
-              renderEmpty={() => <Empty description={text.noFormText} />}
+            <Tabs
+              className="manage-data-tab"
+              activeKey={dataTab}
+              onChange={(activeKey) => {
+                if (activeKey === "monitoring-data") {
+                  setUpdateRecord(true);
+                }
+                setDataTab(activeKey);
+              }}
             >
-              <Table
-                columns={columns}
-                dataSource={dataset}
-                loading={loading}
-                onChange={handleChange}
-                pagination={{
-                  current: currentPage,
-                  total: totalCount,
-                  pageSize: 10,
-                  showSizeChanger: false,
-                  showTotal: (total, range) =>
-                    `Results: ${range[0]} - ${range[1]} of ${total} data`,
-                }}
-                rowKey="id"
-                expandable={{
-                  expandedRowRender: (record) => (
-                    <DataDetail
-                      record={record}
-                      updateRecord={updateRecord}
-                      updater={setUpdateRecord}
-                      setDeleteData={setDeleteData}
-                      setEditedRecord={setEditedRecord}
-                      editedRecord={editedRecord}
-                      isPublic={editable}
+              <TabPane tab={text.manageDataTab1} key="registration-data">
+                <DataDetail
+                  record={selectedFormData}
+                  updateRecord={updateRecord}
+                  updater={setUpdateRecord}
+                  setDeleteData={setDeleteData}
+                  setEditedRecord={setEditedRecord}
+                  editedRecord={editedRecord}
+                  isPublic={editable}
+                  isFullScreen
+                />
+              </TabPane>
+              <TabPane tab={text.manageDataTab2} key="monitoring-data">
+                <Row style={{ marginBottom: "16px" }}>
+                  <Col flex={1}>
+                    <Select
+                      value={selectedForm}
+                      onChange={(value) => {
+                        setSelectedForm(value);
+                        setUpdateRecord(true);
+                        setCurrentPage(1);
+                      }}
+                      fieldNames={{ label: "name", value: "id" }}
+                      options={childrenForms}
+                      placeholder={text.selectFormPlaceholder}
                     />
-                  ),
-                  expandIcon: ({ expanded, onExpand, record }) =>
-                    expanded ? (
-                      <DownCircleOutlined
-                        onClick={(e) => onExpand(record, e)}
-                        style={{ color: "#1651B6", fontSize: "19px" }}
-                      />
-                    ) : (
-                      <LeftCircleOutlined
-                        onClick={(e) => onExpand(record, e)}
-                        style={{ color: "#1651B6", fontSize: "19px" }}
-                      />
-                    ),
-                }}
-                rowClassName={(record) => {
-                  const rowEdited = editedRecord[record.id]
-                    ? "row-edited"
-                    : "row-normal sticky";
-                  return `expandable-row ${rowEdited}`;
-                }}
-                expandRowByClick
-              />
-            </ConfigProvider>
+                  </Col>
+                </Row>
+                <ConfigProvider
+                  renderEmpty={() => <Empty description={text.noFormText} />}
+                >
+                  <Table
+                    columns={columns}
+                    dataSource={dataset}
+                    loading={loading}
+                    onChange={handleChange}
+                    pagination={{
+                      current: currentPage,
+                      total: totalCount,
+                      pageSize: 10,
+                      showSizeChanger: false,
+                      showTotal: (total, range) =>
+                        `Results: ${range[0]} - ${range[1]} of ${total} data`,
+                    }}
+                    rowKey="id"
+                    expandable={{
+                      expandedRowRender: (record) => (
+                        <DataDetail
+                          record={record}
+                          updateRecord={updateRecord}
+                          updater={setUpdateRecord}
+                          setDeleteData={setDeleteData}
+                          setEditedRecord={setEditedRecord}
+                          editedRecord={editedRecord}
+                          isPublic={editable}
+                        />
+                      ),
+                      expandIcon: ({ expanded, onExpand, record }) =>
+                        expanded ? (
+                          <DownCircleOutlined
+                            onClick={(e) => onExpand(record, e)}
+                            style={{ color: "#1651B6", fontSize: "19px" }}
+                          />
+                        ) : (
+                          <LeftCircleOutlined
+                            onClick={(e) => onExpand(record, e)}
+                            style={{ color: "#1651B6", fontSize: "19px" }}
+                          />
+                        ),
+                    }}
+                    rowClassName={(record) => {
+                      const rowEdited = editedRecord[record.id]
+                        ? "row-edited"
+                        : "row-normal sticky";
+                      return `expandable-row ${rowEdited}`;
+                    }}
+                    expandRowByClick
+                  />
+                </ConfigProvider>
+              </TabPane>
+            </Tabs>
           </div>
         </div>
       </div>
