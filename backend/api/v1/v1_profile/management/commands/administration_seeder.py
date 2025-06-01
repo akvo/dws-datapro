@@ -1,87 +1,140 @@
-import pandas as pd
-from django.core.management import BaseCommand
+import json
+from mis.settings import COUNTRY_NAME
+from django.core.management.base import BaseCommand
 from api.v1.v1_profile.models import Levels, Administration
 from api.v1.v1_profile.constants import (
     DEFAULT_ADMINISTRATION_DATA,
     DEFAULT_ADMINISTRATION_LEVELS,
-    DEFAULT_SOURCE_FILE,
 )
 
 
-def seed_levels(geo_config: list = []):
+def seed_levels(geo_config: list = []) -> None:
+    """
+    Seed the Levels model with the given geo_config.
+    :param geo_config: A list of dictionaries containing the geo configuration.
+    """
     for geo in geo_config:
         level = Levels(id=geo["id"], name=geo["alias"], level=geo["level"])
         level.save()
 
 
-def seed_administration(row: dict, geo_config: list = []):
+def seed_administration(row: dict, geo_config: list = []) -> None:
+    """
+    Seed the Administration model with the given row data and geo_config.
+    :param row: A dictionary containing the row data.
+    :param geo_config: A list of dictionaries containing the geo configuration.
+    """
     for geo in geo_config:
-        col_level = f"{geo['level']}_{geo['alias']}"
+        col_level = f"{geo['alias']}_{geo['level']}"
         parent = None
         if geo["level"] > 0:
-            code_parent = row.get(f"{geo['level'] - 1}_code")
-            parent = Administration.objects.filter(
-                code=code_parent, level__level=geo["level"] - 1
+            # Get parent Level
+            prev_level = geo["level"] - 1
+            parent_level = Levels.objects.filter(
+                level=prev_level
             ).first()
+            if parent_level:
+                parent_key = f"{parent_level.name}_{parent_level.level}"
+                parent_name = row.get(parent_key)
+                if parent_name:
+                    parent = Administration.objects.filter(
+                        name=parent_name,
+                        level=parent_level
+                    ).first()
+                else:
+                    parent = Administration.objects.filter(
+                        name=COUNTRY_NAME.capitalize()
+                    ).first()
+
         # Get the level from the geo_config
         level = Levels.objects.filter(level=geo["level"]).first()
         # Get the code from the row
-        code = row.get(f"{geo['level']}_code")
+        code = row.get(f"code_{geo['level']}")
         # Get the name from the row
-        name = row[col_level]
-
-        Administration.objects.update_or_create(
-            name=name,
-            defaults={
-                "level": level,
-                "code": code,
-                "parent": parent,
-            },
-        )
+        name = row.get(col_level)
+        if not name and geo["level"] == 0:
+            name = COUNTRY_NAME.capitalize()
+        if name:
+            Administration.objects.update_or_create(
+                name=name,
+                defaults={
+                    "level": level,
+                    "code": code,
+                    "parent": parent,
+                },
+            )
 
 
 def seed_administration_test(
     rows: list = DEFAULT_ADMINISTRATION_DATA,
     geo_config: list = DEFAULT_ADMINISTRATION_LEVELS,
-):
+) -> None:
+    """
+    Seed the Administration model with test data.
+    :param rows: A list of dictionaries containing the row data.
+    :param geo_config: A list of dictionaries containing the geo configuration.
+    """
     seed_levels(geo_config=geo_config)
     for row in rows:
         seed_administration(row=row, geo_config=geo_config)
 
 
-def seed_administration_prod(
-    source_file: str = DEFAULT_SOURCE_FILE,
-):
-    Levels.objects.all().delete()
+def seed_administration_prod() -> int:
+    """
+    Seed the Administration model with production data from a TopoJSON file.
+    :return: The number of administrations created.
+    """
+    topojson_file_path = f"./source/{COUNTRY_NAME}.topojson"
+    with open(topojson_file_path, "r") as f:
+        topo_data = json.load(f)
+        features = topo_data.get('objects', {}).values()
+        administrations = [
+            f["properties"]
+            for fg in features
+            for f in fg.get('geometries', [])
+        ]
+        if administrations:
+            # Get first row of administrations to seed_levels
+            first_row = administrations[0]
+            geo_config = list(first_row.keys())
+            # Filter out keys that end with pattern "_<digit>"
+            # eg: "Province_1"
+            geo_config = [
+                key for key in geo_config if (
+                    key.split("_")[-1].isdigit()
+                    and not key.startswith("code_")
+                )
+            ]
+            geo_config = [
+                {
+                    "level": int(key.split("_")[-1]),
+                    "alias": key.split("_")[0],
+                }
+                for i, key in enumerate(geo_config)
+            ]
+            # Order geo_config by level
+            geo_config.sort(key=lambda x: x["level"])
+            # Add id to geo_config
+            for i, geo in enumerate(geo_config):
+                # Assign id starting from 2
+                # to avoid conflict with the national level
+                geo["id"] = i + 2
+            # Add the national level
+            geo_config.insert(
+                0,
+                {"id": 1, "level": 0, "alias": "National"}
+            )
+            seed_levels(geo_config=geo_config)
 
-    df = pd.read_csv(source_file)
-    header_columns = df.columns.tolist()
-    geo_config = []
-    for column in header_columns:
-        level = int(column.split("_")[0])
-        alias = column.split("_")[1]
-        if alias.lower() == "code":
-            # Skip the code column
-            continue
-        geo_config.append(
-            {
-                "id": level + 1,
-                "level": level,
-                "name": f"NAME_{level}",
-                "alias": alias,
-            }
-        )
-    geo_config = sorted(geo_config, key=lambda x: x["level"])
+            for adm in administrations:
+                seed_administration(row=adm, geo_config=geo_config)
 
-    seed_levels(geo_config=geo_config)
-    df = pd.read_csv(source_file)
-    df = df.drop_duplicates()
-    df = df.reset_index(drop=True)
-    for _, row in df.iterrows():
-        seed_administration(row=row, geo_config=geo_config)
+        return len(administrations)
 
 
 class Command(BaseCommand):
+    help = "Generates administrations from the TopoJSON."
+
     def add_arguments(self, parser):
         parser.add_argument(
             "-t", "--test", nargs="?", const=1, default=False, type=int
@@ -89,26 +142,18 @@ class Command(BaseCommand):
         parser.add_argument(
             "-c", "--clean", nargs="?", const=1, default=False, type=int
         )
-        parser.add_argument(
-            "-s",
-            "--source",
-            nargs="?",
-            const=1,
-            default=DEFAULT_SOURCE_FILE,
-            type=str,
-        )
 
     def handle(self, *args, **options):
         test = options.get("test")
         clean = options.get("clean")
-        source_file = options.get("source")
         if clean:
+            Levels.objects.all().delete()
             Administration.objects.all().delete()
             self.stdout.write("-- Administration Cleared")
         if test:
             seed_administration_test()
         if not test:
-            seed_administration_prod(
-                source_file=source_file,
-            )
-            self.stdout.write("-- FINISH")
+            total = seed_administration_prod()
+            self.stdout.write(self.style.SUCCESS(
+                f"Created {total} Administrations successfully."
+            ))  # pragma: no cover
