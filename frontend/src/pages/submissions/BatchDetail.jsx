@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import SubmissionEditing from "./SubmissionEditing";
 import { api, QUESTION_TYPES, store, uiText } from "../../lib";
-import { isEqual, flatten } from "lodash";
+import { isEqual, flatten, last } from "lodash";
 import { useNotification } from "../../util/hooks";
 import { validateDependency } from "../../util";
 
@@ -101,12 +101,12 @@ const BatchDetail = ({
                         r.value?.includes(`${q.id}-${i}`)
                       );
                     }
-
                     return {
                       ...q,
                       id: i > 0 ? `${q.id}-${i}` : q.id, // Add suffix for duplicate questions
                       value: response?.value,
                       history: response?.history || false,
+                      lastValue: response?.last_value,
                     };
                   });
                 transformedData.push(questionGroupCopy);
@@ -123,6 +123,7 @@ const BatchDetail = ({
                       id: dx ? `${q.id}-${dx}` : q.id,
                       value: d?.value,
                       history: d?.history || false,
+                      lastValue: d?.last_value,
                     }))
                 ),
               });
