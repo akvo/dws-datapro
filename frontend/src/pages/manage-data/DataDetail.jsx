@@ -207,7 +207,7 @@ const DataDetail = ({
 
                     // If the question has a dependency, then get the response
                     // for the current instance (i) or the first instance (0)
-                    let response = responses?.[i];
+                    let response = responses?.find((r) => r?.index === i);
                     if (q?.dependency) {
                       response = responses?.[i] ||
                         responses?.[0] || {
