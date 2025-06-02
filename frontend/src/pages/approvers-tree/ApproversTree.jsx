@@ -52,11 +52,13 @@ const ApproversTree = () => {
       {
         id: 0,
         name: "Questionnaire",
-        children: forms.map((dt) => ({
-          ...dt,
-          user: null,
-          active: false,
-        })),
+        children: forms
+          .filter((f) => !f?.content?.parent)
+          .map((dt) => ({
+            ...dt,
+            user: null,
+            active: false,
+          })),
       },
     ]);
   }, [forms]);

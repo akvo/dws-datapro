@@ -56,7 +56,12 @@ const Submission = ({ navigation, route }) => {
   };
 
   const goToFormOptions = (item) => {
-    const { id, name, uuid } = item;
+    const { id, name, uuid, repeats } = item;
+    if (repeats) {
+      FormState.update((s) => {
+        s.repeats = JSON.parse(repeats);
+      });
+    }
     navigation.push('FormOptions', {
       id,
       name,

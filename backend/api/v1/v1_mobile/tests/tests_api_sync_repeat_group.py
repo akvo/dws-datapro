@@ -47,8 +47,8 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
                 445: "/attachment/application_letter_2024-04-29.pdf",
                 551: "data:base64,examplesignature122323",
                 661: "Good Job",
-                "661-1": "2024-04-29",
-                "661-2": "2024-04-29",
+                "661-1": "Nice!",
+                "661-2": "Looks good to me",
             },
         }
         response = self.client.post(
@@ -79,5 +79,13 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
         repeat_answers = Answers.objects.filter(
             question__pk=661,
             data=pending_form_data
-        ).count()
-        self.assertEqual(repeat_answers, 3)
+        ).all()
+        self.assertEqual(repeat_answers.count(), 3)
+        # Check all repeated answers index list
+        self.assertEqual(
+            list(
+                repeat_answers.values_list("index", flat=True)
+                .order_by("index")
+            ),
+            [0, 1, 2]
+        )

@@ -13,9 +13,10 @@ const DataDetail = ({
   updater,
   updateRecord,
   setDeleteData,
-  isPublic = false,
   editedRecord,
   setEditedRecord,
+  isPublic = false,
+  isFullScreen = false,
 }) => {
   const [dataset, setDataset] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -206,7 +207,7 @@ const DataDetail = ({
 
                     // If the question has a dependency, then get the response
                     // for the current instance (i) or the first instance (0)
-                    let response = responses?.[i];
+                    let response = responses?.find((r) => r?.index === i);
                     if (q?.dependency) {
                       response = responses?.[i] ||
                         responses?.[0] || {
@@ -283,11 +284,11 @@ const DataDetail = ({
   return loading ? (
     <Space style={{ paddingTop: 18, color: "#9e9e9e" }} size="middle">
       <Spin indicator={<LoadingOutlined style={{ color: "#1b91ff" }} spin />} />
-      <span>Loading..</span>
+      <span>{text.loadingText}</span>
     </Space>
   ) : (
     <>
-      <div className="data-detail">
+      <div className={`data-detail ${isFullScreen ? "full-screen" : ""}`}>
         {pendingData && (
           <Alert
             message={`Can't edit/update this data, because data in pending data by ${pendingData}`}

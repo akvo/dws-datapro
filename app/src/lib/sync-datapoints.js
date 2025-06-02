@@ -29,12 +29,36 @@ export const downloadDatapointsJson = async (
       const jsonData = response.data;
       const { uuid, datapoint_name: name, geolocation: geo, answers } = jsonData || {};
       const form = await crudForms.getByFormId(db, { formId });
+      const repeats = {};
+      let repeatIndex = 0;
+      JSON.parse(form?.json || '{}')?.question_group?.forEach((group) => {
+        if (group.repeatable) {
+          const qIDs = group.question.map((q) => `${q.id}`);
+          const maxRepeats = Object.keys(answers)
+            .filter((k) => k?.includes('-'))
+            .filter((k) => {
+              const [qId] = k.split('-');
+              return qIDs.includes(qId);
+            })
+            .reduce((acc, key) => {
+              const match = key.match(/-(\d+)$/);
+              if (match) {
+                const num = parseInt(match[1], 10);
+                return Math.max(acc, num);
+              }
+              return acc;
+            }, 0);
+          repeats[repeatIndex] = Array.from({ length: maxRepeats + 1 }, (_, i) => i);
+          repeatIndex += 1;
+        }
+      });
       const isExists = await crudDataPoints.getByUUID(db, { uuid });
       if (isExists) {
         await crudDataPoints.updateByUUID(db, {
           uuid,
           json: answers,
           syncedAt: lastUpdated,
+          repeats: JSON.stringify(repeats),
         });
       } else {
         await crudDataPoints.saveDataPoint(db, {
@@ -49,6 +73,7 @@ export const downloadDatapointsJson = async (
           createdAt: new Date().toISOString(),
           json: answers,
           syncedAt: lastUpdated,
+          repeats: JSON.stringify(repeats),
         });
       }
     }

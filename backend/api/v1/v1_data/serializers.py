@@ -2,6 +2,8 @@ import requests
 from django.db.models import Sum
 from django.utils import timezone
 from django_q.tasks import async_task
+from django.db.models import Q
+
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
@@ -72,6 +74,7 @@ class SubmitFormDataSerializer(serializers.ModelSerializer):
 class SubmitFormDataAnswerSerializer(serializers.ModelSerializer):
     value = UnvalidatedField(allow_null=False)
     question = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
+    index = CustomIntegerField(required=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -145,7 +148,7 @@ class SubmitFormDataAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answers
-        fields = ["question", "value"]
+        fields = ["question", "value", "index"]
 
 
 class SubmitFormSerializer(serializers.Serializer):
@@ -256,7 +259,35 @@ class ListDataAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answers
-        fields = ["history", "question", "value"]
+        fields = ["history", "question", "value", "index"]
+
+
+class FormDataSerializer(serializers.ModelSerializer):
+    answers = serializers.SerializerMethodField()
+
+    @extend_schema_field(ListDataAnswerSerializer(many=True))
+    def get_answers(self, instance):
+        return ListDataAnswerSerializer(
+            instance=instance.data_answer.all(), many=True
+        ).data
+
+    class Meta:
+        model = FormData
+        fields = [
+            "id",
+            "uuid",
+            "name",
+            "form",
+            "administration",
+            "geo",
+            "created_by",
+            "updated_by",
+            "created",
+            "updated",
+            "submitter",
+            "duration",
+            "answers",
+        ]
 
 
 class ListFormDataRequestSerializer(serializers.Serializer):
@@ -267,9 +298,7 @@ class ListFormDataRequestSerializer(serializers.Serializer):
         child=CustomPrimaryKeyRelatedField(queryset=Questions.objects.none()),
         required=False,
     )
-    parent = CustomPrimaryKeyRelatedField(
-        queryset=FormData.objects.none(), required=False
-    )
+    parent = serializers.CharField(required=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -277,10 +306,6 @@ class ListFormDataRequestSerializer(serializers.Serializer):
             "administration"
         ).queryset = Administration.objects.all()
         self.fields.get("questions").child.queryset = Questions.objects.all()
-        form_id = self.context.get("form_id")
-        self.fields.get("parent").queryset = FormData.objects.filter(
-            form_id=form_id
-        ).all()
 
 
 class ListFormDataSerializer(serializers.ModelSerializer):
@@ -352,6 +377,7 @@ class ListFormDataSerializer(serializers.ModelSerializer):
             "created",
             "updated",
             "pending_data",
+            "submitter",
         ]
 
 
@@ -386,9 +412,24 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.ANY)
     def get_last_value(self, instance: Answers):
         if self.context["last_data"]:
+            parent_question = None
+            if instance.question.form.parent:
+                # If the question is from a parent form,
+                # get the parent question from the parent form
+                qg = instance.question.form.parent \
+                    .form_question_group.filter(
+                        name=instance.question.question_group.name
+                    ).first()
+                if qg:
+                    parent_question = qg.question_group_question.filter(
+                        name=instance.question.name
+                    ).first()
             answer = (
                 self.context["last_data"]
-                .data_answer.filter(question=instance.question)
+                .data_answer.filter(
+                    Q(question=instance.question) |
+                    Q(question=parent_question)
+                )
                 .first()
             )
             if answer:
@@ -397,7 +438,7 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answers
-        fields = ["history", "question", "value", "last_value"]
+        fields = ["history", "question", "value", "last_value", "index"]
 
 
 class PendingBatchDataFilterSerializer(serializers.Serializer):
@@ -1157,6 +1198,7 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 value=value,
                 options=option,
                 created_by=self.context.get("user"),
+                index=answer.get("index", 0)
             ))
 
         Answers.objects.bulk_create(answers)

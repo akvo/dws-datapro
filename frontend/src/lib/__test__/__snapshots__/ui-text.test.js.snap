@@ -127,6 +127,7 @@ Object {
     "bulkUploadNoApproverMessage": "Can't upload data, because there's no approver yet.",
     "cancelButton": "Cancel",
     "ccDescriptionPanel": "Instant access to all the administration pages and overview panels for data approvals.",
+    "channelCol": "Channel",
     "chooseTemplate": "Choose a template",
     "codeField": "Code",
     "codeFieldRequired": "Code is required",
@@ -408,6 +409,7 @@ Object {
     "invalidInviteTitle": "Invalid Invite Code",
     "lastLoginLabel": "Last login",
     "lastResponseCol": "Last Response",
+    "lastUpdatedCol": "Last Updated",
     "latestUpdateText": "Latest Updates",
     "levelField": "Level",
     "levelFieldRequired": "Level is required",
@@ -442,6 +444,8 @@ Object {
     </React.Fragment>,
     "manageAttributes": "Manage Attributes",
     "manageDataButton": "Manage Data",
+    "manageDataTab1": "Registration Data",
+    "manageDataTab2": "Monitoring Data",
     "manageDataText": <React.Fragment>
       This is where you :
       <ul>
@@ -525,6 +529,7 @@ Object {
     "mdPanelTitle": "Master Data",
     "mobileAddText": "Add Assignment",
     "mobileAdmRequired": "Administration is required: one or multiple",
+    "mobileAppText": "Mobile App",
     "mobileButtonAdd": "Add new data collector",
     "mobileButtonSave": "Save",
     "mobileConfirmDelete": "Are you sure you want to delete this assignment?",
@@ -582,6 +587,7 @@ Object {
     </React.Fragment>,
     "monitoringDataTitle": "Monitoring data",
     "myProfile": "My Profile",
+    "nameCol": "Name",
     "nameField": "Name",
     "nameFieldRequired": "Name is required",
     "nameLabel": "Name",
@@ -678,6 +684,7 @@ Object {
     "selectAttributes": "Select attributes...",
     "selectEntity": "Select entity...",
     "selectForm": "Please select a form",
+    "selectFormPlaceholder": "Select Form",
     "selectLevel": "Select level...",
     "selectOne": "Select one...",
     "selectText": "Select...",
@@ -731,6 +738,7 @@ Object {
     "uploadsTab2": "Pending Approval",
     "uploadsTab3": "Approved",
     "userAssociations": "This user has following data association(s)",
+    "userCol": "User",
     "userDeleteFail": "Could not delete user",
     "userEmail": "Email Address",
     "userFirstName": "First name",
@@ -750,6 +758,7 @@ Object {
     "valOrganization": "Please select an Organization",
     "valPhone": "Phone number is required",
     "valRole": "Please select a Role",
+    "webformText": "Webform",
     "welcomeShort": <React.Fragment>
       Welcome to the 
       <b>
