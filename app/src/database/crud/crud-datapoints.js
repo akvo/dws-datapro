@@ -102,10 +102,11 @@ const dataPointsQuery = () => ({
     const res = await sql.getFirstRow(db, 'datapoints', { uuid });
     return res;
   },
-  updateByUUID: async (db, { uuid, json, syncedAt }) => {
+  updateByUUID: async (db, { uuid, json, syncedAt, repeats }) => {
     if (!json || typeof json !== 'object') {
       return false;
     }
+    const repeatsVal = repeats ? { repeats } : {};
     const res = await sql.updateRow(
       db,
       'datapoints',
@@ -113,6 +114,7 @@ const dataPointsQuery = () => ({
       {
         json: JSON.stringify(json).replace(/'/g, "''"),
         syncedAt: syncedAt || new Date().toISOString(),
+        ...repeatsVal,
       },
     );
     return res;
