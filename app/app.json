@@ -23,7 +23,7 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.akvo.dws-datapro",
+      "package": "com.akvo.dws_datapro",
       "versionCode": 412
     },
     "web": {
