@@ -23,7 +23,7 @@
     "@react-navigation/native-stack": "^6.9.12",
     "@rneui/base": "^4.0.0-rc.8",
     "@rneui/themed": "^4.0.0-rc.8",
-    "@sentry/react-native": "~6.14.0",
+    "@sentry/react-native": "^6.14.0",
     "axios": "^1.4.0",
     "expo": "53.0.9",
     "expo-application": "~6.1.4",
