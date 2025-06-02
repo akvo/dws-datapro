@@ -72,6 +72,7 @@ class SubmitFormDataSerializer(serializers.ModelSerializer):
 class SubmitFormDataAnswerSerializer(serializers.ModelSerializer):
     value = UnvalidatedField(allow_null=False)
     question = CustomPrimaryKeyRelatedField(queryset=Questions.objects.none())
+    index = CustomIntegerField(required=False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -145,7 +146,7 @@ class SubmitFormDataAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answers
-        fields = ["question", "value"]
+        fields = ["question", "value", "index"]
 
 
 class SubmitFormSerializer(serializers.Serializer):
@@ -256,7 +257,7 @@ class ListDataAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answers
-        fields = ["history", "question", "value"]
+        fields = ["history", "question", "value", "index"]
 
 
 class FormDataSerializer(serializers.ModelSerializer):
@@ -420,7 +421,7 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answers
-        fields = ["history", "question", "value", "last_value"]
+        fields = ["history", "question", "value", "last_value", "index"]
 
 
 class PendingBatchDataFilterSerializer(serializers.Serializer):
@@ -1180,6 +1181,7 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 value=value,
                 options=option,
                 created_by=self.context.get("user"),
+                index=answer.get("index", 0)
             ))
 
         Answers.objects.bulk_create(answers)
