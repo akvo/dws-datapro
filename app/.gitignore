@@ -21,3 +21,5 @@ coverage
 
 # generated env from docker
 .env
+
+.env.local
