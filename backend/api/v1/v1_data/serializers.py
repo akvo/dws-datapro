@@ -2,6 +2,8 @@ import requests
 from django.db.models import Sum
 from django.utils import timezone
 from django_q.tasks import async_task
+from django.db.models import Q
+
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
@@ -410,9 +412,24 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
     @extend_schema_field(OpenApiTypes.ANY)
     def get_last_value(self, instance: Answers):
         if self.context["last_data"]:
+            parent_question = None
+            if instance.question.form.parent:
+                # If the question is from a parent form,
+                # get the parent question from the parent form
+                qg = instance.question.form.parent \
+                    .form_question_group.filter(
+                        name=instance.question.question_group.name
+                    ).first()
+                if qg:
+                    parent_question = qg.question_group_question.filter(
+                        name=instance.question.name
+                    ).first()
             answer = (
                 self.context["last_data"]
-                .data_answer.filter(question=instance.question)
+                .data_answer.filter(
+                    Q(question=instance.question) |
+                    Q(question=parent_question)
+                )
                 .first()
             )
             if answer:
