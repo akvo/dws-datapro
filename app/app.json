@@ -31,7 +31,7 @@
     },
     "extra": {
       "eas": {
-        "projectId": "b3af8793-00d1-4c68-bf69-2ca968d9d05c"
+        "projectId": "f93475fa-04c8-431a-bfd8-22389ff560cd"
       }
     },
     "owner": "akvo",
@@ -67,6 +67,12 @@
       "visible": "immersive",
       "barStyle": "dark-content",
       "backgroundColor": "#000000"
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/f93475fa-04c8-431a-bfd8-22389ff560cd"
     }
   }
 }
