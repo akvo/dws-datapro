@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import SubmissionEditing from "./SubmissionEditing";
 import { api, QUESTION_TYPES, store, uiText } from "../../lib";
-import { isEqual, flatten, last } from "lodash";
+import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
 import { validateDependency } from "../../util";
 
