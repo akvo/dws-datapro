@@ -182,12 +182,14 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
       setFillingForm(false);
       return;
     }
-    const questionsMap = activeQuestions.reduce((map, question) => {
-      if (question.name && question.id) {
-        map[question.name] = question.id;
-      }
-      return map;
-    }, {});
+    const questionsMap = forms?.question_group
+      ?.flatMap((qg) => qg.question)
+      ?.reduce((map, question) => {
+        if (question.name && question.id) {
+          map[question.name] = question.id;
+        }
+        return map;
+      }, {});
 
     const findDatapoint = await crudDataPoints.getByUUID(db, { uuid: route?.params?.uuid });
     if (findDatapoint?.json && !datapoint) {
@@ -200,16 +202,30 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
            */
           dpValues = JSON.parse(dpValues);
         }
-        const initialValues = JSON.parse(findForm?.json)
-          ?.question_group?.flatMap((qg) => qg?.question)
-          .reduce((m, q) => {
-            if (q?.name && q?.id) {
-              const answer = dpValues?.[q?.id];
-              const currentQuestion = questionsMap?.[q?.name];
-              m[currentQuestion] = answer;
+        const initialValues = {};
+        let maxRepeatIndex = 0;
+
+        Object.entries(dpValues).forEach(([key, value]) => {
+          const [qId, qIndex] = key.split('-');
+          if (qIndex) {
+            const repeatIndex = parseInt(qIndex, 10);
+            if (repeatIndex > maxRepeatIndex) {
+              maxRepeatIndex = repeatIndex;
             }
-            return m;
-          }, {});
+          }
+          // Get question name by qId
+          const qName = JSON.parse(findForm?.json)
+            ?.question_group?.flatMap((qg) => qg?.question)
+            ?.find((q) => q.id === parseInt(qId, 10))?.name;
+          if (questionsMap?.[qName]) {
+            const currentQuestion = questionsMap[qName];
+            if (qIndex) {
+              initialValues[`${currentQuestion}-${qIndex}`] = value;
+            } else {
+              initialValues[currentQuestion] = value;
+            }
+          }
+        });
         FormState.update((s) => {
           s.currentValues = initialValues;
         });
@@ -219,7 +235,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
       }
       setDatapoint(findDatapoint);
     }
-  }, [db, route?.params?.uuid, datapoint, activeQuestions]);
+  }, [db, route?.params?.uuid, datapoint, forms]);
 
   // Fetch initial values when the component mounts
   useEffect(() => {
