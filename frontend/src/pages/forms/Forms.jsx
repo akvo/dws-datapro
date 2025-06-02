@@ -245,7 +245,9 @@ const Forms = () => {
         .sort((a, b) => a.index - b.index)
         .forEach((item) => {
           // Use our enhanced transformValue function with forApi=true
-          repeatableAnswers.push(transformValue(question, item.value, true));
+          repeatableAnswers.push(
+            transformValue(question, item.value, true, item.index)
+          );
         });
     });
 
@@ -401,7 +403,7 @@ const Forms = () => {
 
     const payload = {
       data: dataPayload,
-      answer: allAnswers.map((x) => pick(x, ["question", "value"])),
+      answer: allAnswers.map((x) => pick(x, ["question", "value", "index"])),
     };
 
     if (uuid) {
@@ -483,7 +485,7 @@ const Forms = () => {
     [authUser?.administration?.level]
   );
 
-  const transformValue = (question, value, forApi = false) => {
+  const transformValue = (question, value, forApi = false, index = 0) => {
     // Type can be either a string or an object with type property
     const type = typeof question === "string" ? question : question?.type;
     let transformedValue = value;
@@ -551,6 +553,7 @@ const Forms = () => {
             : question.type,
         value: transformedValue,
         meta: question.meta,
+        index: index, // Include index for repeatable questions
       };
     }
 
@@ -580,8 +583,14 @@ const Forms = () => {
           return acc;
         }, {});
         const answers = Object.entries(apiAnswers).reduce((acc, [key, val]) => {
-          const qName = parentQuestionsMap[key];
+          // split key with dash
+          const [qKey, qIndex] = key.split("-");
+          const qName = parentQuestionsMap?.[parseInt(qKey, 10)];
           const qId = questionsMap?.[qName];
+          if (qIndex) {
+            acc[`${qId}-${qIndex}`] = val;
+            return acc;
+          }
           acc[qId] = val;
           return acc;
         }, {});
