@@ -1,6 +1,6 @@
 {
   "name": "dws-datapro-mobile",
-  "version": "4.1.1",
+  "version": "4.1.2",
   "main": "node_modules/expo/AppEntry.js",
   "scripts": {
     "start": "expo start --port 19000",
@@ -68,7 +68,7 @@
     "babel-jest": "^29.5.0",
     "babel-preset-react-native": "^5.0.2",
     "coveralls": "^3.1.1",
-    "eas-cli": "^16.4.0",
+    "eas-cli": "^16.7.0",
     "eslint": "^8.42.0",
     "eslint-config-airbnb": "^19.0.4",
     "eslint-config-prettier": "^8.8.0",

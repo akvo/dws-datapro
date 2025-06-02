@@ -1453,10 +1453,10 @@
     semver "^7.6.2"
     zod "^3.23.8"
 
-"@expo/eas-json@16.4.0":
-  version "16.4.0"
-  resolved "https://registry.npmjs.org/@expo/eas-json/-/eas-json-16.4.0.tgz"
-  integrity sha512-ROfbHGmczU+5izF3w4RFB7dtpPYGxu8lMR+M0e+ixfyKexeumoIoNl8IiuXb/VW5gLMQf5mFXgDk9dWk9ZbOmQ==
+"@expo/eas-json@16.7.0":
+  version "16.7.0"
+  resolved "https://registry.yarnpkg.com/@expo/eas-json/-/eas-json-16.7.0.tgz#1258188053780fcaf4cb188693bcbd5ce1daa031"
+  integrity sha512-wWG/M9i2adPahzqZKKBaEbb4ro++Wz8EOOHx5QXoF30PlatBbDP+vBmypb9rY6wAuoDhK5xc5t6hFAwFtjtpNw==
   dependencies:
     "@babel/code-frame" "7.23.5"
     "@expo/eas-build-job" "1.0.173"
@@ -3581,7 +3581,7 @@ bplist-parser@0.3.1:
   dependencies:
     big-integer "1.6.x"
 
-bplist-parser@^0.3.1:
+bplist-parser@^0.3.0, bplist-parser@^0.3.1:
   version "0.3.2"
   resolved "https://registry.npmjs.org/bplist-parser/-/bplist-parser-0.3.2.tgz"
   integrity sha512-apC2+fspHGI3mMKj+dGevkGo/tCqVB8jMb6i+OX+E29p0Iposz07fABkRIfVUPNd5A5VbuOz1bZbnmkKLYF+wQ==
@@ -4414,17 +4414,17 @@ dunder-proto@^1.0.0, dunder-proto@^1.0.1:
     es-errors "^1.3.0"
     gopd "^1.2.0"
 
-eas-cli@^16.4.0:
-  version "16.4.0"
-  resolved "https://registry.npmjs.org/eas-cli/-/eas-cli-16.4.0.tgz"
-  integrity sha512-Fkpgd82elO6maBvpUgJXUElox/MI8G9iEwVUI1gMifWnjCpY5fNPryRRtiqJQ+yYWtePMrcxV+9F2307SkTBHw==
+eas-cli@^16.7.0:
+  version "16.7.0"
+  resolved "https://registry.yarnpkg.com/eas-cli/-/eas-cli-16.7.0.tgz#eb7041bb8141ecc5dfe2c9d36a6d49aa19a0f6c7"
+  integrity sha512-jhdBHY3h8BNhsUSTpAf9VAt2mNHGbMkuNJ3WZ2lqvb8nd0FQ4LKqszvYv8Olth+E57HkrZKeJm3Xv59tIhzODg==
   dependencies:
     "@expo/apple-utils" "2.1.12"
     "@expo/code-signing-certificates" "0.0.5"
     "@expo/config" "10.0.6"
     "@expo/config-plugins" "9.0.12"
     "@expo/eas-build-job" "1.0.173"
-    "@expo/eas-json" "16.4.0"
+    "@expo/eas-json" "16.7.0"
     "@expo/env" "^1.0.0"
     "@expo/json-file" "8.3.3"
     "@expo/logger" "1.0.117"
@@ -4449,6 +4449,7 @@ eas-cli@^16.4.0:
     ajv "8.11.0"
     ajv-formats "2.1.1"
     better-opn "3.0.2"
+    bplist-parser "^0.3.0"
     chalk "4.1.2"
     cli-progress "3.12.0"
     dateformat "4.6.3"
