@@ -191,12 +191,17 @@ def sync_pending_form_data(request, version):
         Keys can be like "1" or "1-1" or "1-2"
         where the base question ID is "1"
         """
+        index = 0
         if '-' in str(q_key):
-            base_q_id = str(q_key).split('-')[0]
+            [base_q_id, q_index] = str(q_key).split('-')
+            index = q_index
         else:
             base_q_id = str(q_key)
-        # Add the answer with the original question ID from the key
-        answers.append({"question": base_q_id, "value": qna[q_key]})
+        answers.append({
+            "question": base_q_id,
+            "value": qna[q_key],
+            "index": index,
+        })
     payload = {
         "administration": adm_id,
         "name": request.data.get("name"),
@@ -512,24 +517,30 @@ class MobileAssignmentViewSet(ModelViewSet):
 def get_datapoint_download_list(request, version):
     assignment = cast(MobileAssignmentToken, request.auth).assignment
     forms = assignment.forms.values("id")
-    administrations = assignment.administrations.values("id")
+    administrations = [
+        {"id": a.id, "path": a.path}
+        for a in assignment.administrations.all()
+    ]
     paginator = Pagination()
 
-    queryset = FormData.objects.filter(
-        Q(
-            administration_id__in=administrations,
-            form_id__in=forms,
-        ) |
-        Q(
-            administration__path__startswith=administrations[0]["id"],
-            form_id__in=forms,
-        )
+    # Start with base query for administration IDs
+    admin_id_query = Q(
+        administration_id__in=[a["id"] for a in administrations],
+        form_id__in=forms,
     )
-    if assignment.last_synced_at:
-        queryset = queryset.filter(
-            Q(created__gte=assignment.last_synced_at)
-            | Q(updated__gte=assignment.last_synced_at)
-        )
+    # Build path query by combining conditions for all administration paths
+    path_query = Q()
+    for admin in administrations:
+        path_query |= Q(administration__path__startswith=admin["path"])
+    # Combine both queries with the form filter
+    queryset = FormData.objects.filter(
+        admin_id_query | (path_query & Q(form_id__in=forms))
+    )
+    # if assignment.last_synced_at:
+    #     queryset = queryset.filter(
+    #         Q(created__gte=assignment.last_synced_at)
+    #         | Q(updated__gte=assignment.last_synced_at)
+    #     )
 
     queryset = queryset.values(
         "uuid",
