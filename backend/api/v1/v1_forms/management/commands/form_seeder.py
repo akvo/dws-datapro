@@ -44,6 +44,8 @@ class Command(BaseCommand):
         source_files = [
             f"{source_folder}{json_file}"
             for json_file in os.listdir(source_folder)
+            if (os.path.isfile(os.path.join(source_folder, json_file))
+                and json_file.endswith('.json'))
         ]
         source_files = list(
             filter(lambda x: "example" in x
