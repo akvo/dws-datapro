@@ -1,0 +1,448 @@
+{
+    "id": 1748903240763,
+    "form": "WAF Wastewater Treatment Plan",
+    "description": "WAF Wastewater Treatment Plan",
+    "defaultLanguage": "en",
+    "languages": [
+        "en"
+    ],
+    "version": 1,
+    "type": 1,
+    "question_groups": [
+        {
+            "id": 1748903240793,
+            "name": "waf_registration",
+            "label": "WAF Registration",
+            "description": "Wastewater Treatment Plant Registration",
+            "order": 1,
+            "repeatable": false,
+            "translations": null,
+            "questions": [
+                {
+                    "id": 1748903240794,
+                    "name": "which_division_are_you_in",
+                    "label": "Which Division are you in?",
+                    "order": 1,
+                    "type": "administration",
+                    "required": true,
+                    "meta": true,
+                    "rule": null,
+                    "dependency": null
+                },
+                {
+                    "id": 1748903442166,
+                    "name": "name_of_the_plant",
+                    "label": "Name of the Plant",
+                    "order": 2,
+                    "type": "text",
+                    "required": true,
+                    "meta": true,
+                    "rule": null,
+                    "options": null,
+                    "dependency": null
+                },
+                {
+                    "id": 1748903539202,
+                    "name": "which_year_was_the_plant_commissioned",
+                    "label": "Which Year was the plant commissioned?",
+                    "order": 3,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": null
+                },
+                {
+                    "id": 1748903613622,
+                    "name": "what_is_the_design_capacity_of_the_plant_cubic_metres_per_day",
+                    "label": "What is the Design Capacity of the Plant cubic metres per day?",
+                    "order": 4,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": {
+                        "allowDecimal": true
+                    },
+                    "options": null,
+                    "dependency": null
+                },
+                {
+                    "id": 1748903733856,
+                    "name": "what_are_the_different_treatment_processes_available_at_the_plant",
+                    "label": "What are the different treatment processes available at the plant?",
+                    "order": 5,
+                    "type": "multiple_option",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": [
+                        {
+                            "value": "screening",
+                            "label": "Screening",
+                            "id": 1748903741800,
+                            "order": 1
+                        },
+                        {
+                            "value": "grit_removal",
+                            "label": "Grit Removal",
+                            "id": 1748903741801,
+                            "order": 2
+                        },
+                        {
+                            "value": "primary_clarifier",
+                            "label": "Primary Clarifier",
+                            "id": 1748903798236,
+                            "order": 3
+                        },
+                        {
+                            "value": "trickling_filters",
+                            "label": "Trickling Filters",
+                            "id": 1748903807260,
+                            "order": 4
+                        },
+                        {
+                            "value": "activated_sludge_system",
+                            "label": "Activated Sludge System",
+                            "id": 1748903818641,
+                            "order": 5
+                        },
+                        {
+                            "value": "stabilization_lagoons",
+                            "label": "Stabilization Lagoons",
+                            "id": 1748903827987,
+                            "order": 6
+                        },
+                        {
+                            "value": "secondary_clarifiers",
+                            "label": "Secondary Clarifiers",
+                            "id": 1748903830953,
+                            "order": 7
+                        },
+                        {
+                            "value": "oxidation_ponds",
+                            "label": "Oxidation Ponds",
+                            "id": 1748903840117,
+                            "order": 8
+                        },
+                        {
+                            "value": "pasveer_ditches",
+                            "label": "Pasveer Ditches",
+                            "id": 1748903860170,
+                            "order": 9
+                        },
+                        {
+                            "value": "idea_lagoons",
+                            "label": "IDEA Lagoons",
+                            "id": 1748903871243,
+                            "order": 10
+                        },
+                        {
+                            "value": "polishing_ponds",
+                            "label": "Polishing Ponds",
+                            "id": 1748903880669,
+                            "order": 11
+                        },
+                        {
+                            "value": "aerobic_lagoons",
+                            "label": "Aerobic Lagoons",
+                            "id": 1748903892658,
+                            "order": 12
+                        },
+                        {
+                            "value": "sludge_aerobic_digestion",
+                            "label": "Sludge Aerobic Digestion",
+                            "id": 1748903920109,
+                            "order": 14
+                        },
+                        {
+                            "value": "sludge_handling_system",
+                            "label": "Sludge Handling System",
+                            "id": 1748903933533,
+                            "order": 15
+                        },
+                        {
+                            "value": "drying_beds",
+                            "label": "Drying Beds",
+                            "id": 1748903941155,
+                            "order": 16
+                        },
+                        {
+                            "value": "sludge_digester",
+                            "label": "Sludge Digester",
+                            "id": 1748903958546,
+                            "order": 17
+                        },
+                        {
+                            "value": "imhoff",
+                            "label": "IMHOFF",
+                            "id": 1748903971070,
+                            "order": 18
+                        },
+                        {
+                            "value": "maturation_ponds",
+                            "label": "Maturation Ponds",
+                            "id": 1748903979650,
+                            "order": 19
+                        },
+                        {
+                            "value": "facultative_ponds",
+                            "label": "Facultative Ponds",
+                            "id": 1748903991834,
+                            "order": 20
+                        },
+                        {
+                            "value": "anaerobic_lagoons",
+                            "label": "Anaerobic Lagoons",
+                            "id": 1748903908720,
+                            "order": 13
+                        }
+                    ],
+                    "dependency": null
+                },
+                {
+                    "id": 1748904054931,
+                    "name": "are_there_any_pump_station_at_the_treatment_plant",
+                    "label": "Are there any pump station at the treatment plant?",
+                    "order": 6,
+                    "type": "option",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": [
+                        {
+                            "value": "no",
+                            "label": "No",
+                            "id": 1748904066578,
+                            "order": 2
+                        },
+                        {
+                            "value": "yes",
+                            "label": "Yes",
+                            "id": 1748904066576,
+                            "order": 1
+                        }
+                    ],
+                    "dependency": null
+                },
+                {
+                    "id": 1748904102151,
+                    "name": "total_number_of_pump_stations",
+                    "label": "Total number of pump stations",
+                    "order": 7,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": [
+                        {
+                            "id": 1748904054931,
+                            "options": [
+                                "yes"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904158071,
+                    "name": "what_are_types_of_pump_stations",
+                    "label": "What are types of pump stations?",
+                    "order": 8,
+                    "type": "multiple_option",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": [
+                        {
+                            "value": "raw_sewage_pump_station",
+                            "label": "Raw Sewage Pump Station",
+                            "id": 1748904166065,
+                            "order": 1
+                        },
+                        {
+                            "value": "re_circulation_pump_station",
+                            "label": "Re circulation Pump Station",
+                            "id": 1748904166066,
+                            "order": 2
+                        },
+                        {
+                            "value": "sludge_pump_station",
+                            "label": "Sludge Pump Station",
+                            "id": 1748904374311,
+                            "order": 3
+                        },
+                        {
+                            "value": "supernatant_pump_station",
+                            "label": "Supernatant Pump Station",
+                            "id": 1748904382155,
+                            "order": 4
+                        },
+                        {
+                            "value": "influent_pump_station",
+                            "label": "Influent Pump Station",
+                            "id": 1748904395053,
+                            "order": 5
+                        },
+                        {
+                            "value": "effluent_pump_station",
+                            "label": "Effluent Pump Station",
+                            "id": 1748904411459,
+                            "order": 6
+                        }
+                    ],
+                    "dependency": [
+                        {
+                            "id": 1748904054931,
+                            "options": [
+                                "yes"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904470602,
+                    "name": "how_many_raw_sewage_pump_stations",
+                    "label": "How many raw sewage pump stations?",
+                    "order": 9,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": [
+                        {
+                            "id": 1748904158071,
+                            "options": [
+                                "raw_sewage_pump_station"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904517975,
+                    "name": "how_many_re_circulation_pump_stations",
+                    "label": "How many re-circulation pump stations?",
+                    "order": 10,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": [
+                        {
+                            "id": 1748904158071,
+                            "options": [
+                                "re_circulation_pump_station"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904551256,
+                    "name": "how_many_sludge_pump_stations",
+                    "label": "How many sludge pump stations?",
+                    "order": 11,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": [
+                        {
+                            "id": 1748904158071,
+                            "options": [
+                                "sludge_pump_station"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904618481,
+                    "name": "how_many_supernatant_pump_stations",
+                    "label": "How many supernatant pump stations?",
+                    "order": 12,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": {
+                        "allowDecimal": false
+                    },
+                    "options": null,
+                    "dependency": [
+                        {
+                            "id": 1748904158071,
+                            "options": [
+                                "supernatant_pump_station"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904692704,
+                    "name": "how_many_influent_pump_station",
+                    "label": "How many influent pump station",
+                    "order": 13,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": [
+                        {
+                            "id": 1748904158071,
+                            "options": [
+                                "influent_pump_station"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904732921,
+                    "name": "how_many_effluent_pump_stations",
+                    "label": "How many Effluent Pump Stations?",
+                    "order": 14,
+                    "type": "number",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": [
+                        {
+                            "id": 1748904158071,
+                            "options": [
+                                "effluent_pump_station"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "id": 1748904785806,
+                    "name": "take_geolocation_of_waste_water_treatment_plant",
+                    "label": "Take Geolocation of Waste water Treatment Plant",
+                    "order": 15,
+                    "type": "geo",
+                    "required": true,
+                    "meta": true,
+                    "rule": null,
+                    "options": null,
+                    "dependency": null
+                },
+                {
+                    "id": 1748904831222,
+                    "name": "take_photo_of_the_treatment_plant",
+                    "label": "Take photo of the treatment plant",
+                    "order": 16,
+                    "type": "photo",
+                    "required": true,
+                    "meta": false,
+                    "rule": null,
+                    "options": null,
+                    "dependency": null,
+                    "limit": 5.0
+                }
+            ],
+            "repeat_text": null
+        }
+    ]
+}
