@@ -370,7 +370,11 @@ const Forms = () => {
       .filter(
         (x) =>
           x.meta &&
-          ![QUESTION_TYPES.geo, QUESTION_TYPES.cascade].includes(x.type)
+          ![
+            QUESTION_TYPES.geo,
+            QUESTION_TYPES.administration,
+            QUESTION_TYPES.cascade,
+          ].includes(x.type)
       )
       .map((x) => x.value)
       .flat()
@@ -384,11 +388,11 @@ const Forms = () => {
       (x) => x.type === QUESTION_TYPES.administration
     )?.value;
 
-    const datapointName =
-      datapoint?.name ||
-      (names.length
-        ? names
-        : `${authUser.administration.name} - ${moment().format("MMM YYYY")}`);
+    const datapointName = names.length
+      ? datapoint?.name
+        ? `${datapoint.name} - ${names}`
+        : names
+      : `${authUser.administration.name} - ${moment().format("MMM YYYY")}`;
 
     const dataPayload = {
       administration: administration
