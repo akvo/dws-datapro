@@ -37,10 +37,6 @@ jobs:
         run: echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" | base64 --decode > /home/runner/work/dws-datapro/credentials/gcp.json
         shell: bash
 
-      - name: Write gcp deployment secret to file
-        run: echo "${{ secrets.DWS_DATAPRO_SERVICE_ACCOUNT }}" | base64 --decode > /home/runner/work/dws-datapro/credentials/dws-datapro-service-account.json
-        shell: bash
-
       - name: Get changed files
         id: changed-files
         uses: tj-actions/changed-files@v41
