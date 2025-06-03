@@ -212,6 +212,9 @@ const FormPage = ({ navigation, route }) => {
   }, [currentValues, refreshForm]);
 
   const fetchSavedSubmission = useCallback(async () => {
+    if (!savedDataPointId) {
+      return;
+    }
     setLoading(true);
     const dpValue = await crudDataPoints.selectDataPointById(db, { id: savedDataPointId });
     setCurrentDataPoint(dpValue);
@@ -240,13 +243,8 @@ const FormPage = ({ navigation, route }) => {
   }, [db, savedDataPointId, formJSON]);
 
   useEffect(() => {
-    if (!isNewSubmission) {
-      fetchSavedSubmission().catch((e) => {
-        Sentry.captureMessage('[FormPage] Fetch data-point failed');
-        Sentry.captureException(e);
-      });
-    }
-  }, [isNewSubmission, fetchSavedSubmission]);
+    fetchSavedSubmission();
+  }, [fetchSavedSubmission]);
 
   return (
     <BaseLayout
@@ -281,6 +279,7 @@ const FormPage = ({ navigation, route }) => {
           onSubmit={handleOnSubmitForm}
           setShowDialogMenu={setShowDialogMenu}
           db={db}
+          isNewSubmission={isNewSubmission}
         />
       ) : (
         <View style={styles.loadingContainer}>

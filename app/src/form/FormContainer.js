@@ -41,7 +41,13 @@ const style = {
   flex: 1,
 };
 
-const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
+const FormContainer = ({
+  onSubmit,
+  setShowDialogMenu,
+  db,
+  forms = {},
+  isNewSubmission = false,
+}) => {
   const [activeGroup, setActiveGroup] = useState(0);
   const [showQuestionGroupList, setShowQuestionGroupList] = useState(false);
   const [datapoint, setDatapoint] = useState(null);
@@ -178,7 +184,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
 
   const fetchInitialValues = useCallback(async () => {
     // get initial values from crudDatapoints get by route.params?.uuid
-    if (!db || !route?.params?.uuid) {
+    if (!db || !route?.params?.uuid || !isNewSubmission) {
       setFillingForm(false);
       return;
     }
@@ -235,7 +241,7 @@ const FormContainer = ({ forms = {}, onSubmit, setShowDialogMenu, db }) => {
       }
       setDatapoint(findDatapoint);
     }
-  }, [db, route?.params?.uuid, datapoint, forms]);
+  }, [db, isNewSubmission, forms, route?.params?.uuid, datapoint]);
 
   // Fetch initial values when the component mounts
   useEffect(() => {
