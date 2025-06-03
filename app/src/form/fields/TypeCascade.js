@@ -22,6 +22,7 @@ const TypeCascade = ({
   const [dataSource, setDataSource] = useState([]);
   const [dropdownItems, setDropdownItems] = useState([]);
   const prevAdmAnswer = FormState.useState((s) => s.prevAdmAnswer);
+  const cascadesValue = FormState.useState((s) => s.cascades?.[id]);
   const activeLang = FormState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
   const requiredValue = required ? requiredSign : null;
@@ -69,7 +70,7 @@ const TypeCascade = ({
     if (finalValues) {
       const { options: selectedOptions, value: selectedValue } = dropdownValues.pop();
       const findSelected = selectedOptions?.find((o) => o.id === selectedValue);
-      const cascadeName = findSelected?.name;
+      const cascadeName = findSelected?.full_path_name;
       FormState.update((s) => {
         s.cascades = { ...s.cascades, [id]: cascadeName };
         s.prevAdmAnswer = source?.file === 'administrator.sqlite' ? finalValues : s.prevAdmAnswer;
@@ -116,25 +117,25 @@ const TypeCascade = ({
     }
     const groupedDs = groupBy(filterDs, 'parent');
     if (parentIDs.length > 1 && Object.keys(groupedDs).length > 1) {
-      const parentOptions = Object.keys(groupedDs)
-        .map((keyID) => dataSource.find((d) => d?.id === parseInt(keyID, 10)))
-        .filter((d) => d);
-      return value
-        ? value.map((val, vx) => {
-            const options = dataSource?.filter((d) =>
-              vx === 0 ? parentIDs.includes(d?.id) : d?.parent === parseInt(value?.[vx - 1], 10),
-            );
-            return {
-              options,
-              value: parseInt(val, 10),
-            };
-          })
-        : [
-            {
-              options: parentOptions,
-              value: value?.[0] || null,
-            },
-          ];
+      return Object.values(groupedDs).map((options, ox) => {
+        const defaultValue = value?.[ox] || null;
+        let answer = defaultValue;
+        if (typeof defaultValue === 'string') {
+          const found = options.find((o) => o?.name === defaultValue);
+          if (found) {
+            answer = found.id;
+          }
+        }
+
+        if (Array.isArray(value) && value.length) {
+          const found = options.find((o) => value.includes(o?.id));
+          answer = found?.id || options?.[options.length - 1]?.id || null;
+        }
+        return {
+          options,
+          value: answer,
+        };
+      });
     }
     return Object.values(groupedDs).map((options, ox) => {
       const defaultValue = value?.[ox] || null;
@@ -169,22 +170,16 @@ const TypeCascade = ({
         s.entityOptions[id] = rows?.filter((a) => a?.entity === cascadeType);
       });
     }
-
-    // Find and update cascade name if value exists
-    if (source && value?.length) {
-      const cascadeID = value.slice(-1)[0];
+    // Set initial cascade
+    if (!cascadesValue && value?.length) {
+      const cascadeID = value.slice(-1)?.[0];
       // Filter rows with cascadeID instead of making another loadDataSource call
       const csValue = rows?.find((row) => row.id === cascadeID);
-      if (csValue) {
-        FormState.update((s) => {
-          s.cascades = {
-            ...s.cascades,
-            [id]: csValue.name,
-          };
-        });
-      }
+      FormState.update((s) => {
+        s.cascades = { ...s.cascades, [id]: csValue?.full_path_name };
+      });
     }
-  }, [source, value, id, cascadeType]);
+  }, [source, id, value, cascadesValue, cascadeType]);
 
   useEffect(() => {
     loadCascadeData();
