@@ -37,8 +37,10 @@ const MonitoringDetail = () => {
   const { form, parentId } = useParams();
   const navigate = useNavigate();
 
-  const { language, selectedFormData, forms } = store.useState((s) => s);
-  const childrenForms = forms.filter((f) => `${f.content?.parent}` === form);
+  const { language, selectedFormData } = store.useState((s) => s);
+  const childrenForms = useMemo(() => {
+    return window?.forms?.filter((f) => `${f.content?.parent}` === form);
+  }, [form]);
   const defaultFormId = childrenForms[0]?.id || form;
 
   const { notify } = useNotification();
