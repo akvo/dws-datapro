@@ -1,5 +1,6 @@
 import * as Yup from 'yup';
 import { i18n } from '../../lib';
+import { QUESTION_TYPES } from '../../lib/constants';
 
 export const intersection = (array1, array2) => {
   const set1 = new Set(array1);
@@ -67,7 +68,7 @@ export const transformForm = (
     .flatMap((q) => q)
     .map((q) => (nonEnglish ? i18n.transform(lang, q) : q))
     .map((q) => {
-      if (q.type === 'option' || q.type === 'multiple_option') {
+      if (q.type === QUESTION_TYPES.option || q.type === QUESTION_TYPES.multiple_option) {
         const options = q.option.map((o) => (nonEnglish ? i18n.transform(lang, o) : o));
         return {
           ...q,
@@ -334,16 +335,23 @@ export const generateDataPointName = (forms, currentValues, cascades = {}, datap
         .flatMap((qg) => qg.question.filter((q) => q?.meta))
         ?.map((q) => {
           const defaultValue = currentValues?.[q.id] || null;
-          const value = q.type === 'cascade' ? cascades?.[q.id] || defaultValue : defaultValue;
+          const value =
+            q.type === QUESTION_TYPES.cascade ? cascades?.[q.id] || defaultValue : defaultValue;
           return { id: q.id, type: q.type, value };
         })
     : [];
   const dpName = dataPointNameValues
-    .filter((d) => d.type !== 'geo' && (d.value || d.value === 0))
+    .filter((d) => d.type !== QUESTION_TYPES.geo && (d.value || d.value === 0))
     .map((x) => x.value)
     .join(' - ');
   if (datapoint?.geo && typeof datapoint.geo === 'string') {
-    const dpGeo = JSON.parse(datapoint.geo);
+    if (datapoint.geo.includes('|')) {
+      // If geo is already in the format "lat|lng"
+      return { dpName, dpGeo: datapoint.geo };
+    }
+    // Check datapoint.geo is a JSON array string
+    const dpGeo =
+      datapoint.geo.startsWith('[') && datapoint.geo.endsWith(']') ? JSON.parse(datapoint.geo) : [];
     if (!dpName || `${dpName}`.trim() === '') {
       return { dpName: datapoint.name || '', dpGeo: dpGeo.join('|') };
     }
@@ -351,9 +359,9 @@ export const generateDataPointName = (forms, currentValues, cascades = {}, datap
   }
   const geoQuestion = forms?.question_group
     ?.flatMap((qg) => qg?.question)
-    ?.find((q) => q?.type === 'geo');
+    ?.find((q) => q?.type === QUESTION_TYPES.geo);
   const [lat, lng] =
-    dataPointNameValues.find((d) => d.type === 'geo')?.value ||
+    dataPointNameValues.find((d) => d.type === QUESTION_TYPES.geo)?.value ||
     currentValues?.[geoQuestion?.id] ||
     [];
   const dpGeo = lat && lng ? `${lat}|${lng}` : null;
@@ -373,7 +381,11 @@ export const getDurationInMinutes = (startTime) => {
 
 const transformValue = (question, value, prefilled = []) => {
   const findPrefilled = prefilled.find((p) => p?.id === question?.id);
-  const defaultEmpty = ['multiple_option', 'option'].includes(question?.type) ? [] : '';
+  const defaultEmpty = [QUESTION_TYPES.multiple_option, QUESTION_TYPES.option].includes(
+    question?.type,
+  )
+    ? []
+    : '';
   let answer = defaultEmpty;
   if (value || value === 0) {
     answer = value;
@@ -382,17 +394,17 @@ const transformValue = (question, value, prefilled = []) => {
     answer = findPrefilled.answer;
   }
 
-  if (question?.type === 'cascade') {
+  if (question?.type === QUESTION_TYPES.cascade) {
     return [answer];
   }
-  if (question?.type === 'geo') {
+  if (question?.type === QUESTION_TYPES.geo) {
     return answer === '' ? [] : value;
   }
-  if (question?.type === 'number' && typeof answer !== 'undefined') {
+  if (question?.type === QUESTION_TYPES.number && typeof answer !== 'undefined') {
     return `${answer}`;
   }
   if (question?.default_value?.monitoring) {
-    return ['multiple_option', 'option'].includes(question?.type)
+    return [QUESTION_TYPES.multiple_option, QUESTION_TYPES.option].includes(question?.type)
       ? [question.default_value.monitoring]
       : question.default_value.monitoring;
   }
@@ -422,7 +434,7 @@ export const transformMonitoringData = (formDataJson, lastValues) => {
   }
 
   const admQuestion = allQuestions.find(
-    (q) => q?.type === 'cascade' && q?.source?.file === 'administrator.sqlite',
+    (q) => q?.type === QUESTION_TYPES.cascade && q?.source?.file === 'administrator.sqlite',
   );
   const prevAdmAnswer = lastValues?.[admQuestion?.id] ? [lastValues?.[admQuestion?.id]] : [];
   return { currentValues, prevAdmAnswer };
