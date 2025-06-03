@@ -333,10 +333,19 @@ export const generateDataPointName = (forms, currentValues, cascades = {}, datap
     ? forms.question_group
         .filter((qg) => !qg?.repeatable)
         .flatMap((qg) => qg.question.filter((q) => q?.meta))
+        ?.filter((q) => currentValues?.[q.id] || cascades?.[q.id])
         ?.map((q) => {
-          const defaultValue = currentValues?.[q.id] || null;
-          const value =
-            q.type === QUESTION_TYPES.cascade ? cascades?.[q.id] || defaultValue : defaultValue;
+          let value = currentValues?.[q.id];
+          if (q?.type === QUESTION_TYPES.cascade && q?.source?.file === 'administrator.sqlite') {
+            value = cascades?.[q.id] || value;
+          }
+          if (q?.type === QUESTION_TYPES.date) {
+            const dateValue = currentValues?.[q.id];
+            const date = new Date(dateValue);
+            const formattedDate = date.toISOString().split('T')[0]; // "2025-06-03"
+            const fullDate = date.toString(); // "Tue Jun 03 2025 16:21:51 GMT+0700"
+            value = `${formattedDate} - ${fullDate}`;
+          }
           return { id: q.id, type: q.type, value };
         })
     : [];
