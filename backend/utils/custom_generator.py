@@ -23,6 +23,17 @@ def generate_sqlite(model, test: bool = False):
     no_rows = data.shape[0]
     if no_rows < 1:
         return
+    # Add full_path_name for Administration model
+    if model.__name__ == "Administration":
+        # Get all Administration objects with their full_path_name property
+        full_path_names = {
+            obj.id: obj.full_path_name.replace("|", " - ") for obj in objects
+        }
+        # Add the full_path_name column to the DataFrame
+        data["full_path_name"] = data["id"].apply(
+            lambda id_: full_path_names.get(id_, "")
+        )
+
     if "parent" in field_names:
         data["parent"] = data["parent"].apply(
             lambda x: int(x) if x == x else 0
