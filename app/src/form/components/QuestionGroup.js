@@ -57,13 +57,14 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
   };
 
   // Render item for FlatList - handles both question items and section headers
-  const renderItem = ({ item }) => {
+  const renderItem = ({ item }, isRepeatable = false) => {
     if (item.type === 'header') {
       return <RepeatSection group={group} repeatIndex={item.repeatIndex} />;
     }
 
     // For question items
     const fieldValue = values?.[item.id];
+    const groupQuestions = isRepeatable ? item.sectionData : activeQuestions;
     return (
       <View key={`question-${item.id}`} style={styles.questionContainer}>
         <QuestionField
@@ -71,7 +72,7 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
           field={item}
           onChange={handleOnChange}
           value={fieldValue}
-          questions={item.sectionData || flatListData}
+          questions={groupQuestions}
         />
       </View>
     );
@@ -86,8 +87,8 @@ const QuestionGroup = ({ index, group, activeQuestions, dependantQuestions = [] 
           data={flatListData}
           keyExtractor={(item) => `${item.type}-${item.id}`}
           onContentSizeChange={handleContentSizeChange}
-          contentContainerStyle={{ paddingBottom: 48 }}
-          renderItem={renderItem}
+          contentContainerStyle={{ paddingBottom: group?.repeatable ? 124 : 48 }}
+          renderItem={(itemProps) => renderItem(itemProps, group?.repeatable)}
           extraData={[group, values, activeQuestions, dependantQuestions]}
           removeClippedSubviews={false}
           enableOnAndroid
