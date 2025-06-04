@@ -36,6 +36,7 @@ const Forms = () => {
   const [percentage, setPercentage] = useState(0);
   const [submit, setSubmit] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [parentData, setParentData] = useState(null);
   const { notify } = useNotification();
   const { language, initialValue, forms: allForms } = store.useState((s) => s);
   const { active: activeLang } = language;
@@ -62,6 +63,14 @@ const Forms = () => {
   ];
 
   const webformRef = useRef();
+
+  const backURL = useMemo(
+    () =>
+      parentData?.id && parentData?.form
+        ? `/control-center/data/${parentData.form}/monitoring/${parentData.id}?form_id=${formId}`
+        : `/control-center/data?form_id=${formId}`,
+    [parentData, formId]
+  );
 
   const getEntityByName = async ({ id, value, apiURL }) => {
     try {
@@ -577,7 +586,8 @@ const Forms = () => {
         const res = await fetch(
           `${window.location.origin}/datapoints/${uuid}.json`
         );
-        const { answers: apiAnswers } = await res.json();
+        const { answers: apiAnswers, id: parentId } = await res.json();
+        setParentData({ id: parentId, form: apiData?.parent });
         const parentQuestionsMap = parentFormQuestions?.reduce((acc, q) => {
           acc[q.id] = q.name;
           return acc;
@@ -713,7 +723,7 @@ const Forms = () => {
        * Redirect to the list when localStorage already has submitted item
        */
       window.localStorage.removeItem("submitted");
-      navigate("/control-center/data");
+      navigate(backURL);
     }
     if (
       typeof webformRef?.current === "undefined" &&
@@ -743,6 +753,7 @@ const Forms = () => {
     forms,
     loading,
     initialValue,
+    backURL,
     navigate,
     fetchInitialMonitoringData,
   ]);
@@ -842,10 +853,7 @@ const Forms = () => {
                   {text.newSubmissionBtn}
                 </Button>,
                 !redirectToBatch ? (
-                  <Button
-                    key="manage-button"
-                    onClick={() => navigate("/control-center/data")}
-                  >
+                  <Button key="manage-button" onClick={() => navigate(backURL)}>
                     {text.finishSubmissionBtn}
                   </Button>
                 ) : (
