@@ -357,7 +357,7 @@ const AddAssignment = () => {
                   allowClear
                   loading={loading}
                   fieldNames={{ value: "id", label: "name" }}
-                  options={editAssignment?.forms || formOptions}
+                  options={formOptions}
                   className="custom-select"
                   tagRender={tagRender}
                 />
