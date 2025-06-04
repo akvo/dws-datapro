@@ -242,6 +242,8 @@ EMAIL_FROM = environ.get("EMAIL_FROM", "noreply@akvo.org")
 
 COUNTRY_NAME = "fiji"
 
+TEST_ENV = False
+
 Q_CLUSTER = {
     "name": "DjangORM",
     "workers": 4,

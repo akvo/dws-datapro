@@ -1,5 +1,4 @@
 # Create your views here.
-import os
 from typing import cast
 from wsgiref.util import FileWrapper
 from django.contrib.admin.sites import site
@@ -7,6 +6,7 @@ from django.core.handlers.wsgi import WSGIRequest
 from django.db.models import ProtectedError, Q
 from django.contrib.admin.utils import get_deleted_objects
 from django.http.response import HttpResponse
+from django.conf import settings
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     OpenApiParameter,
@@ -166,8 +166,7 @@ class AdministrationViewSet(ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         try:
-            TESTING = os.environ.get("TESTING")
-            administration_csv_delete(id=instance.pk, test=TESTING)
+            administration_csv_delete(id=instance.pk)
             instance.delete()
         except ProtectedError:
             _, _, _, protected = get_deleted_objects(
@@ -468,7 +467,7 @@ def export_pre_entities_data_template(request: Request, version):
     administration = None
     if adm_id:
         administration = Administration.objects.get(pk=adm_id)
-    TESTING = os.environ.get("TESTING")
+    TESTING = settings.TEST_ENV
     filepath = generate_entities_data_excel(
         cast(SystemUser, request.user),
         entity_ids=entity_ids,
