@@ -116,33 +116,6 @@ def get_mobile_form_details(request: Request, version, form_id):
     return Response(data, status=status.HTTP_200_OK)
 
 
-def get_raw_token(request):
-    """
-    Extracts an unvalidated JSON web token from the given request.
-    """
-    encoding = "iso-8859-1"
-    auth_header_bytes = ("Bearer".encode(encoding),)
-
-    header = request.META.get("HTTP_AUTHORIZATION")
-    if isinstance(header, str):
-        header = header.encode(encoding)
-
-    parts = header.split()
-
-    if len(parts) == 0:
-        # Empty AUTHORIZATION header sent
-        return None
-
-    if parts[0] not in auth_header_bytes:
-        # Assume the header does not contain a JSON web token
-        return None
-
-    if len(parts) != 2:
-        return None
-
-    return parts[1].decode("utf-8")
-
-
 @extend_schema(
     request=inline_serializer(
         name="SyncDeviceFormData",
