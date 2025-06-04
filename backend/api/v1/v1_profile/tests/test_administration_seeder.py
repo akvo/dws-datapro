@@ -6,7 +6,7 @@ from api.v1.v1_profile.models import Levels, Administration
 from api.v1.v1_users.serializers import ListAdministrationChildrenSerializer
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class AdministrationSeederTestCase(TestCase):
     def test_administration_seeder_production(self):
         administration_seeder.seed_administration_prod()

@@ -6,7 +6,7 @@ from api.v1.v1_profile.management.commands import administration_seeder
 from api.v1.v1_profile.models import Administration
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class UpdateAdministrationPathTestCase(TestCase):
 
     def setUp(self):

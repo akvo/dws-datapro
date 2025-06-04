@@ -1,5 +1,5 @@
 from django.core.management import call_command
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.db.models import Count
 from api.v1.v1_jobs.functions import ValidationText
 from api.v1.v1_jobs.validate_upload import validate
@@ -16,6 +16,7 @@ from api.v1.v1_data.management.commands.fake_data_seeder import (
 from api.v1.v1_profile.functions import get_max_administration_level
 
 
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class BulkUploadDataTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         super().setUp()

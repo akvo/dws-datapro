@@ -6,7 +6,7 @@ from django.urls import reverse
 from api.v1.v1_users.models import Organisation
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class OrganisationEndpointsTestCase(TestCase):
     def setUp(self):
         call_command("fake_organisation_seeder", "--repeat", 5)
