@@ -517,7 +517,8 @@ class PendingDataDetailDeleteView(APIView):
     def get(self, request, pending_data_id, version):
         data = get_object_or_404(FormData, pk=pending_data_id, is_pending=True)
         # Get the last data from the last children
-        last_data = data.children.last() if data.children.exists() else None
+        last_data = data.parent.children.filter(is_pending=False).last() if \
+            data.parent else None
         # Find the original FormData if this is an update
         if not last_data:
             last_data = FormData.objects.filter(
