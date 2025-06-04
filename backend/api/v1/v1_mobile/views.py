@@ -531,7 +531,8 @@ def get_datapoint_download_list(request, version):
     # Build path query by combining conditions for all administration paths
     path_query = Q()
     for admin in administrations:
-        path_query |= Q(administration__path__startswith=admin["path"])
+        adm_path = admin["path"] if admin["path"] else admin["id"]
+        path_query |= Q(administration__path__startswith=adm_path)
     # Combine both queries with the form filter
     queryset = FormData.objects.filter(
         admin_id_query | (path_query & Q(form_id__in=forms))

@@ -21,8 +21,9 @@ class MobileDataPointDownloadListTestCase(TestCase):
             first_name="test",
             last_name="testing",
         )
-        self.administrations = Administration.objects.filter(level__level=2)
-        self.administration = self.administrations.first()
+        self.administration = Administration.objects.filter(
+            parent__isnull=True
+        ).first()
         role = UserRoleTypes.admin
         self.user_access = Access.objects.create(
             user=self.user, role=role, administration=self.administration
@@ -33,11 +34,9 @@ class MobileDataPointDownloadListTestCase(TestCase):
         self.mobile_assignment = MobileAssignment.objects.create_assignment(
             user=self.user, name="test", passcode=self.passcode
         )
-        self.administration_children = Administration.objects.filter(
-            parent=self.administration
-        ).all()
+        self.adm_children = self.administration.parent_administration.all()
         self.mobile_assignment.administrations.add(
-            *self.administration_children
+            *self.adm_children
         )
         self.mobile_assignment = MobileAssignment.objects.get(user=self.user)
         self.mobile_assignment.forms.add(*self.forms)
@@ -45,7 +44,7 @@ class MobileDataPointDownloadListTestCase(TestCase):
             name="TEST",
             geo=None,
             form=self.forms[0],
-            administration=self.administration_children.first(),
+            administration=self.adm_children.first(),
             created_by=self.user,
             uuid=self.uuid,
         )
@@ -92,3 +91,87 @@ class MobileDataPointDownloadListTestCase(TestCase):
                 "last_updated",
             ],
         )
+
+    def test_get_datapoints_list_by_national_user(self):
+        # Remove current administration mobile assignment
+        self.mobile_assignment.administrations.clear()
+        # Add national administration
+        self.mobile_assignment.administrations.add(
+            self.administration
+        )
+        self.mobile_assignment.save()
+        code = {"code": self.passcode}
+        response = self.client.post(
+            "/api/v1/device/auth",
+            code,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token = response.data["syncToken"]
+        url = "/api/v1/device/datapoint-list/"
+        response = self.client.get(
+            url,
+            follow=True,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["total"], 1)
+
+    def test_get_datapoints_list_by_second_level_administration(self):
+        # Remove current administration mobile assignment
+        self.mobile_assignment.administrations.clear()
+        # Add second level administration
+        self.mobile_assignment.administrations.add(
+            self.administration.parent_administration.first()
+        )
+        self.mobile_assignment.save()
+        code = {"code": self.passcode}
+        response = self.client.post(
+            "/api/v1/device/auth",
+            code,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token = response.data["syncToken"]
+        url = "/api/v1/device/datapoint-list/"
+        response = self.client.get(
+            url,
+            follow=True,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(data["total"], 1)
+
+    def test_get_datapoints_list_by_last_administration_level(self):
+        # Remove current administration mobile assignment
+        self.mobile_assignment.administrations.clear()
+        # Add last level administration
+        adm = self.adm_children.first()
+        adm_children = adm.parent_administration.first()
+        self.mobile_assignment.administrations.add(
+            adm_children
+        )
+        self.mobile_assignment.save()
+        code = {"code": self.passcode}
+        response = self.client.post(
+            "/api/v1/device/auth",
+            code,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token = response.data["syncToken"]
+        url = "/api/v1/device/datapoint-list/"
+        response = self.client.get(
+            url,
+            follow=True,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        # No data points for last level administration
+        self.assertEqual(data["total"], 0)
