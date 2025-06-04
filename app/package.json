@@ -52,6 +52,7 @@
     "react-native": "0.79.2",
     "react-native-background-actions": "^3.0.1",
     "react-native-element-dropdown": "^2.9.0",
+    "react-native-keyboard-aware-scroll-view": "^0.9.5",
     "react-native-material-menu": "^2.0.0",
     "react-native-render-html": "^6.3.4",
     "react-native-safe-area-context": "5.4.0",
