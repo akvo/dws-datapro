@@ -427,8 +427,14 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
             answer = (
                 self.context["last_data"]
                 .data_answer.filter(
-                    Q(question=instance.question) |
-                    Q(question=parent_question)
+                    Q(
+                        question=instance.question,
+                        index=instance.index,
+                    ) |
+                    Q(
+                        question=parent_question,
+                        index=instance.index,
+                    )
                 )
                 .first()
             )
@@ -1132,6 +1138,17 @@ class SubmitPendingFormSerializer(serializers.Serializer):
                 direct_to_data = True
 
         obj_data = self.fields.get("data").create(data)
+        if data.get("uuid"):
+            obj_data.uuid = data["uuid"]
+            # find parent data by uuid and parent form
+            parent_data = FormData.objects.filter(
+                uuid=data["uuid"],
+                form__parent__isnull=True,
+            ).first()
+            if parent_data:
+                # if parent data exists, link the child data
+                obj_data.parent = parent_data
+            obj_data.save()
 
         if not direct_to_data:
             # If not direct to data, set pending status
@@ -1203,19 +1220,9 @@ class SubmitPendingFormSerializer(serializers.Serializer):
 
         Answers.objects.bulk_create(answers)
 
-        if direct_to_data:
-            if data.get("uuid"):
-                obj_data.uuid = data["uuid"]
-                # find parent data by uuid and parent form
-                parent_data = FormData.objects.filter(
-                    uuid=data["uuid"],
-                    form__parent__isnull=True,
-                ).first()
-                if parent_data:
-                    # if parent data exists, link the child data
-                    obj_data.parent = parent_data
-            obj_data.save()
-            if direct_to_data:
-                obj_data.save_to_file
+        if direct_to_data and not obj_data.parent and not obj_data.is_pending:
+            # Only save to file if the data is not pending
+            # and does not have a parent
+            obj_data.save_to_file
 
         return obj_data
