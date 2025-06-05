@@ -12,7 +12,7 @@ from utils.custom_generator import (
 )
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class AdministrationCSVTestCase(TestCase):
     def setUp(self) -> None:
         super().setUp()
@@ -29,7 +29,7 @@ class AdministrationCSVTestCase(TestCase):
             parent=parent
         )
         new_adm.save()
-        filepath = administration_csv_add(data=new_adm, test=True)
+        filepath = administration_csv_add(data=new_adm)
         self.assertEqual(
             filepath,
             f"{STORAGE_PATH}/master_data/test-administration.csv"
@@ -47,7 +47,7 @@ class AdministrationCSVTestCase(TestCase):
         adm.name = 'Village name changed'
         adm.save()
 
-        filepath = administration_csv_update(data=adm, test=True)
+        filepath = administration_csv_update(data=adm)
         self.assertEqual(
             filepath,
             f"{STORAGE_PATH}/master_data/test-administration.csv"
@@ -65,7 +65,7 @@ class AdministrationCSVTestCase(TestCase):
         adm_name = adm.name
         adm.delete()
 
-        filepath = administration_csv_delete(id=adm_id, test=True)
+        filepath = administration_csv_delete(id=adm_id)
         self.assertEqual(
             filepath,
             f"{STORAGE_PATH}/master_data/test-administration.csv"

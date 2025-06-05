@@ -130,7 +130,10 @@
           "short_label": "Decimal and 0",
           "meta": false,
           "type": "number",
-          "required": false
+          "required": false,
+          "rule": {
+            "allowDecimal": true
+          }
         },
         {
           "id": 111,

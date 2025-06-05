@@ -6,7 +6,7 @@ import pathlib
 from math import ceil
 from wsgiref.util import FileWrapper
 from django.utils import timezone
-from django.db.models import F, Max
+from django.db.models import F
 from django.http import HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
@@ -168,17 +168,9 @@ class FormDataAddListView(APIView):
             }
             return Response(data, status=status.HTTP_200_OK)
 
-        # get latest data
-        latest_ids_per_uuid = (
-            form.form_form_data
-            .values("uuid")
-            .annotate(latest_id=Max("id"))
-            .values_list("latest_id", flat=True)
-        )
         filter_data = {
-            "pk__in": latest_ids_per_uuid,
+            "is_pending": False,
         }
-
         access = request.user.user_access
 
         if serializer.validated_data.get("administration"):
@@ -524,12 +516,14 @@ class PendingDataDetailDeleteView(APIView):
     )
     def get(self, request, pending_data_id, version):
         data = get_object_or_404(FormData, pk=pending_data_id, is_pending=True)
+        # Get the last data from the last children
+        last_data = data.parent.children.filter(is_pending=False).last() if \
+            data.parent else None
         # Find the original FormData if this is an update
-        last_data = (
-            FormData.objects.filter(uuid=data.uuid, is_pending=False)
-            .order_by("-created")
-            .first()
-        )
+        if not last_data:
+            last_data = FormData.objects.filter(
+                uuid=data.uuid, is_pending=False
+            ).first()
         return Response(
             ListPendingDataAnswerSerializer(
                 context={"last_data": last_data},

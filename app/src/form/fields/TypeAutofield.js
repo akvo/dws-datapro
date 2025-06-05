@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View } from 'react-native';
 import { Input } from '@rneui/themed';
-import * as Sentry from '@sentry/react-native';
 
 import { FieldLabel } from '../support';
 import styles from '../styles';
@@ -56,8 +55,8 @@ const TypeAutofield = ({
           }
         }
       } catch (error) {
-        Sentry.captureMessage(`[TypeAutofield] question ID: ${id}`);
-        Sentry.captureException(error);
+        // eslint-disable-next-line no-console
+        console.info(`[TypeAutofield] Error processing fnString: ${nameFnString}`, error);
       }
     });
 

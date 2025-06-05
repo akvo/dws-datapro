@@ -2,11 +2,10 @@ import datetime
 import enum
 import itertools
 import math
-import os
-from string import ascii_uppercase
-
 import pandas as pd
 
+from django.conf import settings
+from string import ascii_uppercase
 from api.v1.v1_data.models import FormData
 from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_forms.models import Questions
@@ -283,7 +282,7 @@ def validate_data_id(col, data_id, collect_data_ids=[]):
 def validate(form: int, administration: int, file: str):
     sheet_names = validate_sheet_name(file)
     template_sheets = ["data", "questions", "options"]
-    TESTING = os.environ.get("TESTING")
+    TESTING = settings.TEST_ENV
     if TESTING:
         template_sheets = ["data"]
     for sheet_tab in template_sheets:

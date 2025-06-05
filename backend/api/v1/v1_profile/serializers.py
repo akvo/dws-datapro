@@ -1,4 +1,3 @@
-import os
 import random
 import string
 from typing import Any, Dict, cast
@@ -203,8 +202,7 @@ class AdministrationSerializer(serializers.ModelSerializer):
                 "path": instance.path,
             },
         )
-        TESTING = os.environ.get("TESTING")
-        administration_csv_add(data=instance, test=TESTING)
+        administration_csv_add(data=instance)
         for attribute in attributes:
             instance.attributes.create(**attribute)
         return instance
@@ -258,8 +256,7 @@ class AdministrationSerializer(serializers.ModelSerializer):
             },
             id=instance.id,
         )
-        TESTING = os.environ.get("TESTING")
-        administration_csv_update(data=instance, test=TESTING)
+        administration_csv_update(data=instance)
         return instance
 
     def _set_code(self, validated_data):

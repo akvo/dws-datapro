@@ -1,4 +1,3 @@
-import os
 import pandas as pd
 from typing import cast
 from django.core.management import call_command
@@ -13,10 +12,8 @@ from api.v1.v1_profile.models import (
 
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 
-os.environ['TESTING'] = 'True'
 
-
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class EntitiesDataBulkUploadTemplateExportTestCase(
     TestCase, ProfileTestHelperMixin
 ):

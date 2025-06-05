@@ -2,6 +2,7 @@ import os
 import sqlite3
 import pandas as pd
 import logging
+from django.conf import settings
 from mis.settings import MASTER_DATA, STORAGE_PATH, COUNTRY_NAME
 from api.v1.v1_profile.models import Administration
 
@@ -9,6 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 def generate_sqlite(model, test: bool = False):
+    if not test:
+        test = settings.TEST_ENV
     table_name = model._meta.db_table
     field_names = [f.name for f in model._meta.fields]
     objects = model.objects.all()
@@ -50,7 +53,8 @@ def generate_sqlite(model, test: bool = False):
     return file_name
 
 
-def update_sqlite(model, data, id=None, test: bool = False):
+def update_sqlite(model, data, id=None):
+    test = settings.TEST_ENV
     table_name = model._meta.db_table
     fields = data.keys()
     field_names = ", ".join([f for f in fields])
@@ -84,7 +88,8 @@ def update_sqlite(model, data, id=None, test: bool = False):
         conn.close()
 
 
-def administration_csv_add(data: dict, test: bool = False):
+def administration_csv_add(data: dict):
+    test = settings.TEST_ENV
     filename = "{0}-administration.csv".format(
         "test" if test else COUNTRY_NAME
     )
@@ -128,7 +133,8 @@ def find_index_by_id(df, id):
     return None
 
 
-def administration_csv_update(data: dict, test: bool = False):
+def administration_csv_update(data: dict):
+    test = settings.TEST_ENV
     filename = "{0}-administration.csv".format(
         "test" if test else COUNTRY_NAME
     )
@@ -161,7 +167,8 @@ def administration_csv_update(data: dict, test: bool = False):
     return None
 
 
-def administration_csv_delete(id: int, test: bool = False):
+def administration_csv_delete(id: int):
+    test = settings.TEST_ENV
     filename = "{0}-administration.csv".format(
         "test" if test else COUNTRY_NAME
     )

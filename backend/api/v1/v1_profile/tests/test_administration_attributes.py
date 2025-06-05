@@ -7,7 +7,7 @@ from api.v1.v1_profile.models import AdministrationAttribute
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class AdministrationAttributeTestCase(TestCase, ProfileTestHelperMixin):
 
     def setUp(self) -> None:

@@ -17,6 +17,11 @@ const ManageData = () => {
   const [activeFilter, setActiveFilter] = useState(null);
   const navigate = useNavigate();
 
+  // Get form_id from URL as default selectedForm
+  const formIdFromUrl = new URLSearchParams(window.location.search).get(
+    "form_id"
+  );
+
   const { administration, selectedForm, user } = store.useState(
     (state) => state
   );
@@ -100,10 +105,16 @@ const ManageData = () => {
   ]);
 
   const fetchData = useCallback(() => {
-    if (selectedForm && isAdministrationLoaded && updateRecord) {
+    const formId = formIdFromUrl || selectedForm;
+    if (formIdFromUrl) {
+      store.update((s) => {
+        s.selectedForm = parseInt(formIdFromUrl, 10);
+      });
+    }
+    if (formId && isAdministrationLoaded && updateRecord) {
       setUpdateRecord(false);
       setLoading(true);
-      let url = `/form-data/${selectedForm}/?page=${currentPage}`;
+      let url = `/form-data/${formId}/?page=${currentPage}`;
       if (selectedAdministration?.id) {
         url += `&administration=${selectedAdministration.id}`;
       }
@@ -133,6 +144,7 @@ const ManageData = () => {
     isAdministrationLoaded,
     advancedFilters,
     updateRecord,
+    formIdFromUrl,
   ]);
 
   useEffect(() => {

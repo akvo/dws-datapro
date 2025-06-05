@@ -1,4 +1,3 @@
-import os
 import typing
 from django.core.management import call_command
 from django.http import HttpResponse
@@ -12,10 +11,8 @@ from api.v1.v1_profile.models import (
         Administration, AdministrationAttribute, Levels)
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 
-os.environ['TESTING'] = 'True'
 
-
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class AdministrationTestCase(TestCase, ProfileTestHelperMixin):
 
     def setUp(self) -> None:
@@ -199,7 +196,7 @@ class AdministrationTestCase(TestCase, ProfileTestHelperMixin):
         self.assertIn('referenced_by', body)
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class AdministrationAttributeValueTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self) -> None:
         super().setUp()

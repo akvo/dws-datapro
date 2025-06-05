@@ -10,7 +10,7 @@ from api.v1.v1_profile.management.commands.administration_seeder import (
 )
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class EntityTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         super().setUp()
@@ -92,7 +92,7 @@ class EntityTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(body.get('data')[0]['name'], 'Rumah Sakit')
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class EntityDataTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         super().setUp()
@@ -196,7 +196,7 @@ class EntityDataTestCase(TestCase, ProfileTestHelperMixin):
         self.assertFalse(EntityData.objects.filter(id=data.id).exists())
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class EntityDataFilterTestCase(TestCase, ProfileTestHelperMixin):
     def populate_test_data(self):
         AdministrationEntitiesTestFactory({

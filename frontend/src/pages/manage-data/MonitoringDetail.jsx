@@ -41,19 +41,29 @@ const MonitoringDetail = () => {
   const childrenForms = useMemo(() => {
     return window?.forms?.filter((f) => `${f.content?.parent}` === form);
   }, [form]);
-  const defaultFormId = childrenForms[0]?.id || form;
+  // Get form_id from URL as default selectedForm
+  const formIdFromUrl = new URLSearchParams(window.location.search).get(
+    "form_id"
+  );
+  const defaultFormId = formIdFromUrl
+    ? parseInt(formIdFromUrl, 10)
+    : childrenForms[0]?.id;
 
   const { notify } = useNotification();
   const [loading, setLoading] = useState(false);
   const [dataset, setDataset] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
-  const [updateRecord, setUpdateRecord] = useState(false);
+  const [updateRecord, setUpdateRecord] = useState(
+    formIdFromUrl ? true : false
+  );
   const [deleteData, setDeleteData] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [editedRecord, setEditedRecord] = useState({});
   const [editable, setEditable] = useState(false);
-  const [dataTab, setDataTab] = useState("registration-data");
+  const [dataTab, setDataTab] = useState(
+    formIdFromUrl ? "monitoring-data" : "registration-data"
+  );
   const [selectedForm, setSelectedForm] = useState(defaultFormId);
 
   const { active: activeLang } = language;
@@ -174,7 +184,7 @@ const MonitoringDetail = () => {
 
   const fetchMonitoringData = useCallback(async () => {
     try {
-      if (updateRecord) {
+      if (updateRecord && selectedFormData?.uuid) {
         setUpdateRecord(false);
 
         setLoading(true);
@@ -190,7 +200,7 @@ const MonitoringDetail = () => {
       setUpdateRecord(false);
       setLoading(false);
     }
-  }, [currentPage, updateRecord, selectedForm, selectedFormData]);
+  }, [currentPage, updateRecord, selectedForm, selectedFormData?.uuid]);
 
   useEffect(() => {
     fetchMonitoringData();

@@ -11,7 +11,7 @@ from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from api.v1.v1_profile.models import Entity, Administration
 
 
-@override_settings(USE_TZ=False)
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class EntitiesDownloadEndpointTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self) -> None:
         super().setUp()
