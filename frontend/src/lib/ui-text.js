@@ -720,8 +720,12 @@ const uiText = {
       { text: "Cookie Policy", href: "/cookie-policy" },
     ],
     homeJumbotronTitle: <Fragment>{window.appConfig.name}</Fragment>,
-    homeJumbotronSubtitle:
-      "The Fiji Department of Water & Sewerage (DWS) DataPro is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji.",
+    homeJumbotronSubtitle: (
+      <Fragment>
+        The Fiji {window.appConfig.name} is a comprehensive platform designed to
+        enhance the management of water and sewerage services in Fiji.
+      </Fragment>
+    ),
     homeJumbotronImage: {
       src: "https://images.unsplash.com/photo-1642450909999-7106494ef779?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
       alt: "Water landscape",
@@ -787,10 +791,11 @@ const uiText = {
     homeFooterAboutTitle: <Fragment>About {window.appConfig.name}</Fragment>,
     homeFooterAboutText: (
       <Fragment>
-        The Fiji {window.appConfig.name} is a comprehensive platform designed to
-        enhance the management of water and sewerage services in Fiji. It serves
-        as a centralized hub for data collection, analysis, and reporting,
-        enabling informed decision-making and efficient resource allocation.
+        The Fiji Integrated Water and Sewerage Information Management System (
+        {window.appConfig.name}) is a comprehensive platform designed to enhance
+        the management of water and sewerage services in Fiji. It serves as a
+        centralized hub for data collection, analysis, and reporting, enabling
+        informed decision-making and efficient resource allocation.
       </Fragment>
     ),
     homeFooterCopyrightText: "© 2025 Department of Water and Sewerage",

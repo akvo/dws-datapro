@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: dws-datapro
+  name: ${APP_SHORT_NAME}
 spec:
   replicas: 1
   strategy:
@@ -12,19 +12,19 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      run: dws-datapro
+      run: ${APP_SHORT_NAME}
   template:
     metadata:
       labels:
-        run: dws-datapro
-        dws-datapro-version: "${CI_COMMIT}"
+        run: ${APP_SHORT_NAME}
+        ${APP_SHORT_NAME}-version: "${CI_COMMIT}"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
     spec:
       containers:
         - name: frontend
-          image: eu.gcr.io/akvo-lumen/dws-datapro/frontend:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/akvo-mis/frontend:${CI_COMMIT}
           ports:
             - containerPort: 80
           resources:
@@ -69,87 +69,87 @@ spec:
             - name: GOOGLE_SQL_COMPUTE_ZONE
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: google-sql-compute-zone
             - name: GOOGLE_SQL_DB_INSTANCE
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: google-sql-db-instance
             - name: GOOGLE_PROJECT
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: google-project
           volumeMounts:
-            - name: dws-datapro-secrets
+            - name: ${APP_SHORT_NAME}-secrets
               mountPath: "/secrets/cloudsql/credentials.json"
-              subPath: dws-datapro-service-account.json
+              subPath: iwsims-service-account.json
               readOnly: true
         - name: backend
-          image: eu.gcr.io/akvo-lumen/dws-datapro/backend:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/akvo-mis/backend:${CI_COMMIT}
           ports:
             - containerPort: 8000
           env:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: webdomain
             - name: APP_NAME
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: app-name
             - name: APP_SHORT_NAME
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: app-short-name
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -158,12 +158,12 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: apk-upload-secret
           readinessProbe:
             httpGet:
@@ -176,9 +176,9 @@ spec:
               port: 8000
             initialDelaySeconds: 30
           volumeMounts:
-            - name: dws-datapro-secrets
+            - name: ${APP_SHORT_NAME}-secrets
               mountPath: /secrets/credentials.json
-              subPath: dws-datapro-service-account.json
+              subPath: iwsims-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -190,67 +190,67 @@ spec:
               cpu: "2000m"
               memory: "2048Mi"
         - name: worker
-          image: eu.gcr.io/akvo-lumen/dws-datapro/worker:${CI_COMMIT}
+          image: eu.gcr.io/akvo-lumen/akvo-mis/worker:${CI_COMMIT}
           env:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: webdomain
             - name: APP_NAME
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: app-name
             - name: APP_SHORT_NAME
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: app-short-name
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -259,17 +259,17 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: dws-datapro
+                  name: ${APP_SHORT_NAME}
                   key: apk-upload-secret
           volumeMounts:
-            - name: dws-datapro-secrets
+            - name: ${APP_SHORT_NAME}-secrets
               mountPath: /secrets/credentials.json
-              subPath: dws-datapro-service-account.json
+              subPath: iwsims-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -281,9 +281,9 @@ spec:
               cpu: "1000m"
               memory: "2048Mi"
       volumes:
-        - name: dws-datapro-secrets
+        - name: ${APP_SHORT_NAME}-secrets
           secret:
-            secretName: dws-datapro
+            secretName: ${APP_SHORT_NAME}
         - name: nfs-pvc
           persistentVolumeClaim:
-            claimName: dws-datapro
+            claimName: ${APP_SHORT_NAME}

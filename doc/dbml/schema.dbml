@@ -1,8 +1,8 @@
-Project dws-datapro {
+Project akvo-mis {
   database_type: 'PostgreSQL'
   Note: '''
-    # DWS DataPro
-    DWS DataPro Database Schema
+    # Akvo MIS
+    Akvo MIS Database Schema
   '''
 }
 Enum "questions_type_enum" {
