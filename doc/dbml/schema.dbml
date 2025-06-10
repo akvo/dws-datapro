@@ -1,8 +1,8 @@
-Project dws-datapro {
+Project iwsims {
   database_type: 'PostgreSQL'
   Note: '''
-    # DWS DataPro
-    DWS DataPro Database Schema
+    # IWSIMS
+    IWSIMS Database Schema
   '''
 }
 Enum "questions_type_enum" {
