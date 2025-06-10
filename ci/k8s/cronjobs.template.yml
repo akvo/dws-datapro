@@ -2,7 +2,7 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: dws-datapro-jobs
+  name: akvo-mis-jobs
 spec:
   schedule: "0 23 * * *"
   startingDeadlineSeconds: 600 # it is ok to start the job 10 minutes late
@@ -12,14 +12,14 @@ spec:
   jobTemplate:
     metadata:
       labels:
-        cronjob: dws-datapro-jobs
+        cronjob: akvo-mis-jobs
     spec:
       backoffLimit: 3 # default
       activeDeadlineSeconds: 1800 # Fail job if it takes more than 30 mins
       template:
         metadata:
           labels:
-            cronjob: dws-datapro-jobs
+            cronjob: akvo-mis-jobs
         spec:
           containers:
             - name: cloud-sql-proxy
@@ -51,25 +51,25 @@ spec:
                 - name: GOOGLE_SQL_COMPUTE_ZONE
                   valueFrom:
                     configMapKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: google-sql-compute-zone
                 - name: GOOGLE_SQL_DB_INSTANCE
                   valueFrom:
                     configMapKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: google-sql-db-instance
                 - name: GOOGLE_PROJECT
                   valueFrom:
                     configMapKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: google-project
               volumeMounts:
-                - name: dws-datapro-secrets
+                - name: akvo-mis-secrets
                   mountPath: "/secrets/cloudsql/credentials.json"
-                  subPath: dws-datapro-service-account.json
+                  subPath: iwsims-service-account.json
                   readOnly: true
             - name: backend
-              image: eu.gcr.io/akvo-lumen/dws-datapro/backend:${CI_COMMIT}
+              image: eu.gcr.io/akvo-lumen/akvo-mis/backend:${CI_COMMIT}
               command:
                 - /bin/bash
                 - -c
@@ -78,62 +78,62 @@ spec:
                 - name: DB_SCHEMA
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: db-schema
                 - name: DB_USER
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: db-user
                 - name: DB_PASSWORD
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: db-password
                 - name: DB_HOST
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: db-host
                 - name: DJANGO_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: django-secret
                 - name: MAILJET_APIKEY
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: mailjet-apikey
                 - name: MAILJET_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: mailjet-secret
                 - name: EMAIL_FROM
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: email-from
                 - name: WEBDOMAIN
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: webdomain
                 - name: APP_NAME
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: app-name
                 - name: APP_SHORT_NAME
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: app-short-name
                 - name: SENTRY_DSN
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: sentry-dsn
                 - name: PROD
                   value: "TRUE"
@@ -142,17 +142,17 @@ spec:
                 - name: STORAGE_PATH
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: storage-path
                 - name: APK_UPLOAD_SECRET
                   valueFrom:
                     secretKeyRef:
-                      name: dws-datapro
+                      name: akvo-mis
                       key: apk-upload-secret
               volumeMounts:
-                - name: dws-datapro-secrets
+                - name: akvo-mis-secrets
                   mountPath: /secrets/credentials.json
-                  subPath: dws-datapro-service-account.json
+                  subPath: iwsims-service-account.json
                   readOnly: true
                 - name: nfs-pvc
                   mountPath: "/app/storage"
@@ -164,10 +164,10 @@ spec:
                   cpu: "1000m"
                   memory: "1024Mi"
           volumes:
-            - name: dws-datapro-secrets
+            - name: akvo-mis-secrets
               secret:
-                secretName: dws-datapro
+                secretName: akvo-mis
             - name: nfs-pvc
               persistentVolumeClaim:
-                claimName: dws-datapro
+                claimName: akvo-mis
           restartPolicy: Never
