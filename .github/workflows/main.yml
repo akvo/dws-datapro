@@ -30,11 +30,11 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Create credentials folder
-        run: mkdir /home/runner/work/iwsims/credentials
+        run: mkdir "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials"
         shell: bash
 
       - name: Write gcp deployment secret to file
-        run: echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" | base64 --decode > /home/runner/work/iwsims/credentials/gcp.json
+        run: echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" | base64 --decode > "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials/gcp.json"
         shell: bash
 
       - name: Get changed files
@@ -66,7 +66,7 @@ jobs:
           CLOUDSDK_CORE_DISABLE_PROMPTS: 1
           COMPOSE_INTERACTIVE_NO_CLI: 1
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_IWSIMS_TOKEN }}
-          SERVICE_ACCOUNT: "/home/runner/work/iwsims/credentials"
+          SERVICE_ACCOUNT: "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials"
           DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
@@ -82,7 +82,7 @@ jobs:
           CLOUDSDK_CORE_DISABLE_PROMPTS: 1
           COMPOSE_INTERACTIVE_NO_CLI: 1
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_IWSIMS_TOKEN }}
-          SERVICE_ACCOUNT: "/home/runner/work/iwsims/credentials"
+          SERVICE_ACCOUNT: "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials"
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           ./ci/deploy.sh
