@@ -3,7 +3,7 @@ version: "3.9"
 services:
   frontend:
     volumes:
-      - dws-datapro-docker-sync:/app/node_modules:nocopy
+      - akvo-mis-docker-sync:/app/node_modules:nocopy
 volumes:
-  dws-datapro-docker-sync:
+  akvo-mis-docker-sync:
     external: true
