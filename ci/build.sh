@@ -111,8 +111,8 @@ worker_build() {
 update_dbdocs() {
     if [[ "${CI_BRANCH}" ==  "main" || "${CI_BRANCH}" ==  "develop" ]]; then
         npm install -g dbdocs
-        # dbdocs build doc/dbml/schema.dbml --project iwsims
-        dbdocs build backend/db.dbml --project "iwsims-$CI_BRANCH"
+        # dbdocs build doc/dbml/schema.dbml --project akvo-mis
+        dbdocs build backend/db.dbml --project "akvo-mis-$CI_BRANCH"
     fi
 }
 

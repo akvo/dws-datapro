@@ -1,8 +1,8 @@
-Project iwsims {
+Project akvo-mis {
   database_type: 'PostgreSQL'
   Note: '''
-    # IWSIMS
-    IWSIMS Database Schema
+    # Akvo MIS
+    Akvo MIS Database Schema
   '''
 }
 Enum "questions_type_enum" {
