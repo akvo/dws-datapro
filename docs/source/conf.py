@@ -1,5 +1,5 @@
 from pickle import TRUE
-import sphinx_rtd_theme
+# import sphinx_rtd_theme
 
 # Configuration file for the Sphinx documentation builder.
 #
@@ -20,7 +20,7 @@ import sphinx_rtd_theme
 
 # -- Project information -----------------------------------------------------
 
-project = 'DWS DataPro'
+project = 'IWSIMS'
 copyright = '2022, Akvo'
 author = 'Akvo'
 
