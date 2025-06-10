@@ -319,9 +319,9 @@ Object {
     "generating": "Generating",
     "helloText": "Hello",
     "homeFooterAboutText": <React.Fragment>
-      The Fiji 
+      The Fiji Integrated Water and Sewerage Information Management System (
       Test App
-       is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji. It serves as a centralized hub for data collection, analysis, and reporting, enabling informed decision-making and efficient resource allocation.
+      ) is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji. It serves as a centralized hub for data collection, analysis, and reporting, enabling informed decision-making and efficient resource allocation.
     </React.Fragment>,
     "homeFooterAboutTitle": <React.Fragment>
       About 
@@ -345,7 +345,11 @@ Object {
       "alt": "Water landscape",
       "src": "https://images.unsplash.com/photo-1642450909999-7106494ef779?q=80&w=1974&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
-    "homeJumbotronSubtitle": "The Fiji Department of Water & Sewerage (DWS) DataPro is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji.",
+    "homeJumbotronSubtitle": <React.Fragment>
+      The Fiji 
+      Test App
+       is a comprehensive platform designed to enhance the management of water and sewerage services in Fiji.
+    </React.Fragment>,
     "homeJumbotronTitle": <React.Fragment>
       Test App
     </React.Fragment>,
