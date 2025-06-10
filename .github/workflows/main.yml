@@ -30,11 +30,16 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Create credentials folder
-        run: mkdir "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials"
+        env:
+          APP_SHORT_NAME: ${{ secrets.APP_SHORT_NAME }}
+        run: mkdir -p "/home/runner/work/$APP_SHORT_NAME/credentials"
         shell: bash
 
       - name: Write gcp deployment secret to file
-        run: echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" | base64 --decode > "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials/gcp.json"
+        env:
+          APP_SHORT_NAME: ${{ secrets.APP_SHORT_NAME }}
+        run: |
+          echo "${{ secrets.GCP_DEPLOYMENT_SECRET }}" > "/home/runner/work/$APP_SHORT_NAME/credentials/akvo-mis-service-account.json"
         shell: bash
 
       - name: Get changed files
@@ -59,6 +64,7 @@ jobs:
 
       - name: Build and test
         env:
+          APP_SHORT_NAME: ${{ secrets.APP_SHORT_NAME }}
           CI_COMMIT: ${{ env.COMMIT_SHORT_SHA }}
           CI_BRANCH: ${{ github.ref_name }}
           CI_TAG: ""
@@ -66,7 +72,7 @@ jobs:
           CLOUDSDK_CORE_DISABLE_PROMPTS: 1
           COMPOSE_INTERACTIVE_NO_CLI: 1
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_IWSIMS_TOKEN }}
-          SERVICE_ACCOUNT: "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials"
+          SERVICE_ACCOUNT: "/home/runner/work/$APP_SHORT_NAME/credentials"
           DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
@@ -75,6 +81,7 @@ jobs:
 
       - name: Deploy
         env:
+          APP_SHORT_NAME: ${{ secrets.APP_SHORT_NAME }}
           CI_COMMIT: ${{ env.COMMIT_SHORT_SHA }}
           CI_BRANCH: ${{ github.ref_name }}
           CI_TAG: ""
@@ -82,7 +89,7 @@ jobs:
           CLOUDSDK_CORE_DISABLE_PROMPTS: 1
           COMPOSE_INTERACTIVE_NO_CLI: 1
           COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_IWSIMS_TOKEN }}
-          SERVICE_ACCOUNT: "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials"
+          SERVICE_ACCOUNT: "/home/runner/work/$APP_SHORT_NAME/credentials"
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
         run: |
           ./ci/deploy.sh
