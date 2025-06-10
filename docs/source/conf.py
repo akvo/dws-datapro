@@ -20,7 +20,7 @@ from pickle import TRUE
 
 # -- Project information -----------------------------------------------------
 
-project = 'IWSIMS'
+project = 'Akvo MIS'
 copyright = '2022, Akvo'
 author = 'Akvo'
 
