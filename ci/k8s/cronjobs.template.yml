@@ -66,7 +66,7 @@ spec:
               volumeMounts:
                 - name: akvo-mis-secrets
                   mountPath: "/secrets/cloudsql/credentials.json"
-                  subPath: iwsims-service-account.json
+                  subPath: akvo-mis-service-account.json
                   readOnly: true
             - name: backend
               image: eu.gcr.io/akvo-lumen/akvo-mis/backend:${CI_COMMIT}
@@ -152,7 +152,7 @@ spec:
               volumeMounts:
                 - name: akvo-mis-secrets
                   mountPath: /secrets/credentials.json
-                  subPath: iwsims-service-account.json
+                  subPath: akvo-mis-service-account.json
                   readOnly: true
                 - name: nfs-pvc
                   mountPath: "/app/storage"

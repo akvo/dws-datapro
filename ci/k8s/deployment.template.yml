@@ -2,7 +2,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: akvo-mis
+  name: ${APP_SHORT_NAME}
 spec:
   replicas: 1
   strategy:
@@ -12,12 +12,12 @@ spec:
     type: RollingUpdate
   selector:
     matchLabels:
-      run: akvo-mis
+      run: ${APP_SHORT_NAME}
   template:
     metadata:
       labels:
-        run: akvo-mis
-        akvo-mis-version: "${CI_COMMIT}"
+        run: ${APP_SHORT_NAME}
+        ${APP_SHORT_NAME}-version: "${CI_COMMIT}"
       annotations:
         prometheus.io/scrape: "true"
         prometheus.io/port: "3000"
@@ -69,22 +69,22 @@ spec:
             - name: GOOGLE_SQL_COMPUTE_ZONE
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: google-sql-compute-zone
             - name: GOOGLE_SQL_DB_INSTANCE
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: google-sql-db-instance
             - name: GOOGLE_PROJECT
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: google-project
           volumeMounts:
-            - name: akvo-mis-secrets
+            - name: ${APP_SHORT_NAME}-secrets
               mountPath: "/secrets/cloudsql/credentials.json"
-              subPath: iwsims-service-account.json
+              subPath: akvo-mis-service-account.json
               readOnly: true
         - name: backend
           image: eu.gcr.io/akvo-lumen/akvo-mis/backend:${CI_COMMIT}
@@ -94,62 +94,62 @@ spec:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: webdomain
             - name: APP_NAME
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: app-name
             - name: APP_SHORT_NAME
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: app-short-name
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -158,12 +158,12 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: apk-upload-secret
           readinessProbe:
             httpGet:
@@ -176,9 +176,9 @@ spec:
               port: 8000
             initialDelaySeconds: 30
           volumeMounts:
-            - name: akvo-mis-secrets
+            - name: ${APP_SHORT_NAME}-secrets
               mountPath: /secrets/credentials.json
-              subPath: iwsims-service-account.json
+              subPath: akvo-mis-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -195,62 +195,62 @@ spec:
             - name: DB_SCHEMA
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-schema
             - name: DB_USER
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-user
             - name: DB_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-password
             - name: DB_HOST
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: db-host
             - name: DJANGO_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: django-secret
             - name: MAILJET_APIKEY
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-apikey
             - name: MAILJET_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: mailjet-secret
             - name: EMAIL_FROM
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: email-from
             - name: WEBDOMAIN
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: webdomain
             - name: APP_NAME
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: app-name
             - name: APP_SHORT_NAME
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: app-short-name
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: sentry-dsn
             - name: PROD
               value: "TRUE"
@@ -259,17 +259,17 @@ spec:
             - name: STORAGE_PATH
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: storage-path
             - name: APK_UPLOAD_SECRET
               valueFrom:
                 secretKeyRef:
-                  name: akvo-mis
+                  name: ${APP_SHORT_NAME}
                   key: apk-upload-secret
           volumeMounts:
-            - name: akvo-mis-secrets
+            - name: ${APP_SHORT_NAME}-secrets
               mountPath: /secrets/credentials.json
-              subPath: iwsims-service-account.json
+              subPath: akvo-mis-service-account.json
               readOnly: true
             - name: nfs-pvc
               mountPath: "/app/storage"
@@ -281,9 +281,9 @@ spec:
               cpu: "1000m"
               memory: "2048Mi"
       volumes:
-        - name: akvo-mis-secrets
+        - name: ${APP_SHORT_NAME}-secrets
           secret:
-            secretName: akvo-mis
+            secretName: ${APP_SHORT_NAME}
         - name: nfs-pvc
           persistentVolumeClaim:
-            claimName: akvo-mis
+            claimName: ${APP_SHORT_NAME}
