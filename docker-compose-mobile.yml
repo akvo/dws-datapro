@@ -23,5 +23,5 @@ services:
       - SENTRY_AUTH_TOKEN=${SENTRY_MOBILE_AUTH_TOKEN}
     network_mode: service:mainnetwork
 volumes:
-  akvo-mis-docker-mobile-sync:
+  akvo-mis-mobile-docker-sync:
     external: true
