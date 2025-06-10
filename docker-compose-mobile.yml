@@ -9,7 +9,7 @@ services:
     image: akvo/akvo-node-18-alpine:20250306.055839.23cadbd
     command: ["./start.sh"]
     volumes:
-      - akvo-mis-docker-mobile-sync:/app/node_modules:nocopy
+      - akvo-mis-mobile-docker-sync:/app/node_modules:nocopy
       - ./app:/app:delegated
       - ./.git:/app/.git:ro
     working_dir: /app
