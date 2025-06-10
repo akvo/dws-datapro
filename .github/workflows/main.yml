@@ -39,7 +39,7 @@ jobs:
         env:
           APP_SHORT_NAME: ${{ secrets.APP_SHORT_NAME }}
         run: |
-          echo "${{ secrets.GCP_DEPLOYMENT_SECRET }}" > "/home/runner/work/$APP_SHORT_NAME/credentials/akvo-mis-service-account.json"
+          echo "${{ secrets.GCP_DEPLOYMENT_SECRET }}" > "/home/runner/work/$APP_SHORT_NAME/credentials/gcp.json"
         shell: bash
 
       - name: Get changed files
