@@ -62,7 +62,7 @@ jobs:
           SENTRY_AUTH_TOKEN: ${{ secrets.SENTRY_MOBILE_AUTH_TOKEN }}
         run: |
           curl -X 'POST' \
-            'https://dws-datapro.akvotest.org/api/v1/device/apk/upload' \
+            'https://iwsims.akvotest.org/api/v1/device/apk/upload' \
             -H 'accept: */*' \
             -H 'Content-Type: application/json' \
             -d '{
