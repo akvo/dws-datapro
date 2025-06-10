@@ -35,7 +35,7 @@ For initial run, you need to create a new docker volume.
 
 .. code:: bash
 
-   docker volume create dws-datapro-docker-sync
+   docker volume create akvo-mis-docker-sync
 
 The app should be running at:
 `localhost:3000 <http://localhost:3000>`__. Any endpoints with prefix -
@@ -45,9 +45,9 @@ The app should be running at:
 `localhost:8000 <http://localhost:8000/static-files>`__
 
 Network Config: -
-`setupProxy.js <https://github.com/akvo/dws-datapro/blob/main/frontend/src/setupProxy.js>`__
+`setupProxy.js <https://github.com/akvo/akvo-mis/blob/main/frontend/src/setupProxy.js>`__
 -
-`mainnetwork <https://github.com/akvo/dws-datapro/blob/docker-compose.override.yml#L4-L8>`__
+`mainnetwork <https://github.com/akvo/akvo-mis/blob/docker-compose.override.yml#L4-L8>`__
 container setup
 
 Log
@@ -72,4 +72,4 @@ Teardown
 .. code:: bash
 
    docker-compose down -v
-   docker volume rm dws-datapro-docker-sync
+   docker volume rm akvo-mis-docker-sync
