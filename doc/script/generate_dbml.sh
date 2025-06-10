@@ -9,5 +9,5 @@ then
 fi
 
 docker-compose exec backend python manage.py dbml > "$ROOT_DIR"/doc/dbml/current.dbml
-dbdocs build "$ROOT_DIR"/doc/dbml/schema.dbml --project dws-datapro
-dbdocs build "$ROOT_DIR"/doc/dbml/current.dbml --project dws-datapro-django
+dbdocs build "$ROOT_DIR"/doc/dbml/schema.dbml --project iwsims
+dbdocs build "$ROOT_DIR"/doc/dbml/current.dbml --project iwsims-django
