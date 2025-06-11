@@ -40,6 +40,11 @@ prepare_deployment () {
     sed -e "s/\${CI_COMMIT}/${CI_COMMIT}/g;" \
         ci/k8s/cronjobs.template.yml > ci/k8s/cronjobs.yml
 
+    sed -e "s/\${APP_SHORT_NAME}/${APP_SHORT_NAME}/g;" \
+        ci/k8s/service.yml > ci/k8s/service.yml.tmp && mv ci/k8s/service.yml.tmp ci/k8s/service.yml
+
+    sed -e "s/\${APP_SHORT_NAME}/${APP_SHORT_NAME}/g;" \
+        ci/k8s/volume-claim.template.yml > ci/k8s/volume-claim.template.yml.tmp && mv ci/k8s/volume-claim.template.yml.tmp ci/k8s/volume-claim.template.yml
 }
 
 apply_deployment () {
