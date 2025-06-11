@@ -7,7 +7,7 @@ import { BuildParamsState, UIState } from '../../store';
 import { i18n, api } from '../../lib';
 
 const AboutHome = () => {
-  const { appVersion, apkURL, appName } = BuildParamsState.useState((s) => s);
+  const { appVersion, apkURL, apkName } = BuildParamsState.useState((s) => s);
   const { lang } = UIState.useState((s) => s);
   const trans = i18n.text(lang);
   const [visible, setVisible] = useState(false);
@@ -56,7 +56,7 @@ const AboutHome = () => {
           {/* About App Info */}
           <View style={styles.listItem}>
             <View style={styles.listItemContent}>
-              <Text style={styles.listItemTitle}>{`${trans.about} ${appName}`}</Text>
+              <Text style={styles.listItemTitle}>{`${trans.about} ${apkName}`}</Text>
               <Text style={styles.listItemSubtitle}>{trans.aboutAppDescription}</Text>
             </View>
           </View>
