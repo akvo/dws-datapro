@@ -30,16 +30,12 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Create credentials folder
-        env:
-          APP_SHORT_NAME: ${{ secrets.APP_SHORT_NAME }}
-        run: mkdir -p "/home/runner/work/$APP_SHORT_NAME/credentials"
+        run: mkdir -p "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials"
         shell: bash
 
       - name: Write gcp deployment secret to file
-        env:
-          APP_SHORT_NAME: ${{ secrets.APP_SHORT_NAME }}
         run: |
-          echo "${{ secrets.GCP_DEPLOYMENT_SECRET }}" > "/home/runner/work/$APP_SHORT_NAME/credentials/gcp.json"
+          echo "${{ secrets.GCP_DEPLOYMENT_SECRET }}" > "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials/gcp.json"
         shell: bash
 
       - name: Get changed files
