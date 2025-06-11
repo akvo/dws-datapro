@@ -23,6 +23,8 @@ Copy `env.example` to create a `.env` file. Here’s what it should look like:
 ```bash
 APP_NAME="Akvo MIS"
 APP_SHORT_NAME="akvo-mis"
+APK_NAME="MIS Mobile"
+APK_DOMAIN="mis"
 DB_HOST=db
 DB_PASSWORD=password
 DB_SCHEMA=mis
