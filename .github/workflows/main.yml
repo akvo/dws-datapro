@@ -35,7 +35,7 @@ jobs:
 
       - name: Write gcp deployment secret to file
         run: |
-          echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" > "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials/gcp.json"
+          echo "${{ secrets.GCLOUD_SERVICE_ACCOUNT }}" | base64 --decode > "/home/runner/work/${{ secrets.APP_SHORT_NAME }}/credentials/gcp.json"
         shell: bash
 
       - name: Get changed files
