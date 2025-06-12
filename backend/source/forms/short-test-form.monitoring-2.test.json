@@ -3,9 +3,7 @@
   "form": "Short HH Testimonials",
   "description": "Example form to test the attachments and testimonials features.",
   "defaultLanguage": "en",
-  "languages": [
-    "en"
-  ],
+  "languages": ["en"],
   "version": 1,
   "parent_id": 16993539153551,
   "type": 2,
@@ -55,12 +53,7 @@
           "order": 2,
           "type": "attachment",
           "rule": {
-            "allowedFileTypes": [
-              "jpeg",
-              "jpg",
-              "png",
-              "gif"
-            ]
+            "allowedFileTypes": ["jpeg", "jpg", "png", "gif"]
           },
           "required": false
         },
@@ -110,9 +103,7 @@
           "dependency": [
             {
               "id": 170308627000931,
-              "options": [
-                "other"
-              ]
+              "options": ["other"]
             }
           ]
         },

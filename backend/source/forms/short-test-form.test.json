@@ -1018,11 +1018,7 @@
           "meta": false,
           "type": "attachment",
           "rule": {
-            "allowedFileTypes": [
-              "jpeg",
-              "jpg",
-              "png"
-            ]
+            "allowedFileTypes": ["jpeg", "jpg", "png"]
           },
           "required": false
         },
@@ -1048,12 +1044,7 @@
           "meta": false,
           "type": "attachment",
           "rule": {
-            "allowedFileTypes": [
-              "pdf",
-              "doc",
-              "docx",
-              "odt"
-            ]
+            "allowedFileTypes": ["pdf", "doc", "docx", "odt"]
           },
           "required": true
         },
@@ -1147,12 +1138,7 @@
           "order": 2,
           "type": "attachment",
           "rule": {
-            "allowedFileTypes": [
-              "jpeg",
-              "jpg",
-              "png",
-              "gif"
-            ]
+            "allowedFileTypes": ["jpeg", "jpg", "png", "gif"]
           },
           "required": false
         },
@@ -1206,9 +1192,7 @@
           "dependency": [
             {
               "id": 17030862700093,
-              "options": [
-                "other"
-              ]
+              "options": ["other"]
             }
           ]
         },
