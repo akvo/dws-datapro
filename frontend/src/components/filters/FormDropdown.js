@@ -18,6 +18,16 @@ const FormDropdown = ({
   }, [title, forms]);
 
   const handleChange = useCallback((e) => {
+    // if form_id in URL query params is exists the remove it
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has("form_id")) {
+      urlParams.delete("form_id");
+      window.history.replaceState(
+        null,
+        "",
+        `${window.location.pathname}?${urlParams.toString()}`
+      );
+    }
     if (!e) {
       return;
     }
