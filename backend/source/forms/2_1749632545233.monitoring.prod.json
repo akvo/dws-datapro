@@ -1,0 +1,357 @@
+{
+  "id": 1749632545233,
+  "form": "EPS Water Quality Testing - Monitoring",
+  "description": "EPS Water Quality Testing - Monitoring",
+  "defaultLanguage": "en",
+  "languages": ["en"],
+  "version": 1,
+  "type": 2,
+  "parent_id": 1749631800385,
+  "question_groups": [
+    {
+      "id": 1749632545234,
+      "name": "contact_details",
+      "label": "Contact Details",
+      "description": null,
+      "order": 1,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749632545235,
+          "name": "date_of_inspection",
+          "label": "Date of Inspection",
+          "order": 1,
+          "type": "date",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749632793266,
+          "name": "name_of_the_village_headman_tnk_village_nurse",
+          "label": "Name of the village headman/TNK/village nurse?",
+          "order": 2,
+          "type": "text",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749632819551,
+          "name": "phone_contact_of_the_village_headman_tnk_or_village_nurse",
+          "label": "Phone contact of the Village Headman/TNK or village nurse?",
+          "order": 3,
+          "type": "text",
+          "required": true,
+          "meta": false
+        }
+      ],
+      "repeat_text": null
+    },
+    {
+      "id": 1749632647506,
+      "name": "water_quality_testing",
+      "label": "Water Quality Testing",
+      "description": null,
+      "order": 2,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749632647507,
+          "name": "are_you_able_to_collect_the_water_sample",
+          "label": "Are you able to collect the water sample?",
+          "order": 1,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749632860507,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749632860508,
+              "order": 2
+            }
+          ]
+        },
+        {
+          "id": 1749632887312,
+          "name": "why_the_water_sample_could_not_be_taken",
+          "label": "Why the water sample could not be taken?",
+          "order": 2,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "no_water_supply_in_the_village",
+              "label": "No Water supply in the village",
+              "id": 1749632894319,
+              "order": 1
+            },
+            {
+              "value": "no_water_supply_in_eps",
+              "label": "No water supply in EPS",
+              "id": 1749632894320,
+              "order": 2
+            },
+            {
+              "value": "eps_not_operational",
+              "label": "EPS not operational",
+              "id": 1749632947215,
+              "order": 3
+            },
+            {
+              "value": "tanks_leaking",
+              "label": "Tanks leaking",
+              "id": 1749632965267,
+              "order": 4
+            },
+            {
+              "value": "other",
+              "label": "Other",
+              "id": 1749633479776,
+              "order": 5
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749632647507,
+              "options": ["no"]
+            }
+          ]
+        },
+        {
+          "id": 1749633001462,
+          "name": "method_of_water_testing_used",
+          "label": "Method of Water Testing Used?",
+          "order": 3,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "lab_test",
+              "label": "Lab Test",
+              "id": 1749633012922,
+              "order": 1
+            },
+            {
+              "value": "h2s_kit",
+              "label": "H2S Kit",
+              "id": 1749633012923,
+              "order": 2
+            },
+            {
+              "value": "caddisfly_test",
+              "label": "Caddisfly Test",
+              "id": 1749633033006,
+              "order": 3
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749632647507,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749633073911,
+          "name": "take_photo_of_sampling_point",
+          "label": "Take Photo of Sampling Point",
+          "order": 4,
+          "type": "photo",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749632647507,
+              "options": ["yes"]
+            }
+          ],
+          "limit": 5.0
+        },
+        {
+          "id": 1749633110662,
+          "name": "description_of_sampling_point",
+          "label": "Description of Sampling Point",
+          "order": 5,
+          "type": "text",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749632647507,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749633148176,
+          "name": "level_of_contamination_for_h_2_s_kit",
+          "label": "Level of Contamination for H2S kit?",
+          "order": 6,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "high_risk",
+              "label": "High Risk",
+              "id": 1749633154509,
+              "order": 1
+            },
+            {
+              "value": "moderate_risk",
+              "label": "Moderate Risk",
+              "id": 1749633154510,
+              "order": 2
+            },
+            {
+              "value": "low_risk",
+              "label": "Low Risk",
+              "id": 1749633175014,
+              "order": 3
+            },
+            {
+              "value": "no_risk",
+              "label": "No Risk",
+              "id": 1749633185088,
+              "order": 4
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749633001462,
+              "options": ["h2s_kit"]
+            }
+          ]
+        },
+        {
+          "id": 1749633220745,
+          "name": "what_is_the_turbidity_in_ntu",
+          "label": "What is the Turbidity in NTU?",
+          "order": 7,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749633001462,
+              "options": ["lab_test"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749633259392,
+          "name": "what_is_the_total_coliform_count_in_1_cfu_100_ml",
+          "label": "What is the Total Coliform count in 1cfu/100ml?",
+          "order": 8,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749633001462,
+              "options": ["lab_test"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749633295165,
+          "name": "what_is_the_faecal_coliform_count_in_1_cfu_100_ml",
+          "label": "What is the Faecal Coliform count in 1cfu/100ml?",
+          "order": 9,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749633001462,
+              "options": ["lab_test"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749633325456,
+          "name": "what_is_the_e_coli_count_using_cbt_bags",
+          "label": "What is the E.Coli Count using CBT Bags?",
+          "order": 10,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749633001462,
+              "options": ["caddisfly_test"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749633350893,
+          "name": "general_remarks",
+          "label": "General Remarks",
+          "order": 11,
+          "type": "text",
+          "required": true,
+          "meta": false
+        },
+        {
+          "id": 1749633373968,
+          "name": "the_current_status_of_this_system",
+          "label": "The current status of this system?",
+          "order": 12,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "operational",
+              "label": "Operational",
+              "id": 1749633380305,
+              "order": 1
+            },
+            {
+              "value": "partially_operational",
+              "label": "Partially Operational",
+              "id": 1749633380306,
+              "order": 2
+            },
+            {
+              "value": "non_operational",
+              "label": "Non operational",
+              "id": 1749633405919,
+              "order": 3
+            }
+          ]
+        },
+        {
+          "id": 1749633421496,
+          "name": "signature_of_officer",
+          "label": "Signature of Officer",
+          "order": 13,
+          "type": "signature",
+          "required": true,
+          "meta": false
+        }
+      ],
+      "repeat_text": null
+    }
+  ]
+}
