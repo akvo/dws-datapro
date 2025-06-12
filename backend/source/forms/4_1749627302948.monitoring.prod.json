@@ -1,0 +1,159 @@
+{
+  "id": 1749627302948,
+  "form": "Wastewater Pump Station - Quick Inspection",
+  "description": "Wastewater Pump Station - Quick Inspection",
+  "defaultLanguage": "en",
+  "languages": ["en"],
+  "version": 1,
+  "type": 2,
+  "parent_id": 1749611049520,
+  "question_groups": [
+    {
+      "id": 1749627302949,
+      "name": "general_information",
+      "label": "Sit Donec elit",
+      "description": null,
+      "order": 1,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749627302950,
+          "name": "inspection_date",
+          "label": "Inspection Date",
+          "order": 1,
+          "type": "date",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749627462936,
+          "name": "take_photo_of_pump_station",
+          "label": "Take photo of Pump Station",
+          "order": 2,
+          "type": "photo",
+          "required": true,
+          "meta": false,
+          "limit": 5.0
+        },
+        {
+          "id": 1749627499538,
+          "name": "number_of_pumps_in_operation",
+          "label": "Number of pumps in operation",
+          "order": 3,
+          "type": "number",
+          "required": true,
+          "meta": false
+        },
+        {
+          "id": 1749627528651,
+          "name": "number_of_pumps_standby",
+          "label": "Number of pumps standby",
+          "order": 4,
+          "type": "number",
+          "required": true,
+          "meta": false
+        },
+        {
+          "id": 1749627552609,
+          "name": "pump_station_status",
+          "label": "Pump Station Status",
+          "order": 5,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "operational",
+              "label": "Operational",
+              "id": 1749627569055,
+              "order": 1
+            },
+            {
+              "value": "overflowing",
+              "label": "Overflowing",
+              "id": 1749627569056,
+              "order": 2
+            },
+            {
+              "value": "blocked",
+              "label": "Blocked",
+              "id": 1749627586469,
+              "order": 3
+            },
+            {
+              "value": "not_operational",
+              "label": "Not Operational",
+              "id": 1749627594136,
+              "order": 4
+            }
+          ]
+        },
+        {
+          "id": 1749627630352,
+          "name": "pump_status",
+          "label": "Pump Status",
+          "order": 6,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "operational",
+              "label": "Operational",
+              "id": 1749627637662,
+              "order": 1
+            },
+            {
+              "value": "electrical_fault",
+              "label": "Electrical fault",
+              "id": 1749627637663,
+              "order": 2
+            },
+            {
+              "value": "duck_foot_problem",
+              "label": "Duck Foot Problem",
+              "id": 1749627655712,
+              "order": 3
+            },
+            {
+              "value": "guide_rail_problem",
+              "label": "Guide rail Problem",
+              "id": 1749627669563,
+              "order": 4
+            }
+          ]
+        }
+      ],
+      "repeat_text": null
+    },
+    {
+      "id": 1749627686321,
+      "name": "comments_and_recommendations",
+      "label": "Comments and Recommendations",
+      "description": null,
+      "order": 2,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749627698340,
+          "name": "comments_from_supervisor",
+          "label": "Comments from Supervisor",
+          "order": 1,
+          "type": "text",
+          "required": false,
+          "meta": false
+        },
+        {
+          "id": 1749627734073,
+          "name": "comments_from_dws_staff",
+          "label": "Comments from DWS Staff",
+          "order": 2,
+          "type": "text",
+          "required": false,
+          "meta": false
+        }
+      ],
+      "repeat_text": null
+    }
+  ]
+}

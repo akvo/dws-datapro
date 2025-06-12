@@ -1,0 +1,49 @@
+{
+  "id": 1749611049520,
+  "form": "Wastewater Pump Station",
+  "description": "Inspection of Wastewater Pump Station",
+  "defaultLanguage": "en",
+  "languages": ["en"],
+  "version": 1,
+  "type": 1,
+  "question_groups": [
+    {
+      "id": 1749611049540,
+      "name": "registration",
+      "label": "Registration",
+      "description": null,
+      "order": 1,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749611049541,
+          "name": "which_division_province_are_you_in",
+          "label": "Which Division - Province are you in?",
+          "order": 1,
+          "type": "administration",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749611657406,
+          "name": "name_of_pump_station",
+          "label": "Name of Pump Station",
+          "order": 2,
+          "type": "text",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749611742881,
+          "name": "gps_location",
+          "label": "GPS Location",
+          "order": 3,
+          "type": "geo",
+          "required": true,
+          "meta": true
+        }
+      ],
+      "repeat_text": null
+    }
+  ]
+}
