@@ -35,6 +35,22 @@ class EntityTypes:
     }
 
 
+class DataAccessTypes:
+    read = "read"
+    approve = "approve"
+    submit = "submit"
+    edit = "edit"
+    delete = "delete"
+
+    FieldStr = {
+        read: "Read",
+        approve: "Approve",
+        submit: "Submit",
+        edit: "Edit",
+        delete: "Delete",
+    }
+
+
 ADMINISTRATION_CSV_FILE = f"{COUNTRY_NAME}-administration.csv"
 
 DEFAULT_SOURCE_FILE = f"./source/{ADMINISTRATION_CSV_FILE}"
