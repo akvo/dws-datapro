@@ -1,0 +1,1068 @@
+{
+  "id": 1749640508297,
+  "form": "WAF Water Treatment Plant - Quick Monitoring",
+  "description": "WAF Water Treatment Plant - Quick Monitoring",
+  "defaultLanguage": "en",
+  "languages": ["en"],
+  "version": 1,
+  "type": 2,
+  "parent_id": 1749634736797,
+  "question_groups": [
+    {
+      "id": 1749640508298,
+      "name": "general_information",
+      "label": "General Information",
+      "description": null,
+      "order": 1,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749640508299,
+          "name": "date_of_inspection",
+          "label": "Date of inspection?",
+          "order": 1,
+          "type": "date",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749640684970,
+          "name": "what_is_the_average_daily_production_of_the_plant_in_megalitres",
+          "label": "What is the average daily production of the plant in megalitres?",
+          "order": 2,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "rule": {
+            "allowDecimal": true
+          }
+        }
+      ],
+      "repeat_text": null
+    },
+    {
+      "id": 1749640555051,
+      "name": "water_quality",
+      "label": "Water Quality",
+      "description": null,
+      "order": 2,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749640555052,
+          "name": "which_water_quality_checks_are_carried_out_at_the_plant",
+          "label": "Which water quality checks are carried out at the plant?",
+          "order": 1,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "turbidity",
+              "label": "Turbidity",
+              "id": 1749640717030,
+              "order": 1
+            },
+            {
+              "value": "ph",
+              "label": "pH",
+              "id": 1749640717031,
+              "order": 2
+            },
+            {
+              "value": "residual_chlorine",
+              "label": "Residual Chlorine",
+              "id": 1749640735434,
+              "order": 3
+            },
+            {
+              "value": "temperature",
+              "label": "Temperature",
+              "id": 1749640748259,
+              "order": 4
+            },
+            {
+              "value": "salinity",
+              "label": "Salinity",
+              "id": 1749640762096,
+              "order": 5
+            },
+            {
+              "value": "alkalinity",
+              "label": "Alkalinity",
+              "id": 1749640769263,
+              "order": 6
+            }
+          ]
+        },
+        {
+          "id": 1749640788183,
+          "name": "are_you_able_to_take_water_sample",
+          "label": "Are you able to take water sample?",
+          "order": 2,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749640793604,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749640793605,
+              "order": 2
+            }
+          ]
+        },
+        {
+          "id": 1749640821051,
+          "name": "method_of_water_testing_used",
+          "label": "Method of Water Testing used?",
+          "order": 3,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "lab_test",
+              "label": "Lab Test",
+              "id": 1749640826783,
+              "order": 1
+            },
+            {
+              "value": "palintest",
+              "label": "Palintest",
+              "id": 1749640826784,
+              "order": 2
+            },
+            {
+              "value": "cbt_bag_test",
+              "label": "CBT Bag Test",
+              "id": 1749640981827,
+              "order": 4
+            },
+            {
+              "value": "pack_test_-_residual_chlorine",
+              "label": "Pack Test - Residual Chlorine",
+              "id": 1749640965774,
+              "order": 3
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749640788183,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749641023051,
+          "name": "take_photo_of_sampling_point",
+          "label": "Take Photo of Sampling Point",
+          "order": 4,
+          "type": "photo",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640788183,
+              "options": ["yes"]
+            }
+          ],
+          "limit": 5.0
+        },
+        {
+          "id": 1749641057577,
+          "name": "description_of_sampling_point",
+          "label": "Description of Sampling Point",
+          "order": 5,
+          "type": "text",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640788183,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749641099165,
+          "name": "what_is_the_number_of_e_coli_using_cbt_bag_test",
+          "label": "What is the number of E.Coli (using CBT bag test)?",
+          "order": 6,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["cbt_bag_test"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641129391,
+          "name": "what_is_the_turbidity_in_ntu",
+          "label": "What is the Turbidity in NTU?",
+          "order": 7,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test", "palintest"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641186164,
+          "name": "what_is_the_p_h",
+          "label": "What is the pH?",
+          "order": 8,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test", "palintest"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641225922,
+          "name": "what_is_the_residual_chlorine_in_mg_l",
+          "label": "What is the Residual Chlorine in mg/L?",
+          "order": 9,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test", "pack_test_-_residual_chlorine"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641272115,
+          "name": "what_is_the_temperature_in_degrees_celcius",
+          "label": "What is the Temperature in Degrees Celcius?",
+          "order": 10,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test", "palintest"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641312667,
+          "name": "what_is_the_salinity_in_ppt",
+          "label": "What is the Salinity in PPT?",
+          "order": 11,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test", "palintest"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641366670,
+          "name": "what_is_the_alkalinity_in_mg_l",
+          "label": "What is the Alkalinity in mg/L?",
+          "order": 12,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test", "palintest"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641401104,
+          "name": "what_is_the_total_coliform_in_cfu_100_ml",
+          "label": "What is the Total Coliform in cfu/100ml?",
+          "order": 13,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749641436782,
+          "name": "what_is_the_feacal_coliform_in_cfu_100_ml",
+          "label": "What is the Feacal Coliform in cfu/100ml?",
+          "order": 14,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749640821051,
+              "options": ["lab_test"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        }
+      ],
+      "repeat_text": null
+    },
+    {
+      "id": 1749641480406,
+      "name": "disinfection",
+      "label": "Disinfection",
+      "description": null,
+      "order": 3,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749641480407,
+          "name": "what_disinfection_techniques_are_used_at_the_plant",
+          "label": "What Disinfection Techniques are used at the Plant?",
+          "order": 1,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "chlorine_gas",
+              "label": "Chlorine gas",
+              "id": 1749641504228,
+              "order": 1
+            },
+            {
+              "value": "hth_powder",
+              "label": "HTH Powder",
+              "id": 1749641504229,
+              "order": 2
+            },
+            {
+              "value": "sodium_hypochlorite",
+              "label": "Sodium Hypochlorite",
+              "id": 1749641529457,
+              "order": 3
+            },
+            {
+              "value": "dpd_tablets",
+              "label": "DPD Tablets",
+              "id": 1749641537660,
+              "order": 4
+            }
+          ]
+        },
+        {
+          "id": 1749643276889,
+          "name": "do_you_have_standard_operating_procedures_for_disinfection",
+          "label": "Do you have Standard Operating Procedures for Disinfection?",
+          "order": 2,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749643284427,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749643284428,
+              "order": 2
+            }
+          ]
+        },
+        {
+          "id": 1749643314972,
+          "name": "what_is_the_dosage_of_chlorine_in_grams_per_cubic_metre",
+          "label": "What is the dosage of Chlorine in grams per cubic metre?",
+          "order": 3,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["chlorine_gas"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749650488015,
+          "name": "what_is_the_usage_of_chlorine_gas_per_day",
+          "label": "What is the usage of Chlorine Gas per day?",
+          "order": 4,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["chlorine_gas"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749650525915,
+          "name": "what_dosing_method_is_used_for_chlorine_gas",
+          "label": "What dosing method is used for Chlorine Gas?",
+          "order": 5,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "automatic",
+              "label": "Automatic",
+              "id": 1749650536181,
+              "order": 1
+            },
+            {
+              "value": "manual",
+              "label": "Manual",
+              "id": 1749650536182,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["chlorine_gas"]
+            }
+          ]
+        },
+        {
+          "id": 1749650600909,
+          "name": "are_there_any_risks_associated_with_chlorine_gas_dosing",
+          "label": "Are there any risks associated with Chlorine Gas dosing?",
+          "order": 6,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749650646217,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749650646218,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["chlorine_gas"]
+            }
+          ]
+        },
+        {
+          "id": 1749650717402,
+          "name": "what_are_these_risks_associated_with_chlorine_gas_dosing",
+          "label": "What are these risks associated with Chlorine Gas dosing?",
+          "order": 7,
+          "type": "text",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749650600909,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749650754661,
+          "name": "take_photo_of_risks_chlorine_gas_dosing_system",
+          "label": "Take Photo of risks/Chlorine Gas Dosing System",
+          "order": 8,
+          "type": "photo",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749650600909,
+              "options": ["yes"]
+            }
+          ],
+          "limit": 5.0
+        },
+        {
+          "id": 1749650822287,
+          "name": "what_is_the_dosage_of_hth_powder_in_grams_per_cubic_metre",
+          "label": "What is the dosage of HTH Powder in grams per cubic metre?",
+          "order": 9,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["hth_powder"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749650926089,
+          "name": "what_is_the_usage_of_hth_powder_per_day",
+          "label": "What is the usage of HTH Powder per day?",
+          "order": 10,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["hth_powder"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749650958350,
+          "name": "what_dosing_method_is_used_for_hth_powder",
+          "label": "What dosing method is used for HTH Powder?",
+          "order": 11,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "automatic",
+              "label": "Automatic",
+              "id": 1749650973254,
+              "order": 1
+            },
+            {
+              "value": "manual",
+              "label": "Manual",
+              "id": 1749650973255,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["hth_powder"]
+            }
+          ]
+        },
+        {
+          "id": 1749651036837,
+          "name": "are_there_any_risks_associated_with_hth_powder_dosing_system",
+          "label": "Are there any risks associated with HTH Powder Dosing System?",
+          "order": 12,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749651063505,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749651063506,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["hth_powder"]
+            }
+          ]
+        },
+        {
+          "id": 1749651123632,
+          "name": "what_are_these_risks_associated_with_hth_powder_dosing_system",
+          "label": "What are these risks associated with HTH Powder Dosing System?",
+          "order": 13,
+          "type": "text",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749651036837,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749651246609,
+          "name": "take_photo_of_risks_hth_powder_dosing_system",
+          "label": "Take Photo of risks/HTH Powder Dosing System",
+          "order": 14,
+          "type": "photo",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749651036837,
+              "options": ["yes"]
+            }
+          ],
+          "limit": 5.0
+        },
+        {
+          "id": 1749651313502,
+          "name": "what_is_the_dosage_of_sodium_hypochlorite_in_grams_per_cubic_meter",
+          "label": "What is the dosage of Sodium Hypochlorite in grams per cubic meter?",
+          "order": 15,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["sodium_hypochlorite"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749651349182,
+          "name": "what_is_the_usage_of_sodium_hypochlorite_per_day",
+          "label": "What is the usage of Sodium Hypochlorite per day?",
+          "order": 16,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["sodium_hypochlorite"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749651387233,
+          "name": "what_is_the_dosing_method_for_sodium_hypochlorite",
+          "label": "What is the dosing method for Sodium Hypochlorite?",
+          "order": 17,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "automatic",
+              "label": "Automatic",
+              "id": 1749651394259,
+              "order": 1
+            },
+            {
+              "value": "manual",
+              "label": "Manual",
+              "id": 1749651394260,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["sodium_hypochlorite"]
+            }
+          ]
+        },
+        {
+          "id": 1749651430476,
+          "name": "are_there_any_risks_associated_with_the_sodium_hypochlorite_dosing_system",
+          "label": "Are there any risks associated with the Sodium Hypochlorite Dosing System?",
+          "order": 18,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749651436440,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749651436441,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["sodium_hypochlorite"]
+            }
+          ]
+        },
+        {
+          "id": 1749651474629,
+          "name": "what_are_these_risks_associated_with_the_sodium_hypochlorite_dosing_system",
+          "label": "What are these risks associated with the Sodium Hypochlorite Dosing System?",
+          "order": 19,
+          "type": "text",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749651430476,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749651546934,
+          "name": "take_photo_of_the_sodium_hypochlorite_dosing_system",
+          "label": "Take Photo of the Sodium Hypochlorite Dosing System",
+          "order": 20,
+          "type": "photo",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749651430476,
+              "options": ["yes"]
+            }
+          ],
+          "limit": 5.0
+        },
+        {
+          "id": 1749651589021,
+          "name": "what_is_the_dosage_of_dpd_tablets_in_grams_per_cubic_metres",
+          "label": "What is the dosage of DPD Tablets in grams per cubic metres?",
+          "order": 21,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["dpd_tablets"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749651628503,
+          "name": "what_is_the_usage_of_dpd_tablets_per_day",
+          "label": "What is the usage of DPD Tablets per day?",
+          "order": 22,
+          "type": "number",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["dpd_tablets"]
+            }
+          ],
+          "rule": {
+            "allowDecimal": true
+          }
+        },
+        {
+          "id": 1749651668947,
+          "name": "what_is_the_dosing_method_used_for_dpd_tablets",
+          "label": "What is the dosing method used for DPD Tablets?",
+          "order": 23,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "automatic",
+              "label": "Automatic",
+              "id": 1749651674414,
+              "order": 1
+            },
+            {
+              "value": "manual",
+              "label": "Manual",
+              "id": 1749651674415,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["dpd_tablets"]
+            }
+          ]
+        },
+        {
+          "id": 1749651720684,
+          "name": "are_there_any_risks_associated_with_the_dpd_tablets_dosing_method",
+          "label": "Are there any risks associated with the DPD Tablets Dosing Method?",
+          "order": 24,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749651728117,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749651728118,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749641480407,
+              "options": ["dpd_tablets"]
+            }
+          ]
+        },
+        {
+          "id": 1749651764475,
+          "name": "what_are_these_risks_associated_with_the_dpd_tablets_dosing_method",
+          "label": "What are these risks associated with the DPD Tablets Dosing Method?",
+          "order": 25,
+          "type": "text",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749651720684,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749651820475,
+          "name": "take_photo_of_dpd_tablets_dosing_method",
+          "label": "Take Photo of DPD Tablets Dosing Method",
+          "order": 26,
+          "type": "photo",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749651720684,
+              "options": ["yes"]
+            }
+          ],
+          "limit": 5.0
+        }
+      ],
+      "repeat_text": null
+    },
+    {
+      "id": 1749651884200,
+      "name": "constraints_and_recommendation",
+      "label": "Constraints and Recommendation",
+      "description": null,
+      "order": 4,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749651884201,
+          "name": "have_you_noted_any_production_constraints",
+          "label": "Have you noted any production constraints?",
+          "order": 1,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749651906382,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749651906383,
+              "order": 2
+            }
+          ]
+        },
+        {
+          "id": 1749651934376,
+          "name": "please_provide_details_of_production_constraints",
+          "label": "Please provide details of production constraints",
+          "order": 2,
+          "type": "text",
+          "required": true,
+          "meta": false,
+          "dependency": [
+            {
+              "id": 1749651884201,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749651967194,
+          "name": "any_final_recommendation",
+          "label": "Any final recommendation?",
+          "order": 3,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749651978732,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749651978733,
+              "order": 2
+            }
+          ]
+        },
+        {
+          "id": 1749652009922,
+          "name": "what_are_your_final_recommendation_for_the_plant_not_to_be_shown_to_the_interviewee",
+          "label": "What are your final recommendation for the plant?(NOT to be shown to the interviewee)",
+          "order": 4,
+          "type": "multiple_option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "increase_in_budget",
+              "label": "Increase in budget",
+              "id": 1749652017307,
+              "order": 1
+            },
+            {
+              "value": "capacity_building",
+              "label": "Capacity Building",
+              "id": 1749652017308,
+              "order": 2
+            },
+            {
+              "value": "upgrading_works",
+              "label": "Upgrading works",
+              "id": 1749652036879,
+              "order": 3
+            },
+            {
+              "value": "technical_assistance",
+              "label": "Technical Assistance",
+              "id": 1749652049149,
+              "order": 4
+            },
+            {
+              "value": "training",
+              "label": "Training",
+              "id": 1749652057335,
+              "order": 5
+            },
+            {
+              "value": "plant_rehabilitation",
+              "label": "Plant Rehabilitation",
+              "id": 1749652064357,
+              "order": 6
+            },
+            {
+              "value": "plant_augmentation",
+              "label": "Plant Augmentation",
+              "id": 1749652073078,
+              "order": 7
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749651967194,
+              "options": ["yes"]
+            }
+          ]
+        },
+        {
+          "id": 1749652108043,
+          "name": "signature_of_dws_officer",
+          "label": "Signature of DWS Officer",
+          "order": 5,
+          "type": "signature",
+          "required": true,
+          "meta": false
+        }
+      ],
+      "repeat_text": null
+    }
+  ]
+}

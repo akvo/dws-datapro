@@ -1,0 +1,285 @@
+{
+  "id": 1749621221728,
+  "form": "RWS Registration",
+  "description": "Rural Water Project Inspection",
+  "defaultLanguage": "en",
+  "languages": ["en"],
+  "version": 1,
+  "type": 1,
+  "question_groups": [
+    {
+      "id": 1749621221729,
+      "name": "location_of_village",
+      "label": "Location of Village",
+      "description": null,
+      "order": 1,
+      "repeatable": false,
+      "questions": [
+        {
+          "id": 1749621221730,
+          "name": "which_division_province_tikina",
+          "label": "Which Division-Province-Tikina",
+          "order": 1,
+          "type": "administration",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749621329696,
+          "name": "village_name",
+          "label": "Village Name",
+          "order": 2,
+          "type": "text",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749622286673,
+          "name": "gps_location",
+          "label": "GPS Location",
+          "order": 3,
+          "type": "geo",
+          "required": true,
+          "meta": true
+        },
+        {
+          "id": 1749621347162,
+          "name": "project_background",
+          "label": "Project Background",
+          "order": 4,
+          "type": "text",
+          "required": true,
+          "meta": false
+        },
+        {
+          "id": 1749621374500,
+          "name": "type_of_water_source",
+          "label": "Type of Water Source?",
+          "order": 5,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "surface_water",
+              "label": "Surface Water",
+              "id": 1749621384994,
+              "order": 1
+            },
+            {
+              "value": "ground_water",
+              "label": "Ground Water",
+              "id": 1749621384995,
+              "order": 2
+            },
+            {
+              "value": "rainwater",
+              "label": "Rainwater",
+              "id": 1749621403460,
+              "order": 3
+            },
+            {
+              "value": "sea_water",
+              "label": "Sea Water",
+              "id": 1749621419610,
+              "order": 4
+            }
+          ]
+        },
+        {
+          "id": 1749621461754,
+          "name": "construction_of_new_water_catchment_dam",
+          "label": "Construction of New Water Catchment/Dam?",
+          "order": 6,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749621471837,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749621471838,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749621374500,
+              "options": ["surface_water"]
+            }
+          ]
+        },
+        {
+          "id": 1749621517282,
+          "name": "construction_of_borehole",
+          "label": "Construction of borehole?",
+          "order": 7,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749621523401,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749621523402,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749621374500,
+              "options": ["ground_water"]
+            }
+          ]
+        },
+        {
+          "id": 1749621557442,
+          "name": "installation_of_pump_system",
+          "label": "Installation of Pump system?",
+          "order": 8,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749621564288,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749621564289,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749621374500,
+              "options": ["ground_water", "sea_water"]
+            }
+          ]
+        },
+        {
+          "id": 1749621611527,
+          "name": "installation_of_rainwater_harvesting_system",
+          "label": "Installation of Rainwater Harvesting System?",
+          "order": 9,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749621619301,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749621619302,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749621374500,
+              "options": ["rainwater"]
+            }
+          ]
+        },
+        {
+          "id": 1749621690983,
+          "name": "installation_of_desalination_plant",
+          "label": "Installation of Desalination Plant?",
+          "order": 10,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "yes",
+              "label": "Yes",
+              "id": 1749621697642,
+              "order": 1
+            },
+            {
+              "value": "no",
+              "label": "No",
+              "id": 1749621697643,
+              "order": 2
+            }
+          ],
+          "dependency": [
+            {
+              "id": 1749621374500,
+              "options": ["sea_water"]
+            }
+          ]
+        },
+        {
+          "id": 1749621742326,
+          "name": "sizes_of_pipes",
+          "label": "Sizes of  pipes?",
+          "order": 11,
+          "type": "option",
+          "required": true,
+          "meta": false,
+          "options": [
+            {
+              "value": "200mm",
+              "label": "200mm",
+              "id": 1749621749850,
+              "order": 1
+            },
+            {
+              "value": "150mm",
+              "label": "150mm",
+              "id": 1749621749851,
+              "order": 2
+            },
+            {
+              "value": "100mm",
+              "label": "100mm",
+              "id": 1749621762591,
+              "order": 3
+            },
+            {
+              "value": "80mm",
+              "label": "80mm",
+              "id": 1749621768550,
+              "order": 4
+            },
+            {
+              "value": "50mm",
+              "label": "50mm",
+              "id": 1749621777631,
+              "order": 5
+            },
+            {
+              "value": "25mm",
+              "label": "25mm",
+              "id": 1749621783784,
+              "order": 6
+            }
+          ]
+        }
+      ],
+      "repeat_text": null
+    }
+  ]
+}
