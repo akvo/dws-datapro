@@ -15,7 +15,7 @@ services:
     working_dir: /app
     environment:
       - APK_NAME=${APK_NAME}
-      - APK_DOMAIN=${APK_DOMAIN}
+      - APK_SHORT_NAME=${APK_SHORT_NAME}
       - BACKEND_IP_ADDRESS=${IP_ADDRESS}
       - EXPO_TOKEN
       - SENTRY_ENV=${SENTRY_MOBILE_ENV}
