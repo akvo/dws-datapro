@@ -1,4 +1,4 @@
-name: DWS DataPro APK build
+name: Akvo MIS APK build
 
 on:
   push:
