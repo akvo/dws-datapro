@@ -6,10 +6,8 @@ from django.db import models
 from api.v1.v1_forms.constants import (
     QuestionTypes,
     AttributeTypes,
-    FormAccessTypes,
     FormTypes,
 )
-from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
 
 
@@ -35,29 +33,6 @@ class Forms(models.Model):
 
     class Meta:
         db_table = "form"
-
-
-class FormApprovalAssignment(models.Model):
-    form = models.ForeignKey(
-        to=Forms, on_delete=models.CASCADE, related_name="form_data_approval"
-    )
-    administration = models.ForeignKey(
-        to=Administration,
-        on_delete=models.PROTECT,
-        related_name="administration_data_approval",
-    )
-    user = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.CASCADE,
-        related_name="user_data_approval",
-    )
-    updated = models.DateTimeField(default=None, null=True)
-
-    def __str__(self):
-        return self.user.email
-
-    class Meta:
-        db_table = "form_approval_assignment"
 
 
 class QuestionGroup(models.Model):
@@ -179,23 +154,6 @@ class UserForms(models.Model):
     class Meta:
         unique_together = ("user", "form")
         db_table = "user_form"
-
-
-class FormAccess(models.Model):
-    user_form = models.ForeignKey(
-        to=UserForms,
-        on_delete=models.CASCADE,
-        related_name="user_form_access",
-    )
-    access_type = models.IntegerField(
-        choices=FormAccessTypes.FieldStr.items()
-    )
-
-    def __str__(self):
-        return self.user.email
-
-    class Meta:
-        db_table = "user_form_access"
 
 
 class QuestionAttribute(models.Model):
