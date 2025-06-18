@@ -42,7 +42,9 @@ class ProfileTestHelperMixin:
         user = SystemUser.objects.create(
             email=email,
             first_name=name[0],
-            last_name=name[1])
+            last_name=name[1],
+            is_superuser=role_level == self.IS_SUPER_ADMIN,
+        )
         user.set_password(password)
         user.save()
 
