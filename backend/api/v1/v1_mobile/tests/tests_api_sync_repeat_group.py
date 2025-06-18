@@ -12,15 +12,28 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
     def setUp(self):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
+        call_command("default_roles_seeder", "--test", 1)
+        call_command("fake_user_seeder", "--repeat", 5, "--test", 1)
 
-        ward_level = Levels.objects.order_by("-level")[1:2].first()
+        adm_level = Levels.objects.order_by("-level")[1:2].first()
         self.form = Forms.objects.get(pk=4)
         user = SystemUser.objects.filter(
-            user_access__administration__level=ward_level,
-            mobile_assignments__forms=self.form,
+            user_user_role__administration__level=adm_level,
         ).first()
-        self.mobile_user = user.mobile_assignments.first()
+
+        # Create a mobile assignment for the user
+        mobile_user = user.mobile_assignments.create(
+            name="Test mobile",
+            passcode=CustomPasscode().encode("123456"),
+        )
+        # Assign administration to the mobile assignment
+        mobile_user.administrations.add(
+            user.user_user_role.order_by("?").first().administration
+        )
+        # Assign form to the mobile assignment
+        mobile_user.forms.add(self.form)
+
+        self.mobile_user = mobile_user
         self.code = CustomPasscode().decode(
             encoded_passcode=self.mobile_user.passcode
         )

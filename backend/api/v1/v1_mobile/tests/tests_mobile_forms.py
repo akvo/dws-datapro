@@ -1,8 +1,11 @@
 from django.test import TestCase
 from api.v1.v1_mobile.tests.mixins import AssignmentTokenTestHelperMixin
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.models import Administration, Access
-from api.v1.v1_profile.constants import UserRoleTypes
+from api.v1.v1_profile.models import (
+    Administration,
+    Role,
+    UserRole,
+)
 from django.core.management import call_command
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_forms.models import Forms, UserForms
@@ -13,7 +16,7 @@ class MobileFormsApiTest(TestCase, AssignmentTokenTestHelperMixin):
     def setUp(self):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
+        call_command("default_roles_seeder", "--test", 1)
 
         self.user = SystemUser.objects.create_user(
             email="test@test.org",
@@ -27,10 +30,15 @@ class MobileFormsApiTest(TestCase, AssignmentTokenTestHelperMixin):
         self.administration = adm1
         self.administration2 = adm2
         self.form = Forms.objects.get(pk=4)
-
-        role = UserRoleTypes.admin
-        self.user_access = Access.objects.create(
-            user=self.user, role=role, administration=self.administration
+        role_name = "{0} {1}".format(
+            self.administration.level.name,
+            "Submitter"
+        )
+        role = Role.objects.filter(name=role_name).first()
+        UserRole.objects.create(
+            user=self.user,
+            role=role,
+            administration=self.administration,
         )
         UserForms.objects.create(user=self.user, form=self.form)
 

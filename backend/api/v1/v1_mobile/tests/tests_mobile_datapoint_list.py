@@ -1,34 +1,36 @@
 from mis.settings import WEBDOMAIN
 from django.test import TestCase
+from django.core.management import call_command
 from api.v1.v1_mobile.models import MobileAssignment
-from api.v1.v1_profile.models import Administration, Access
-from api.v1.v1_profile.constants import UserRoleTypes
+from api.v1.v1_profile.models import (
+    Administration,
+)
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_data.models import FormData
-from api.v1.v1_users.models import SystemUser
-from django.core.management import call_command
+from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from rest_framework import status
 
 
-class MobileDataPointDownloadListTestCase(TestCase):
+class MobileDataPointDownloadListTestCase(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
+        call_command("default_roles_seeder", "--test", 1)
 
-        self.user = SystemUser.objects.create_user(
-            email="test@test.org",
-            password="test1234",
-            first_name="test",
-            last_name="testing",
-        )
         self.administration = Administration.objects.filter(
             parent__isnull=True
         ).first()
-        role = UserRoleTypes.admin
-        self.user_access = Access.objects.create(
-            user=self.user, role=role, administration=self.administration
-        )
         self.forms = Forms.objects.filter(parent__isnull=True).all()
+        self.user = self.create_user(
+            email="test@test.org",
+            role_level=self.IS_ADMIN,
+            administration=self.administration,
+        )
+        for f in self.forms:
+            self.user.user_form.create(
+                form=f,
+            )
+            self.user.save()
         self.uuid = "uuid-1234-5678-9101"
         self.passcode = "passcode1234"
         self.mobile_assignment = MobileAssignment.objects.create_assignment(
