@@ -6,20 +6,23 @@ import numpy as np
 
 from django.utils import timezone
 from api.v1.v1_data.models import (
-    PendingDataBatch,
-    PendingDataApproval,
     Answers,
     FormData,
     AnswerHistory,
 )
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_forms.constants import QuestionTypes
-from api.v1.v1_forms.models import Questions, FormApprovalAssignment
+from api.v1.v1_forms.models import Questions
 from api.v1.v1_jobs.functions import HText
 from api.v1.v1_jobs.models import Jobs
-from api.v1.v1_profile.models import Administration, Entity, EntityData
+from api.v1.v1_profile.models import (
+    Administration,
+    Entity,
+    EntityData,
+    DataAccessTypes,
+)
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.constants import UserRoleTypes
+from api.v1.v1_approval.models import DataBatch
 from utils.email_helper import send_email, EmailTypes
 from uuid import uuid4
 
@@ -56,7 +59,7 @@ def collect_answers(user: SystemUser, dp: dict, qs: dict, data_id):
     if data_id:
         prev_form_data = FormData.objects.filter(pk=data_id).first()
 
-    is_super_admin = user.user_access.role == UserRoleTypes.super_admin
+    is_super_admin = user.is_superuser
     names = []
     administration = dp["administration"]
     if isinstance(administration, str):
@@ -219,8 +222,14 @@ def get_decendants(administration: Administration):
     return descendants
 
 
-def save_data(user: SystemUser, dp: dict, qs: dict, form_id: int, batch_id):
-    is_super_admin = user.user_access.role == UserRoleTypes.super_admin
+def save_data(
+    user: SystemUser,
+    dp: dict,
+    qs: dict,
+    form_id: int,
+    batch: DataBatch = None,
+):
+    is_super_admin = user.is_superuser
     data_id = None if math.isnan(dp["data_id"]) else dp["data_id"]
     temp = collect_answers(user=user, dp=dp, qs=qs, data_id=data_id)
     administration = temp.get("administration")
@@ -230,8 +239,20 @@ def save_data(user: SystemUser, dp: dict, qs: dict, form_id: int, batch_id):
     answer_history_list = temp.get("answer_history_list")
     parent = FormData.objects.filter(uuid=temp.get("uuid")).first()
 
-    user_administration = user.user_access.administration
-    user_decendants = get_decendants(administration=user_administration)
+    user_adm = Administration.objects.filter(
+        parent__isnull=True
+    ).first()
+    if not user.is_superuser and user.user_user_role.exists():
+        # Get the administration from the user's role
+        user_role = user.user_user_role.filter(
+            role__role_role_access__data_access__in=[
+                DataAccessTypes.read,
+                DataAccessTypes.submit,
+                DataAccessTypes.approve,
+            ]
+        ).first()
+        user_adm = user_role.administration if user_role else user_adm
+    user_decendants = get_decendants(administration=user_adm)
     if administration not in user_decendants:
         return None
     if is_super_admin:
@@ -267,12 +288,13 @@ def save_data(user: SystemUser, dp: dict, qs: dict, form_id: int, batch_id):
             form_id=form_id,
             administration_id=administration,
             geo=geo,
-            batch_id=batch_id,
             created_by=user,
             uuid=temp.get("uuid"),
             parent=parent,
             is_pending=True,
         )
+        batch.batch_data_list.add(data)
+        batch.save()
 
     # Always create Answers objects (not PendingAnswers)
     answer_to_create = []
@@ -295,7 +317,7 @@ def save_data(user: SystemUser, dp: dict, qs: dict, form_id: int, batch_id):
 
 
 def seed_excel_data(job: Jobs, test: bool = False):
-    is_super_admin = job.user.user_access.role == UserRoleTypes.super_admin
+    is_super_admin = job.user.is_superuser
     file = f"./tmp/{job.info.get('file')}"
     if test:
         file = job.info.get('file')
@@ -325,7 +347,7 @@ def seed_excel_data(job: Jobs, test: bool = False):
     datapoints = df.to_dict("records")
     batch = None
     if not is_super_admin:
-        batch = PendingDataBatch.objects.create(
+        batch = DataBatch.objects.create(
             form_id=form_id,
             administration_id=job.info.get("administration"),
             user=job.user,
@@ -338,7 +360,7 @@ def seed_excel_data(job: Jobs, test: bool = False):
             dp=datapoint,
             qs=questions,
             form_id=form_id,
-            batch_id=batch.id if batch else None,
+            batch=batch,
         )
         answer_count = data.data_answer.count() if data else 0
         if answer_count:
@@ -367,46 +389,28 @@ def seed_excel_data(job: Jobs, test: bool = False):
         if not test:
             os.remove(file)
         return None
-    if not is_super_admin and batch:
-        path = "{0}{1}".format(
-            batch.administration.path, batch.administration_id
-        )
-        for administration in Administration.objects.filter(
-            id__in=path.split(".")
-        ):
-            assignment = FormApprovalAssignment.objects.filter(
-                form_id=batch.form_id, administration=administration
-            ).first()
-            if assignment:
-                level = assignment.user.user_access.administration.level_id
-                PendingDataApproval.objects.create(
-                    batch=batch, user=assignment.user, level_id=level
-                )
-                if not test:
-                    submitter = f"{job.user.name}"
-                    context = {
-                        "send_to": [assignment.user.email],
-                        "listing": [
-                            {
-                                "name": "Batch Name", "value": batch.name},
-                            {
-                                "name": "Questionnaire",
-                                "value": batch.form.name
-                            },
-                            {
-                                "name": "Number of Records",
-                                "value": df.shape[0]
-                            },
-                            {
-                                "name": "Submitter",
-                                "value": submitter,
-                            },
-                        ],
-                    }
-                    send_email(
-                        context=context,
-                        type=EmailTypes.pending_approval
-                    )
+    if batch and batch.approvers:
+        # Send email to all approvers
+        emails = [
+            approver.user.email for approver in batch.approvers
+        ]
+        number_of_records = batch.batch_data_list.count()
+        data = {
+            "send_to": emails,
+            "listing": [
+                {"name": "Batch Name", "value": batch.name},
+                {"name": "Questionnaire", "value": batch.form.name},
+                {
+                    "name": "Number of Records",
+                    "value": number_of_records,
+                },
+                {
+                    "name": "Submitter",
+                    "value": f"""{batch.user.name}""",
+                },
+            ],
+        }
+        send_email(context=data, type=EmailTypes.pending_approval)
     if not test:
         os.remove(file)
     return records
