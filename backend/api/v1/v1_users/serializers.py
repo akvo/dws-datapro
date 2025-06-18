@@ -594,7 +594,10 @@ class UserSerializer(serializers.ModelSerializer):
         for role in user_roles:
             roles_data.append({
                 'role': role.role.id,
-                'administration': role.administration.id
+                'administration': role.administration.id,
+                'is_approver': True if role.is_approver else False,
+                'is_submitter': True if role.is_submitter else False,
+                'is_editor': True if role.is_editor else False,
             })
         return roles_data
 
@@ -631,7 +634,7 @@ class UserSerializer(serializers.ModelSerializer):
         fields = [
             'email', 'name', 'roles', 'trained',
             'phone_number', 'forms', 'organisation',
-            'last_login', 'passcode',
+            'last_login', 'passcode', 'is_superuser',
         ]
 
 
@@ -656,7 +659,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
         for role in instance.user_user_role.all():
             roles_data.append({
                 'role': role.role.id,
-                'administration': role.administration.id
+                'administration': role.administration.id,
             })
         return roles_data
 
@@ -702,7 +705,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'first_name', 'last_name', 'email', 'roles',
             'organisation', 'trained', 'phone_number',
             'forms', 'pending_approval', 'data',
-            'pending_batch'
+            'pending_batch', 'is_superuser',
         ]
 
 
