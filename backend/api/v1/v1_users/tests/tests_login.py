@@ -60,6 +60,7 @@ class LoginUserTestCase(TestCase):
                 "last_login",
                 "passcode",
                 "is_superuser",
+                "administration",
                 "token",
                 "invite",
                 "expiration_time",
