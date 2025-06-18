@@ -5,16 +5,14 @@ from api.v1.v1_profile.models import (
     Entity,
     EntityData,
     SystemUser,
-    UserRoleTypes,
 )
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.constants import EntityTypes
 from api.v1.v1_profile.functions import get_max_administration_level
 
-MAX_ADM_LEVEL = get_max_administration_level()
-
 
 def seed_randomly(repeat: int = 1):
+    MAX_ADM_LEVEL = get_max_administration_level()
     entity_types = EntityTypes.FieldStr.values()
     for t in entity_types:
         entity, created = Entity.objects.get_or_create(name=t)
@@ -36,13 +34,13 @@ def seed_data(self, repeat: int = 1, test: bool = False):
     ).all()
     for form in entity_form:
         users = SystemUser.objects.filter(
-            user_access__role=UserRoleTypes.admin, user_form__form=form
+            user_form__form=form,
         ).all()
-        for user in users:
-            path = "{0}{1}".format(
-                user.user_access.administration.path,
-                user.user_access.administration.id
-            )
+        for u in users:
+            path = u.user_user_role.all().first().administration.path
+            if not path:
+                adm = u.user_user_role.all().first().administration
+                path = f"{adm.id}."
             for adm in Administration.objects.filter(
                 path__startswith=path
             )[:repeat].all():
