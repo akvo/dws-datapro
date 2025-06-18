@@ -606,22 +606,6 @@ class UserSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(AddRolesSerializer(many=True))
     def get_roles(self, instance: SystemUser):
-        if instance.is_superuser:
-            adm = Administration.objects.filter(
-                parent__isnull=True,
-                level__level=0
-            ).first()
-            return [
-                {
-                    "role": "Super Admin",
-                    "administration": UserAdministrationSerializer(
-                        instance=adm
-                    ).data,
-                    "is_approver": True,
-                    "is_submitter": True,
-                    "is_editor": True,
-                }
-            ]
         user_roles = UserRole.objects.filter(user=instance).all()
         roles_data = []
         for role in user_roles:
