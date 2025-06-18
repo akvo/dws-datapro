@@ -9,8 +9,14 @@ from api.v1.v1_profile.models import (
     Entity,
     EntityData,
     Levels,
+    Role,
+    RoleAccess,
+    DataAccessTypes,
 )
-from utils.custom_serializer_fields import CustomPrimaryKeyRelatedField
+from utils.custom_serializer_fields import (
+    CustomPrimaryKeyRelatedField,
+    CustomListField,
+)
 from utils.custom_generator import update_sqlite
 from utils.custom_generator import (
     administration_csv_add,
@@ -385,3 +391,99 @@ class ListEntityDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = EntityData
         fields = ["id", "code", "name"]
+
+
+class RoleSerializer(serializers.ModelSerializer):
+    # Define role_access as a SerializerMethodField for serialization
+    role_access = CustomListField(
+        child=serializers.ChoiceField(
+            choices=list(DataAccessTypes.FieldStr.keys()),
+        ),
+        write_only=True,
+    )
+    role_access_list = serializers.SerializerMethodField(
+        source="role_role_access",
+        read_only=True,
+        help_text="List of data access types for this role",
+    )
+    administration_level = CustomPrimaryKeyRelatedField(
+        queryset=Levels.objects.all(),
+    )
+
+    class Meta:
+        model = Role
+        fields = [
+            "id",
+            "name",
+            "description",
+            "role_access",
+            "role_access_list",
+            "administration_level",
+        ]
+
+    def get_role_access_list(self, obj):
+        """Return list of data access values for this role"""
+        return [access.data_access for access in obj.role_role_access.all()]
+
+    def create(self, validated_data):
+        role_access = validated_data.pop("role_access", [])
+        instance = super().create(validated_data)
+        # Create RoleAccess objects individually and save them
+        for access in role_access:
+            RoleAccess.objects.create(role=instance, data_access=access)
+        return instance
+
+    def update(self, instance, validated_data):
+        role_access = validated_data.pop("role_access", [])
+        instance = super().update(instance, validated_data)
+        # Remove existing data access
+        instance.role_role_access.all().delete()
+        # Create new role access objects
+        for access in role_access:
+            RoleAccess.objects.create(role=instance, data_access=access)
+        return instance
+
+
+class RoleListSerializer(serializers.ModelSerializer):
+    administration_level = AdministrationLevelsSerializer(read_only=True)
+    total_users = serializers.SerializerMethodField()
+
+    def get_total_users(self, obj: Role):
+        return obj.role_user_role.count()
+
+    class Meta:
+        model = Role
+        fields = [
+            "id",
+            "name",
+            "description",
+            "administration_level",
+            "total_users",
+        ]
+
+
+class RoleDetailSerializer(serializers.ModelSerializer):
+    administration_level = AdministrationLevelsSerializer(read_only=True)
+    role_access = serializers.SerializerMethodField()
+
+    def get_role_access(self, obj: Role):
+        return [
+            {
+                "id": access.id,
+                "data_access": access.data_access,
+                "data_access_name": (
+                    DataAccessTypes.FieldStr[access.data_access]
+                ),
+            }
+            for access in obj.role_role_access.all()
+        ]
+
+    class Meta:
+        model = Role
+        fields = [
+            "id",
+            "name",
+            "description",
+            "administration_level",
+            "role_access",
+        ]

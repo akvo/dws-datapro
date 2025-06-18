@@ -5,6 +5,7 @@ from api.v1.v1_profile.views import (
     AdministrationViewSet,
     EntityDataViewSet,
     EntityViewSet,
+    RoleViewSet,
     export_administrations_template,
     export_prefilled_administrations_template,
     send_feedback,
@@ -14,6 +15,27 @@ from api.v1.v1_profile.views import (
 )
 
 urlpatterns = [
+    re_path(
+        r"^(?P<version>(v1))/roles",
+        RoleViewSet.as_view(
+            {
+                "get": "list",
+                "post": "create",
+            }
+        ),
+        name="role-list",
+    ),
+    re_path(
+        r"^(?P<version>(v1))/role/(?P<pk>[0-9]+)",
+        RoleViewSet.as_view(
+            {
+                "get": "retrieve",
+                "put": "update",
+                "delete": "destroy",
+            }
+        ),
+        name="role-detail",
+    ),
     re_path(
         r"^(?P<version>(v1))/export/administrations-template",
         export_administrations_template,
