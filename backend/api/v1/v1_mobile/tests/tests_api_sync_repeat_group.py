@@ -3,12 +3,13 @@ from api.v1.v1_profile.models import Levels
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_data.models import FormData, Answers
 from api.v1.v1_users.models import SystemUser
+from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from django.core.management import call_command
 from rest_framework import status
 from utils.custom_helper import CustomPasscode
 
 
-class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
+class MobileAssignmentApiSyncRepeatGroupTest(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
@@ -21,6 +22,15 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
             user_user_role__administration__level=adm_level,
         ).first()
 
+        # Create approver based on the user's administration
+        user_adm = user.user_user_role.order_by("?").first().administration
+        self.create_user(
+            email="approver.123@test.com",
+            role_level=self.IS_APPROVER,
+            administration=user_adm,
+            form=self.form,
+        )
+
         # Create a mobile assignment for the user
         mobile_user = user.mobile_assignments.create(
             name="Test mobile",
@@ -28,7 +38,7 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
         )
         # Assign administration to the mobile assignment
         mobile_user.administrations.add(
-            user.user_user_role.order_by("?").first().administration
+            user_adm
         )
         # Assign form to the mobile assignment
         mobile_user.forms.add(self.form)
