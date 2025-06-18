@@ -18,7 +18,6 @@ from api.v1.v1_profile.models import (
     Levels,
     Role,
     UserRole,
-    DataAccessTypes,
 )
 from api.v1.v1_users.models import SystemUser, \
         Organisation, OrganisationAttribute
@@ -580,6 +579,7 @@ class ListUserRequestSerializer(serializers.Serializer):
 
 class UserSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
+    administration = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     trained = CustomBooleanField(default=False)
@@ -587,14 +587,49 @@ class UserSerializer(serializers.ModelSerializer):
     last_login = serializers.SerializerMethodField()
     passcode = serializers.SerializerMethodField()
 
+    @extend_schema_field(UserAdministrationSerializer)
+    def get_administration(self, instance: SystemUser):
+        if instance.is_superuser:
+            adm = Administration.objects.filter(
+                parent__isnull=True,
+                level__level=0
+            ).first()
+            return UserAdministrationSerializer(instance=adm).data
+        # Order UserRole by administration level and get the first one
+        user_role = UserRole.objects.filter(user=instance) \
+            .order_by('administration__level__level').first()
+        if user_role:
+            return UserAdministrationSerializer(
+                instance=user_role.administration
+            ).data
+        return None
+
     @extend_schema_field(AddRolesSerializer(many=True))
     def get_roles(self, instance: SystemUser):
+        if instance.is_superuser:
+            adm = Administration.objects.filter(
+                parent__isnull=True,
+                level__level=0
+            ).first()
+            return [
+                {
+                    "role": "Super Admin",
+                    "administration": UserAdministrationSerializer(
+                        instance=adm
+                    ).data,
+                    "is_approver": True,
+                    "is_submitter": True,
+                    "is_editor": True,
+                }
+            ]
         user_roles = UserRole.objects.filter(user=instance).all()
         roles_data = []
         for role in user_roles:
             roles_data.append({
-                'role': role.role.id,
-                'administration': role.administration.id,
+                'role': role.role.name,
+                'administration': UserAdministrationSerializer(
+                    instance=role.administration
+                ).data,
                 'is_approver': True if role.is_approver else False,
                 'is_submitter': True if role.is_submitter else False,
                 'is_editor': True if role.is_editor else False,
@@ -635,6 +670,7 @@ class UserSerializer(serializers.ModelSerializer):
             'email', 'name', 'roles', 'trained',
             'phone_number', 'forms', 'organisation',
             'last_login', 'passcode', 'is_superuser',
+            'administration',
         ]
 
 
@@ -645,6 +681,7 @@ class ListLevelSerializer(serializers.ModelSerializer):
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
+    administration = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     trained = CustomBooleanField(default=False)
@@ -652,6 +689,23 @@ class UserDetailSerializer(serializers.ModelSerializer):
     pending_approval = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
     pending_batch = serializers.SerializerMethodField()
+
+    @extend_schema_field(UserAdministrationSerializer)
+    def get_administration(self, instance: SystemUser):
+        if instance.is_superuser:
+            adm = Administration.objects.filter(
+                parent__isnull=True,
+                level__level=0
+            ).first()
+            return UserAdministrationSerializer(instance=adm).data
+        # Order UserRole by administration level and get the first one
+        user_role = UserRole.objects.filter(user=instance) \
+            .order_by('administration__level__level').first()
+        if user_role:
+            return UserAdministrationSerializer(
+                instance=user_role.administration
+            ).data
+        return None
 
     @extend_schema_field(AddRolesSerializer(many=True))
     def get_roles(self, instance: SystemUser):
@@ -674,20 +728,16 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_pending_approval(self, instance: SystemUser):
-        adms = instance.user_user_role.filter(
-            role__role_role_access__data_access=DataAccessTypes.approve
-        ).values_list('administration', flat=True).distinct()
-        adms = list(adms)
-        batch_q = Q()
-        for adm in adms:
-            # adm = Administration.objects.filter(pk=adm_id).first()
+        batch_q = Q(approved=False)
+        for ur in instance.user_user_role.all():
+            adm = ur.administration
             path = adm.path \
                 if hasattr(adm, 'path') and adm.path else f"{adm.id}."
-            batch_q |= Q(administration__path__startswith=path)
-        total_batches = DataBatch.objects.filter(
-            batch_q,
-            approved=False,
-        ).count()
+            batch_q |= Q(
+                administration__path__startswith=path,
+                approved=False,
+            )
+        total_batches = DataBatch.objects.filter(batch_q).count()
         return total_batches
 
     @extend_schema_field(OpenApiTypes.INT)
@@ -705,7 +755,7 @@ class UserDetailSerializer(serializers.ModelSerializer):
             'first_name', 'last_name', 'email', 'roles',
             'organisation', 'trained', 'phone_number',
             'forms', 'pending_approval', 'data',
-            'pending_batch', 'is_superuser',
+            'pending_batch', 'is_superuser', 'administration',
         ]
 
 
