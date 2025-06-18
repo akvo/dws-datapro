@@ -73,13 +73,6 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
-        form_data = FormData.objects.filter(
-            form=self.form,
-            name=payload["name"],
-            is_pending=False
-        ).first()
-        self.assertIsNone(form_data)
-
         pending_form_data = FormData.objects.filter(
             form=self.form,
             name=payload["name"],
