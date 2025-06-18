@@ -471,52 +471,29 @@ def list_users(request, version):
             {"message": validate_serializers_message(serializer.errors)},
             status=status.HTTP_400_BAD_REQUEST,
         )
-    adms = request.user.user_user_role.values_list(
-        "administration_id", flat=True
-    )
-    user_allowed = Administration.objects.filter(
-        id__in=adms
-    ).first()
 
-    if user_allowed.path:
-        allowed_path = f"{user_allowed.path}{user_allowed.id}."
-    else:
-        allowed_path = f"{user_allowed.id}."
-    allowed_descendants = list(
-        Administration.objects.filter(
-            path__startswith=allowed_path
-        ).values_list("id", flat=True)
-    )
-    allowed_descendants.append(user_allowed.id)
-    filter_data = {
-        "user_user_role__administration_id__in": allowed_descendants,
-    }
+    filter_data = {}
     exclude_data = {"password__exact": ""}
 
     if serializer.validated_data.get("administration"):
-        filter_administration = serializer.validated_data.get("administration")
-        if not serializer.validated_data.get("descendants"):
-            filter_descendants = list(
+        filter_adm = serializer.validated_data.get("administration")
+        filter_descendants = list(
                 Administration.objects.filter(
-                    parent=filter_administration
+                    parent=filter_adm
                 ).values_list("id", flat=True)
             )
-        else:
-            if filter_administration.path:
-                filter_path = "{0}{1}.".format(
-                    filter_administration.path, filter_administration.id
-                )
-            else:
-                filter_path = f"{filter_administration.id}."
+        if serializer.validated_data.get("descendants"):
+            filter_path = "{0}{1}.".format(
+                filter_adm.path, filter_adm.id
+            ) if filter_adm.path else f"{filter_adm.id}."
             filter_descendants = list(
                 Administration.objects.filter(
                     path__startswith=filter_path
                 ).values_list("id", flat=True)
             )
-            filter_descendants.append(filter_administration.id)
+            filter_descendants.append(filter_adm.id)
 
-        set1 = set(filter_descendants)
-        final_set = set1.intersection(allowed_descendants)
+        final_set = set(filter_descendants)
         filter_data["user_user_role__administration_id__in"] = list(final_set)
     if serializer.validated_data.get("trained") is not None:
         trained = (
