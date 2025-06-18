@@ -35,6 +35,7 @@ def seed_data(self, repeat: int = 1, test: bool = False):
     for form in entity_form:
         users = SystemUser.objects.filter(
             user_form__form=form,
+            user_user_role__gt=0
         ).all()
         for u in users:
             path = u.user_user_role.all().first().administration.path
