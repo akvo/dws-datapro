@@ -197,6 +197,11 @@ class UserRole(models.Model):
             data_access=DataAccessTypes.submit
         ).exists()
 
+    def is_editor(self):
+        return self.role.role_role_access.filter(
+            data_access=DataAccessTypes.edit
+        ).exists()
+
     def __str__(self):
         return f"{self.user.name} - {self.role.name} ({self.administration})"
 
