@@ -3,11 +3,13 @@ from django.core.management.color import no_style
 from django.db import connection
 from django.test.client import Client
 from faker import Faker
-from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_profile.models import Access, Administration
+from api.v1.v1_profile.models import (
+    Administration,
+    Role,
+    UserRole,
+)
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_forms.models import UserForms, FormAccess, Forms
-from api.v1.v1_forms.constants import FormAccessTypes
+from api.v1.v1_forms.models import UserForms, Forms
 fake = Faker()
 
 
@@ -53,31 +55,25 @@ class ProfileTestHelperMixin:
                 administration = Administration.objects.filter(
                     level__level__gt=0
                 ).order_by('?').first()
-        role = UserRoleTypes.super_admin \
-            if role_level == self.IS_SUPER_ADMIN else UserRoleTypes.admin
-        Access.objects.create(
-            user=user,
-            role=role,
-            administration=administration,
-        )
-
         if form:
-            user_form, _ = UserForms.objects.get_or_create(
+            UserForms.objects.get_or_create(
                 user=user,
                 form=form
             )
-            FormAccess.objects.get_or_create(
-                user_form=user_form,
-                access_type=FormAccessTypes.read
+        if role_level != self.IS_SUPER_ADMIN:
+            role_name = "{0} {1}".format(
+                administration.level.name,
+                "Approver" if role_level == self.IS_APPROVER else "Admin"
             )
-            FormAccess.objects.get_or_create(
-                user_form=user_form,
-                access_type=FormAccessTypes.edit
-            )
-            if role_level == self.IS_APPROVER:
-                FormAccess.objects.get_or_create(
-                    user_form=user_form,
-                    access_type=FormAccessTypes.approve
+            role = Role.objects.filter(
+                administration_level=administration.level,
+                name=role_name,
+            ).order_by('?').first()
+            if role:
+                UserRole.objects.get_or_create(
+                    user=user,
+                    role=role,
+                    administration=administration
                 )
         return user
 
