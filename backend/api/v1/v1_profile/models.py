@@ -3,7 +3,6 @@ from django.contrib.postgres.fields import ArrayField
 from django.db.models.signals import pre_save
 from django.dispatch import receiver
 from api.v1.v1_profile.constants import DataAccessTypes
-from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_users.models import SystemUser
 
 
@@ -80,28 +79,6 @@ def set_administration_path(sender, instance: Administration, **_):
         return
     parent = instance.parent
     instance.path = f"{parent.path or ''}{parent.id}."
-
-
-class Access(models.Model):
-    user = models.OneToOneField(
-        to=SystemUser, on_delete=models.CASCADE, related_name="user_access"
-    )
-    administration = models.ForeignKey(
-        to=Administration,
-        on_delete=models.CASCADE,
-        related_name="user_administration",
-    )
-    role = models.IntegerField(choices=UserRoleTypes.FieldStr.items())
-
-    def __str__(self):
-        return UserRoleTypes.FieldStr.get(self.role)
-
-    @property
-    def role_name(self):
-        return UserRoleTypes.FieldStr.get(self.role)
-
-    class Meta:
-        db_table = "access"
 
 
 class AdministrationAttribute(models.Model):
@@ -196,8 +173,10 @@ class RoleAccess(models.Model):
 
 
 class UserRole(models.Model):
-    user = models.OneToOneField(
-        to=SystemUser, on_delete=models.CASCADE, related_name="user_user_role"
+    user = models.ForeignKey(
+        to=SystemUser,
+        on_delete=models.CASCADE,
+        related_name="user_user_role"
     )
     role = models.ForeignKey(
         to=Role, on_delete=models.CASCADE, related_name="role_user_role"
