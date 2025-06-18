@@ -14,7 +14,6 @@ if [[ "${add_account}" == 'y' || "${add_account}" == 'Y' ]]; then
     read -r email_address
     if [[ "${email_address}" != '' ]]; then
         python manage.py createsuperuser --email "${email_address}"
-        python manage.py assign_access "${email_address}"
     fi
 fi
 
