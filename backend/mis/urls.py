@@ -21,6 +21,7 @@ urlpatterns = [
     path("api/", include("api.v1.v1_profile.urls"), name="v1_profile"),
     path("api/", include("api.v1.v1_forms.urls"), name="v1_forms"),
     path("api/", include("api.v1.v1_data.urls"), name="v1_data"),
+    path("api/", include("api.v1.v1_approval.urls"), name="v1_approval"),
     path("api/", include("api.v1.v1_jobs.urls"), name="v1_jobs"),
     path("api/", include("api.v1.v1_mobile.urls"), name="v1_mobile"),
     path("api/", include("api.v1.v1_files.urls"), name="v1_files"),
