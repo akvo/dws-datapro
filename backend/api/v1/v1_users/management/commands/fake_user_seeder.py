@@ -5,16 +5,15 @@ import uuid
 from django.core.management import BaseCommand
 from faker import Faker
 
-from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.constants import OrganisationTypes
-from api.v1.v1_profile.models import Levels, Access, Administration
-from api.v1.v1_users.models import SystemUser, Organisation
-from api.v1.v1_forms.models import Forms, UserForms, FormAccess
-from api.v1.v1_forms.constants import FormAccessTypes
-from api.v1.v1_users.functions import (
-    check_form_approval_assigned,
-    assign_form_approval,
+from api.v1.v1_profile.models import (
+    Levels,
+    Administration,
+    Role,
+    UserRole,
 )
+from api.v1.v1_users.models import SystemUser, Organisation
+from api.v1.v1_forms.models import Forms, UserForms
 
 fake = Faker()
 
@@ -23,7 +22,7 @@ DEFAULT_PASSWORD = "Test#123"
 
 def create_user(
     administration: Administration,
-    is_superadmin: bool = False,
+    is_superuser: bool = False,
     test: bool = False
 ) -> SystemUser:
     first_name = fake.first_name()
@@ -41,6 +40,7 @@ def create_user(
         first_name=first_name,
         last_name=last_name,
         phone_number=fake.msisdn(),
+        is_superuser=is_superuser,
     )
     if organisation:
         user.organisation = organisation
@@ -51,75 +51,30 @@ def create_user(
     if not test:
         user.set_password(DEFAULT_PASSWORD)
     user.save()
-    role = UserRoleTypes.super_admin if is_superadmin else UserRoleTypes.admin
-    Access.objects.create(
-        user=user,
-        role=role,
-        administration=administration
-    )
-    if is_superadmin:
-        forms = Forms.objects.filter(parent__isnull=True).all()
-        for form in forms:
-            user_form, _ = UserForms.objects.get_or_create(
-                user=user,
-                form=form
-            )
-            FormAccess.objects.get_or_create(
-                user_form=user_form,
-                access_type=FormAccessTypes.edit
-            )
-            if random.choice([True, False]):
-                FormAccess.objects.get_or_create(
-                    user_form=user_form,
-                    access_type=FormAccessTypes.approve
-                )
-    if not is_superadmin:
-        form = (
-            Forms.objects
-            .filter(parent__isnull=True)
-            .order_by("?")
-            .first()
+
+    is_approver = random.choice([True, False])
+    role_name = "Approver" if is_approver else "Submitter"
+    role = Role.objects.filter(
+        administration_level=administration.level,
+        name="{0} {1}".format(
+            administration.level.name,
+            role_name
         )
-        user_form, _ = UserForms.objects.get_or_create(
+    ).order_by("?").first()
+
+    if not is_superuser and role:
+        UserRole.objects.create(
+            user=user,
+            administration=administration,
+            role=role
+        )
+
+    forms = Forms.objects.filter(parent__isnull=True).all()
+    for form in forms:
+        UserForms.objects.get_or_create(
             user=user,
             form=form
         )
-        if random.choice([True, False]):
-            FormAccess.objects.get_or_create(
-                user_form=user_form,
-                access_type=FormAccessTypes.read
-            )
-        else:
-            FormAccess.objects.get_or_create(
-                user_form=user_form,
-                access_type=FormAccessTypes.edit
-            )
-            is_approver = random.choice([True, False])
-            if is_approver:
-                is_approver_assigned = check_form_approval_assigned(
-                    role=UserRoleTypes.admin,
-                    administration=administration,
-                    access_forms=[{
-                        "form_id": form
-                    }],
-                )
-                # Check if the user already has approver access
-                if not is_approver_assigned:
-                    # Assign approver access to the user
-                    FormAccess.objects.get_or_create(
-                        user_form=user_form,
-                        access_type=FormAccessTypes.approve
-                    )
-                    assign_form_approval(
-                        role=UserRoleTypes.admin,
-                        forms=[form],
-                        administration=administration,
-                        user=user,
-                        access_forms=[{
-                            "form_id": form,
-                            "access_type": FormAccessTypes.approve
-                        }],
-                    )
     return user
 
 
@@ -150,7 +105,7 @@ class Command(BaseCommand):
         for _ in range(repeat):
             if level > total_levels:
                 level = 0
-            is_superadmin = level == 0
+            is_superuser = level == 0
             # Get administrations with entity data
             administration = Administration.objects.filter(
                 level__level=level
@@ -167,9 +122,10 @@ class Command(BaseCommand):
             level += 1
             create_user(
                 administration=administration,
-                is_superadmin=is_superadmin,
+                is_superuser=is_superuser,
                 test=test
             )
+
         if not test:
             self.stdout.write(
                 self.style.SUCCESS(
