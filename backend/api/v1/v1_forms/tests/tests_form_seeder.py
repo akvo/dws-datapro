@@ -55,13 +55,13 @@ class FormSeederTestCase(TestCase):
         seed_administration_test()
         forms = Forms.objects.all().delete()
         json_forms = [
-            "WAF Water Treatment Plant - Registration",
+            "WAF Water Treatment Plant",
             "WAF Wastewater Treatment Plan",
             "Wastewater Pump Station",
-            "RWS Registration",
+            "Rural Water Project Inspection",
             "Short HH",
-            "EPS Water Quality Testing - Registration",
-            "EPS Projects Construction - Registration",
+            "EPS Water Quality Testing",
+            "EPS Projects Construction",
             "WAF Inspection",
             "RWS Monitoring",
             "Short HH Monitoring",
