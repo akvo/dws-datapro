@@ -15,8 +15,6 @@ class DataDetailsTestCase(TestCase):
             "/api/v1/login", user_payload, content_type="application/json"
         )
         self.token = user_response.json().get("token")
-
-        call_command("demo_approval_flow", "--test", True)
         call_command("fake_data_seeder", "-r", 1, "-t", True)
 
     def test_success_data_details(self):
