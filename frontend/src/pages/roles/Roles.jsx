@@ -39,17 +39,17 @@ const RolesPage = () => {
 
   const columns = [
     {
+      title: text.roleAdmLevel,
+      dataIndex: "administration_level",
+      render: (obj) => obj?.name,
+    },
+    {
       title: text.roleName,
       dataIndex: "name",
     },
     {
       title: text.roleDescription,
       dataIndex: "description",
-    },
-    {
-      title: text.roleAdmLevel,
-      dataIndex: "administration_level",
-      render: (obj) => obj?.name,
     },
     {
       title: text.roleTotalUsers,
