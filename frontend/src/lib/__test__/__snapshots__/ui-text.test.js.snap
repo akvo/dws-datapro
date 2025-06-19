@@ -52,6 +52,12 @@ Object {
     </React.Fragment>,
     "addOrganisation": "Add Organization",
     "addRole": "Add Role",
+    "addRoleDescription": <React.Fragment>
+      This page allows you to add roles to the 
+      Test App
+       
+      platform.
+    </React.Fragment>,
     "addUser": "Add User",
     "addUserDescription": <React.Fragment>
       This page allows you to add users to the 
@@ -699,12 +705,15 @@ Object {
     "roleAccess": "Role Access",
     "roleAccessRequired": "Role access is required",
     "roleAdmLevel": "Administration Level",
+    "roleAdmLevelPlaceholder": "Select administration level...",
     "roleAdmLevelRequired": "Administration level is required",
     "roleConfirmDelete": "Are you sure you want to delete {roleName}?",
     "roleDeleteTitle": "You are about to delete the role",
     "roleDescription": "Role Description",
     "roleDescriptionRequired": "Role description is required",
     "roleErrDeleteTitle": "Unable to delete the role",
+    "roleErrorAdd": "Role could not be added",
+    "roleErrorUpdate": "Role could not be updated",
     "roleLabel": "Role",
     "roleName": "Role Name",
     "roleNameRequired": "Role name is required",

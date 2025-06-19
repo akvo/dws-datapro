@@ -829,15 +829,24 @@ const uiText = {
     roleDescriptionRequired: "Role description is required",
     roleAdmLevel: "Administration Level",
     roleAdmLevelRequired: "Administration level is required",
+    roleAdmLevelPlaceholder: "Select administration level...",
     roleAccess: "Role Access",
     roleAccessRequired: "Role access is required",
     roleTotalUsers: "Total Users",
     roleSuccessAdded: "Role added",
     roleSuccessUpdated: "Role updated",
     roleSuccessDeleted: "Role deleted",
+    roleErrorAdd: "Role could not be added",
+    roleErrorUpdate: "Role could not be updated",
     roleErrDeleteTitle: "Unable to delete the role",
     roleDeleteTitle: "You are about to delete the role",
     roleConfirmDelete: "Are you sure you want to delete {roleName}?",
+    addRoleDescription: (
+      <Fragment>
+        This page allows you to add roles to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
   },
 
   de: {},
