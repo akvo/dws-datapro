@@ -51,6 +51,8 @@ import {
   MonitoringDetail,
   Downloads,
   DownloadEntitiesData,
+  Roles,
+  AddRole,
 } from "./pages";
 import { useCookies } from "react-cookie";
 import { store, api, config } from "./lib";
@@ -59,7 +61,7 @@ import { useNotification } from "./util/hooks";
 import { eraseCookieFromAllPaths } from "./util/date";
 import { reloadData } from "./util/form";
 
-const Private = ({ element: Element, alias }) => {
+const Private = ({ element: Element }) => {
   const [cookies] = useCookies(["expiration_time"]);
 
   const navigate = useNavigate();
@@ -83,12 +85,8 @@ const Private = ({ element: Element, alias }) => {
 
   const { user: authUser } = store.useState((state) => state);
   if (authUser) {
-    const page_access = authUser?.role_detail?.page_access;
-    return page_access.includes(alias) ? (
-      <Element />
-    ) : (
-      <Navigate to="/not-found" />
-    );
+    // TODO: Implement RBAC
+    return authUser.is_superuser ? <Element /> : <Navigate to="/not-found" />;
   }
   return <Navigate to="/login" />;
 };
@@ -134,6 +132,18 @@ const RouteList = () => {
         <Route
           path="users"
           element={<Private element={Users} alias="user" />}
+        />
+        <Route
+          path="roles"
+          element={<Private element={Roles} alias="roles" />}
+        />
+        <Route
+          path="roles/add"
+          element={<Private element={AddRole} alias="roles" />}
+        />
+        <Route
+          path="roles/:id"
+          element={<Private element={AddRole} alias="roles" />}
         />
         <Route
           path="approvers/tree"
@@ -317,19 +327,9 @@ const App = () => {
             headers: { Authorization: `Bearer ${cookies.AUTH_TOKEN}` },
           })
           .then((res) => {
-            const role_details = config.roles.find(
-              (r) => r.id === res.data.role.id
-            );
-            const designation = config.designations.find(
-              (d) => d.id === parseInt(res.data?.designation)
-            );
             store.update((s) => {
               s.isLoggedIn = true;
-              s.user = {
-                ...res.data,
-                designation: designation,
-                role_detail: role_details,
-              };
+              s.user = res.data;
             });
             reloadData(res.data);
             api.setToken(cookies.AUTH_TOKEN);

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { Layout, Menu } from "antd";
-import { store, config, api } from "../../lib";
+import { store, config, api, IS_SUPER_ADMIN } from "../../lib";
 import { useNavigate } from "react-router-dom";
 import {
   UserOutlined,
@@ -19,7 +19,8 @@ const Sidebar = () => {
   const navigate = useNavigate();
 
   const { roles, checkApproverAccess } = config;
-  const superAdminRole = roles.find((r) => r.id === authUser?.role_detail?.id);
+  // TODO: Implement RBAC
+  const superAdminRole = roles.find((r) => r.id === IS_SUPER_ADMIN);
   const isApprover = checkApproverAccess(authUser?.forms);
 
   const pageAccessToLabelAndUrlMapping = {
@@ -57,6 +58,10 @@ const Sidebar = () => {
       label: "Manage Approvals",
       url: "/control-center/approvals",
     },
+    roles: {
+      label: "Manage Roles",
+      url: "/control-center/roles",
+    },
   };
 
   const controlCenterToLabelMapping = useMemo(() => {
@@ -72,7 +77,7 @@ const Sidebar = () => {
       "manage-user": {
         label: "Users",
         icon: UserOutlined,
-        childrenKeys: ["user", "approvers", "mobile"],
+        childrenKeys: ["user", "approvers", "mobile", "roles"],
       },
       "manage-data": {
         label: "Data",
