@@ -499,7 +499,7 @@ class RoleViewSet(ModelViewSet):
     pagination_class = Pagination
 
     def get_queryset(self):
-        queryset = Role.objects.order_by("name")
+        queryset = Role.objects.order_by("administration_level__level")
         search = self.request.query_params.get("search")
         if search:
             queryset = queryset.filter(name__icontains=search)
