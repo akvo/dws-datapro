@@ -51,6 +51,7 @@ Object {
       platform.
     </React.Fragment>,
     "addOrganisation": "Add Organization",
+    "addRole": "Add Role",
     "addUser": "Add User",
     "addUserDescription": <React.Fragment>
       This page allows you to add users to the 
@@ -249,6 +250,7 @@ Object {
        platform.
     </React.Fragment>,
     "editOrganisation": "Edit Organization",
+    "editRole": "Edit Role",
     "editUser": "Edit User",
     "endOfListLabel": "End of List",
     "entitiesUploadSuccessTitle": "Entities Data has been Successfully Uploaded",
@@ -498,6 +500,22 @@ Object {
       </ul>
     </React.Fragment>,
     "manageOrganisations": "Manage Organizations",
+    "manageRoleText": <React.Fragment>
+      This is where you manage roles based on their fields. You can :
+      <ul>
+        <li>
+          Add new role
+        </li>
+        <li>
+          Modify existing role
+        </li>
+        <li>
+          Delete existing role
+        </li>
+      </ul>
+    </React.Fragment>,
+    "manageRoles": "Manage Roles",
+    "manageRolesTitle": "Manage Roles",
     "manageUserButton": "Manage Users",
     "manageUserText": <React.Fragment>
       This is where you manage users based on their roles , regions and questionnaire access . You can :
@@ -678,7 +696,22 @@ Object {
     </React.Fragment>,
     "resetText": "Reset",
     "responseCol": "Response",
+    "roleAccess": "Role Access",
+    "roleAccessRequired": "Role access is required",
+    "roleAdmLevel": "Administration Level",
+    "roleAdmLevelRequired": "Administration level is required",
+    "roleConfirmDelete": "Are you sure you want to delete {roleName}?",
+    "roleDeleteTitle": "You are about to delete the role",
+    "roleDescription": "Role Description",
+    "roleDescriptionRequired": "Role description is required",
+    "roleErrDeleteTitle": "Unable to delete the role",
     "roleLabel": "Role",
+    "roleName": "Role Name",
+    "roleNameRequired": "Role name is required",
+    "roleSuccessAdded": "Role added",
+    "roleSuccessDeleted": "Role deleted",
+    "roleSuccessUpdated": "Role updated",
+    "roleTotalUsers": "Total Users",
     "saveButton": "Save",
     "saveEditButton": "Save Edits",
     "searchEntity": "Enter name...",

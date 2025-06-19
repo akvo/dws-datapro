@@ -809,6 +809,35 @@ const uiText = {
     userCol: "User",
     mobileAppText: "Mobile App",
     webformText: "Webform",
+    manageRoles: "Manage Roles",
+    manageRoleText: (
+      <Fragment>
+        This is where you manage roles based on their fields. You can :
+        <ul>
+          <li>Add new role</li>
+          <li>Modify existing role</li>
+          <li>Delete existing role</li>
+        </ul>
+      </Fragment>
+    ),
+    manageRolesTitle: "Manage Roles",
+    addRole: "Add Role",
+    editRole: "Edit Role",
+    roleName: "Role Name",
+    roleNameRequired: "Role name is required",
+    roleDescription: "Role Description",
+    roleDescriptionRequired: "Role description is required",
+    roleAdmLevel: "Administration Level",
+    roleAdmLevelRequired: "Administration level is required",
+    roleAccess: "Role Access",
+    roleAccessRequired: "Role access is required",
+    roleTotalUsers: "Total Users",
+    roleSuccessAdded: "Role added",
+    roleSuccessUpdated: "Role updated",
+    roleSuccessDeleted: "Role deleted",
+    roleErrDeleteTitle: "Unable to delete the role",
+    roleDeleteTitle: "You are about to delete the role",
+    roleConfirmDelete: "Are you sure you want to delete {roleName}?",
   },
 
   de: {},
