@@ -100,6 +100,20 @@ const UserDetail = ({ record, setDeleteUser, deleting }) => {
                     : "-"
                 }`,
               },
+              ...record.roles.map((r, rx) => ({
+                key: `role-${r.role}`,
+                field: `Role #${rx + 1}`,
+                value: (
+                  <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
+                    <li>
+                      <b>Role:</b> {r.role}
+                    </li>
+                    <li>
+                      <b>Administration:</b> {r.administration}
+                    </li>
+                  </ul>
+                ),
+              })),
             ]}
             pagination={false}
           />
