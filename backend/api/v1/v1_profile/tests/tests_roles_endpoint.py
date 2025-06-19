@@ -58,15 +58,21 @@ class RolesEndpointTestCase(TestCase, ProfileTestHelperMixin):
         self.assertIn("total_page", data)
         self.assertIn("data", data)
 
+        self.assertEqual(
+            list(data["data"][0]),
+            [
+                "id",
+                "name",
+                "description",
+                "administration_level",
+                "role_access",
+                "total_users",
+            ]
+        )
+
         self.assertGreater(data["total"], 0)
         self.assertGreater(data["total_page"], 0)
         self.assertGreater(len(data["data"]), 0)
-
-        self.assertIn("id", data["data"][0])
-        self.assertIn("name", data["data"][0])
-        self.assertIn("description", data["data"][0])
-        self.assertIn("administration_level", data["data"][0])
-        self.assertIn("role_access_list", data["data"][0])
 
     def test_create_role(self):
         administration_level = Levels.objects.order_by("?").first()
