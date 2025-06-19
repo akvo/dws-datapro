@@ -33,9 +33,6 @@ exports[`Login and Registration test if the login form exists: LoginPage 1`] = `
         class="ant-col"
       >
         <div
-          class="navigation"
-        />
-        <div
           class="account"
         >
           <a
@@ -307,9 +304,6 @@ exports[`Login and Registration test if the registration form exists: Registrati
       <div
         class="ant-col"
       >
-        <div
-          class="navigation"
-        />
         <div
           class="account"
         >
