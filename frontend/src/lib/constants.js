@@ -31,3 +31,24 @@ export const QUESTION_TYPES = {
   signature: "signature",
   administration: "administration",
 };
+
+export const READ_ACCESS = 1;
+export const APPROVE_ACCESS = 2;
+export const SUBMIT_ACCESS = 3;
+export const EDIT_ACCESS = 4;
+export const DELETE_ACCESS = 5;
+
+export const ACCESS_LEVELS = {
+  [READ_ACCESS]: "Read",
+  [APPROVE_ACCESS]: "Approve",
+  [SUBMIT_ACCESS]: "Submit",
+  [EDIT_ACCESS]: "Edit",
+  [DELETE_ACCESS]: "Delete",
+};
+
+export const ACCESS_LEVELS_LIST = Object.entries(ACCESS_LEVELS).map(
+  ([key, value]) => ({
+    key: parseInt(key, 10),
+    value,
+  })
+);
