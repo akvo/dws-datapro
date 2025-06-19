@@ -32,7 +32,6 @@ from api.v1.v1_profile.serializers import (
     DownloadEntityDataRequestSerializer,
     ListEntityDataSerializer,
     RoleSerializer,
-    RoleListSerializer,
     RoleDetailSerializer,
 )
 from api.v1.v1_profile.job import create_download_job
@@ -493,6 +492,7 @@ def export_pre_entities_data_template(request: Request, version):
         return response
 
 
+@extend_schema(tags=["Roles"])
 class RoleViewSet(ModelViewSet):
     serializer_class = RoleSerializer
     permission_classes = [IsAuthenticated, IsSuperAdmin]
@@ -506,13 +506,10 @@ class RoleViewSet(ModelViewSet):
         return queryset
 
     def get_serializer_class(self):
-        if self.request and self.action == "list":
-            if (
-                self.request.query_params
-                .get("compact", "false").lower() == "true"
-            ):
-                return RoleListSerializer
-        if self.request and self.action == "retrieve":
+        if self.request and self.action in [
+            "list",
+            "retrieve"
+        ]:
             return RoleDetailSerializer
         return super().get_serializer_class()
 

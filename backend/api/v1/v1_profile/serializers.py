@@ -444,27 +444,13 @@ class RoleSerializer(serializers.ModelSerializer):
         return instance
 
 
-class RoleListSerializer(serializers.ModelSerializer):
+class RoleDetailSerializer(serializers.ModelSerializer):
     administration_level = AdministrationLevelsSerializer(read_only=True)
+    role_access = serializers.SerializerMethodField()
     total_users = serializers.SerializerMethodField()
 
     def get_total_users(self, obj: Role):
         return obj.role_user_role.count()
-
-    class Meta:
-        model = Role
-        fields = [
-            "id",
-            "name",
-            "description",
-            "administration_level",
-            "total_users",
-        ]
-
-
-class RoleDetailSerializer(serializers.ModelSerializer):
-    administration_level = AdministrationLevelsSerializer(read_only=True)
-    role_access = serializers.SerializerMethodField()
 
     def get_role_access(self, obj: Role):
         return [
@@ -486,4 +472,5 @@ class RoleDetailSerializer(serializers.ModelSerializer):
             "description",
             "administration_level",
             "role_access",
+            "total_users",
         ]
