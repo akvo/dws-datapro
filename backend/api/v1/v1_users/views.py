@@ -504,7 +504,8 @@ def list_users(request, version):
         filter_data["trained"] = trained
     if serializer.validated_data.get("role"):
         role = serializer.validated_data.get("role")
-        filter_data["user_user_role__role_id"] = role
+        # Use direct filter on role object instead of role_id
+        filter_data["user_user_role__role"] = role
     if serializer.validated_data.get("organisation"):
         filter_data["organisation_id"] = serializer.validated_data.get(
             "organisation"
@@ -526,8 +527,14 @@ def list_users(request, version):
         queryset = queryset.filter(
             Q(email__icontains=search) | Q(fullname__icontains=search)
         )
+    # First get unique IDs to avoid duplicates from joins
+    user_ids = queryset.exclude(**exclude_data)\
+        .values_list('id', flat=True)\
+        .distinct()
+
+    # Then query again with the distinct IDs
     queryset = (
-        queryset.exclude(**exclude_data)
+        SystemUser.objects.filter(id__in=user_ids)
         .annotate(last_updated=Coalesce("updated", Value(the_past)))
         .order_by("-last_updated", "-date_joined")
     )
@@ -549,8 +556,9 @@ def list_users(request, version):
 )
 @api_view(["GET"])
 def get_user_roles(request, version):
+    roles = Role.objects.order_by("administration_level__level").all()
     data = RoleOptionSerializer(
-        instance=Role.objects.all(),
+        instance=roles,
         many=True,
         context={"request": request},
     ).data

@@ -513,6 +513,18 @@ class UserFormSerializer(serializers.ModelSerializer):
         fields = ["id", "name"]
 
 
+class UserRoleSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source='role.name')
+    administration = serializers.CharField(source='administration.name')
+
+    class Meta:
+        model = UserRole
+        fields = [
+            'role',
+            'administration',
+        ]
+
+
 class ListUserSerializer(serializers.ModelSerializer):
     roles = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
@@ -521,16 +533,12 @@ class ListUserSerializer(serializers.ModelSerializer):
     forms = serializers.SerializerMethodField()
     last_login = serializers.SerializerMethodField()
 
-    @extend_schema_field(AddRolesSerializer(many=True))
+    @extend_schema_field(UserRoleSerializer(many=True))
     def get_roles(self, instance: SystemUser):
-        user_roles = UserRole.objects.filter(user=instance).all()
-        roles_data = []
-        for role in user_roles:
-            roles_data.append({
-                'role': role.role.id,
-                'administration': role.administration.id
-            })
-        return roles_data
+        return UserRoleSerializer(
+            instance=instance.user_user_role.all(),
+            many=True,
+        ).data
 
     @extend_schema_field(OrganisationSerializer)
     def get_organisation(self, instance: SystemUser):
@@ -566,6 +574,8 @@ class ListUserRequestSerializer(serializers.Serializer):
         queryset=Organisation.objects.none(), required=False)
     administration = CustomPrimaryKeyRelatedField(
         queryset=Administration.objects.none(), required=False)
+    role = CustomPrimaryKeyRelatedField(
+        queryset=Role.objects.none(), required=False)
     pending = CustomBooleanField(default=False)
     descendants = CustomBooleanField(default=True)
     search = CustomCharField(required=False)
@@ -575,6 +585,7 @@ class ListUserRequestSerializer(serializers.Serializer):
         self.fields.get(
             'administration').queryset = Administration.objects.all()
         self.fields.get('organisation').queryset = Organisation.objects.all()
+        self.fields.get('role').queryset = Role.objects.all()
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -664,6 +675,24 @@ class ListLevelSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'level']
 
 
+class UserRoleEditSerializer(serializers.ModelSerializer):
+    role = serializers.IntegerField(source='role.id')
+    adm_path = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.ANY)
+    def get_adm_path(self, instance: UserRole):
+        if instance.administration.path:
+            adm = instance.administration
+            return [
+                int(p) for p in adm.path.split('.') if p.isdigit()
+            ] + [adm.id]
+        return [instance.administration.id]
+
+    class Meta:
+        model = UserRole
+        fields = ['role', 'administration', 'adm_path']
+
+
 class UserDetailSerializer(serializers.ModelSerializer):
     administration = serializers.SerializerMethodField()
     roles = serializers.SerializerMethodField()
@@ -691,15 +720,12 @@ class UserDetailSerializer(serializers.ModelSerializer):
             ).data
         return None
 
-    @extend_schema_field(AddRolesSerializer(many=True))
+    @extend_schema_field(UserRoleEditSerializer(many=True))
     def get_roles(self, instance: SystemUser):
-        roles_data = []
-        for role in instance.user_user_role.all():
-            roles_data.append({
-                'role': role.role.id,
-                'administration': role.administration.id,
-            })
-        return roles_data
+        return UserRoleEditSerializer(
+            instance=instance.user_user_role.all(),
+            many=True,
+        ).data
 
     @extend_schema_field(OrganisationSerializer)
     def get_organisation(self, instance: SystemUser):
