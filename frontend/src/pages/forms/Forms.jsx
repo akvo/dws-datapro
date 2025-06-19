@@ -20,7 +20,7 @@ import {
   Modal,
 } from "antd";
 import axios from "axios";
-import { api, IS_ADMIN, QUESTION_TYPES, store, uiText } from "../../lib";
+import { api, QUESTION_TYPES, store, uiText } from "../../lib";
 import { pick, isEmpty } from "lodash";
 import { PageLoader, Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
@@ -46,7 +46,7 @@ const Forms = () => {
     return uiText[activeLang];
   }, [activeLang]);
 
-  const redirectToBatch = authUser.role.id === IS_ADMIN;
+  const redirectToBatch = !authUser.is_superuser;
 
   const pagePath = [
     {

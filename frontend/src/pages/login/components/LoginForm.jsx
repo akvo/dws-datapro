@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Form, Input, Button, notification } from "antd";
 import { Link, useNavigate } from "react-router-dom";
 import { useCookies } from "react-cookie";
-import { api, store, config, uiText } from "../../../lib";
+import { api, store, uiText } from "../../../lib";
 import { useNotification } from "../../../util/hooks";
 import { reloadData } from "../../../util/form";
 
@@ -27,16 +27,7 @@ const LoginForm = () => {
       .then((res) => {
         api.setToken(res.data.token);
         setCookie("expiration_time", res.data?.expiration_time);
-        const role_details = config.roles.find(
-          (r) => r.id === res.data.role.id
-        );
-        const designation = config.designations.find(
-          (d) => d.id === parseInt(res.data?.designation)
-        );
-        if (
-          res.data.forms.length === 0 &&
-          role_details.name !== "Super Admin"
-        ) {
+        if (res.data.forms.length === 0 && !res.data?.is_superuser) {
           notification.open({
             message: text.contactAdmin,
             description: text.formAssignmentError,
@@ -45,11 +36,8 @@ const LoginForm = () => {
         store.update((s) => {
           s.isLoggedIn = true;
           s.selectedForm = null;
-          s.user = {
-            ...res.data,
-            role_detail: role_details,
-            designation: designation,
-          };
+          // TODO: Implement RBAC
+          s.user = res.data;
         });
         reloadData(res.data);
         setLoading(false);

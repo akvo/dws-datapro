@@ -112,8 +112,8 @@ const MobileAssignment = () => {
             type="primary"
             onClick={() => handleOnEdit(record)}
             disabled={
-              record.created_by !== authUser.email &&
-              authUser.administration.level !== 2
+              record.created_by !== authUser.email
+              // TODO: Check if the user has permission to edit
             }
           >
             {text.editButton}

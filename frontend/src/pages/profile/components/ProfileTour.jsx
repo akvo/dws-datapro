@@ -16,7 +16,7 @@ const ProfileTour = () => {
       title: "Control Center",
       description: text.tourControlCenter,
     },
-    ...(config.checkAccess(authUser?.role_detail, "form")
+    ...(config.checkAccess(authUser?.roles, "form")
       ? [
           {
             image: "/assets/tour/profile/2.png",
@@ -25,7 +25,7 @@ const ProfileTour = () => {
           },
         ]
       : []),
-    ...(config.checkAccess(authUser?.role_detail, "approvals")
+    ...(config.checkAccess(authUser?.roles, "approvals")
       ? [
           {
             image: "/assets/tour/profile/3.png",

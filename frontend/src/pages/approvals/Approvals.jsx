@@ -51,7 +51,7 @@ const Approvals = () => {
       },
     ];
 
-    if (user.role_detail.name === "Super Admin") {
+    if (user.is_superuser) {
       return items.filter((item) => item.key !== "subordinate");
     }
 
@@ -59,7 +59,8 @@ const Approvals = () => {
   }, [text, user]);
 
   const finalApproval = useMemo(() => {
-    if (user.role.id === 2 && approvalTab === "approved") {
+    // TODO: Implement RBAC
+    if (!user.is_superuser && approvalTab === "approved") {
       return true;
     }
     return false;

@@ -146,7 +146,8 @@ const UploadData = () => {
 
   const handleChange = (e) => {
     // check only for data entry role
-    if (user.role.id === 4) {
+    // TODO: Implement RBAC for this
+    if (!user?.is_superuser) {
       api.get(`form/check-approver/${e}`).then((res) => {
         if (!res.data.count) {
           notify({

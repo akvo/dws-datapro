@@ -357,7 +357,8 @@ const PanelSubmissions = () => {
       // check only for data entry role
       setBatchName("");
       setComment("");
-      if (user.role.id === 4) {
+      // TODO: check if the user has approver role
+      if (!user.is_superuser) {
         api.get(`form/check-approver/${selectedForm}`).then((res) => {
           if (!res.data.count) {
             notify({
@@ -391,7 +392,7 @@ const PanelSubmissions = () => {
     notify,
     selectedForm,
     text.batchNoApproverMessage,
-    user.role.id,
+    user.is_superuser,
   ]);
 
   const DataTable = ({ pane }) => {

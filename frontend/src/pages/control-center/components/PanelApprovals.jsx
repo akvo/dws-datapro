@@ -34,7 +34,7 @@ const PanelApprovals = () => {
         label: text.approvalsTab2,
       },
     ];
-    if (authUser.role_detail.name === "Super Admin") {
+    if (authUser.is_superuser) {
       return items.filter((item) => item.key !== "subordinate");
     }
     return items;

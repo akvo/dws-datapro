@@ -26,7 +26,7 @@ const Settings = () => {
   ];
 
   const selectedPanels = panels.filter((p) =>
-    config.checkAccess(authUser?.role_detail, p.access)
+    config.checkAccess(authUser?.roles, p.access)
   );
 
   return (

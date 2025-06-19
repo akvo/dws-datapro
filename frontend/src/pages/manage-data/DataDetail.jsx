@@ -275,10 +275,8 @@ const DataDetail = ({
   }, [dataset]);
 
   const deleteData = useMemo(() => {
-    const currentUser = config.roles.find(
-      (role) => role.name === authUser?.role_detail?.name
-    );
-    return currentUser?.delete_data;
+    // TODO: Implement delete access logic
+    return authUser?.is_superuser;
   }, [authUser]);
 
   return loading ? (

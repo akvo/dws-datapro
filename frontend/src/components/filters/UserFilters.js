@@ -10,15 +10,14 @@ import RemoveFiltersButton from "./RemoveFiltersButton";
 const { Option } = Select;
 
 const UserFilters = ({ fetchData, pending, setPending, loading, button }) => {
-  const { user: authUser, filters } = store.useState((state) => state);
+  const { filters } = store.useState((state) => state);
   const { trained, role, organisation, query } = filters;
 
   const { trainedStatus } = config;
   // show role > logged in user if logged in user not super admin
   // show all role for super admin
-  const allowedRole = config.roles.filter((r) =>
-    authUser.role.id >= 2 ? r.id > authUser.role.id : r.id >= authUser.role.id
-  );
+  // TODO: Get roles from API
+  const allowedRole = [];
 
   const [organisations, setOrganisations] = useState([]);
 

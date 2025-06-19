@@ -11,7 +11,7 @@ const ControlCenterTour = () => {
   }, [activeLang]);
 
   const steps = [
-    ...(config.checkAccess(authUser?.role_detail, "data")
+    ...(config.checkAccess(authUser?.roles, "data")
       ? [
           {
             image: "/assets/tour/control-center/1.png",
@@ -25,8 +25,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(authUser?.role_id !== 4 &&
-    config.checkAccess(authUser?.role_detail, "form")
+    ...(authUser?.role_id !== 4 && config.checkAccess(authUser?.roles, "form")
       ? [
           {
             image: "/assets/tour/control-center/3.png",
@@ -35,7 +34,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(config.checkAccess(authUser?.role_detail, "user")
+    ...(config.checkAccess(authUser?.roles, "user")
       ? [
           {
             image: "/assets/tour/control-center/4.png",
@@ -44,8 +43,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(authUser?.role_id === 4 ||
-    config.checkAccess(authUser?.role_detail, "form")
+    ...(authUser?.role_id === 4 || config.checkAccess(authUser?.roles, "form")
       ? [
           {
             image: "/assets/tour/control-center/5.png",
@@ -54,7 +52,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(config.checkAccess(authUser?.role_detail, "approvals")
+    ...(config.checkAccess(authUser?.roles, "approvals")
       ? [
           {
             image: "/assets/tour/control-center/6.png",

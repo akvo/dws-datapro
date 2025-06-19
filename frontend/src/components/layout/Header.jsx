@@ -67,11 +67,10 @@ const Header = ({ className = "header", ...props }) => {
         ),
       },
     ];
-    if (!config.checkAccess(user?.role_detail, "control-center")) {
-      return userMenu.filter((menu) => menu.key !== "controlCenter");
-    }
+    // TODO: Implement RBAC
+    // return userMenu.filter((menu) => menu.key !== "controlCenter");
     return userMenu;
-  }, [text, user, signOut]);
+  }, [text, signOut]);
 
   return (
     <Row

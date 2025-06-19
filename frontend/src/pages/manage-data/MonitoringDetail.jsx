@@ -25,7 +25,7 @@ import {
   FormOutlined,
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
-import { api, config, store, uiText } from "../../lib";
+import { api, store, uiText } from "../../lib";
 import DataDetail from "./DataDetail";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
@@ -88,10 +88,8 @@ const MonitoringDetail = () => {
   const { questionGroups, user: authUser } = store.useState((state) => state);
 
   useEffect(() => {
-    const currentUser = config.roles.find(
-      (role) => role.name === authUser?.role_detail?.name
-    );
-    setEditable(!currentUser?.delete_data);
+    // TODO: Implement RBAC edit access check
+    setEditable(authUser?.is_superuser);
   }, [authUser]);
 
   const columns = [

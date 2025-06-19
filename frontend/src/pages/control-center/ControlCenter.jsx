@@ -1,7 +1,7 @@
 import React, { Fragment, useMemo } from "react";
 import "./style.scss";
 import { Row, Col, Button } from "antd";
-import { store, config, uiText } from "../../lib";
+import { store, config, uiText, IS_SUPER_ADMIN } from "../../lib";
 import { Link } from "react-router-dom";
 import { PanelApprovals, PanelSubmissions } from "./components";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
@@ -47,11 +47,12 @@ const ControlCenter = () => {
   }, []);
 
   const selectedPanels = useMemo(() => {
-    if (!authUser?.role_detail) {
+    if (authUser?.roles?.length === 0 && !authUser?.is_superuser) {
       return [];
     }
+    // TODO: Implement RBAC
     const panelOrder = roles.find(
-      (r) => r.id === authUser.role_detail.id
+      (r) => r.id === IS_SUPER_ADMIN
     )?.control_center_order;
 
     if (!panelOrder) {
@@ -62,8 +63,7 @@ const ControlCenter = () => {
       .map((orderKey) =>
         panels.find(
           (panel) =>
-            panel.key === orderKey &&
-            checkAccess(authUser.role_detail, panel.access)
+            panel.key === orderKey && checkAccess(authUser.roles, panel.access)
         )
       )
       .filter((panel) => panel)
