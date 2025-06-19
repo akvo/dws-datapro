@@ -1,0 +1,20 @@
+@import "../../variables";
+
+#root {
+  #roles {
+    .ant-table {
+      .ant-tag {
+        margin-left: 6px;
+      }
+    }
+  }
+}
+
+.pagination {
+  margin-bottom: 1.5rem;
+  float: right;
+  margin-top: 1.5rem;
+}
+.ant-table-expanded-row .ant-divider {
+  margin-bottom: 10px;
+}
