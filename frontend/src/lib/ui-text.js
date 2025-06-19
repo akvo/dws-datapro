@@ -847,6 +847,10 @@ const uiText = {
         platform.
       </Fragment>
     ),
+    selectRole: "Select role...",
+    rolesRequired: "Please select at least one role",
+    yesText: "Yes",
+    noText: "No",
   },
 
   de: {},
