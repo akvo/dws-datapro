@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import "./style.scss";
-import { Row, Col, Divider, Space, Popover } from "antd";
+import { Row, Col, Divider, Space, Dropdown } from "antd";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { api, config, store, uiText } from "../../lib";
 import ApproverFilters from "../../components/filters/ApproverFilters";
@@ -56,7 +56,7 @@ const ApproversTree = () => {
           .filter((f) => !f?.content?.parent)
           .map((dt) => ({
             ...dt,
-            user: null,
+            users: null,
             active: false,
           })),
       },
@@ -84,7 +84,7 @@ const ApproversTree = () => {
                   selectedAdministration?.children_level_name,
                 children: res.data.map((cI) => ({
                   ...cI,
-                  user: cI.user,
+                  users: cI?.users || [],
                 })),
               },
             ];
@@ -199,12 +199,16 @@ const ApproversTree = () => {
                 align="center"
               >
                 {adminItem.children?.map((childItem, l) => {
-                  const approver =
+                  const approvers =
                     dataset[k]?.children?.find(
                       (c) => c.administration.id === childItem.id
-                    )?.user || childItem?.user;
-                  const approverName = approver
-                    ? `${approver.first_name} ${approver.last_name}`
+                    )?.users || childItem?.users;
+                  const approverName = approvers?.length
+                    ? approvers?.length > 1
+                      ? `${approvers[0].first_name} ${
+                          approvers[0].last_name
+                        } and ${approvers.length - 1} more`
+                      : `${approvers[0].first_name} ${approvers[0].last_name}`
                     : text.notAssigned;
                   const isParent =
                     administration[k + 1]?.children[0]?.parent === childItem.id;
@@ -219,7 +223,7 @@ const ApproversTree = () => {
                         k >= administration.length - 1 || isSelectedLine
                           ? "active"
                           : ""
-                      } ${approver ? "assigned" : ""}
+                      } ${approvers?.length ? "assigned" : ""}
                     `}
                       key={l}
                       onClick={() => {
@@ -233,16 +237,23 @@ const ApproversTree = () => {
                         }
                       }}
                     >
-                      {approver && (
+                      {approvers?.length > 0 && (
                         <div className="info-icon">
-                          <Popover title={`Email: ${approver?.email}`}>
+                          <Dropdown
+                            menu={{
+                              items: approvers.map((a) => ({
+                                key: a.id,
+                                label: a.email,
+                              })),
+                            }}
+                          >
                             <InfoCircleOutlined />
-                          </Popover>
+                          </Dropdown>
                         </div>
                       )}
                       <Space direction="vertical">
                         <div>{childItem.name}</div>
-                        <h3 className={approver ? "" : "not-assigned"}>
+                        <h3 className={approvers?.length ? "" : "not-assigned"}>
                           {approverName}
                         </h3>
                       </Space>
