@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./style.scss";
-import { Row, Col, Divider, Space, Dropdown } from "antd";
+import { Row, Col, Space, Dropdown } from "antd";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { api, config, store, uiText } from "../../lib";
 import ApproverFilters from "../../components/filters/ApproverFilters";
@@ -414,13 +414,13 @@ const ApproversTree = () => {
             </Col>
           </Row>
         </div>
-        <Divider />
-        <ApproverFilters
-          loading={false}
-          disabled={isPristine || loading}
-          visible={false}
-        />
-        <Divider />
+        <div className="filters-wrapper">
+          <ApproverFilters
+            loading={false}
+            disabled={isPristine || loading}
+            visible={false}
+          />
+        </div>
         <div className="approvers-tree-wrapper">
           <div style={{ padding: 0, minHeight: "40vh" }}>
             <Row
