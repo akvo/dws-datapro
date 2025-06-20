@@ -300,7 +300,7 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         if self.instance:
             if (
                 not self.context.get('user').is_superuser
-                and self.instance == self.context.get('user')
+                and self.instance != self.context.get('user')
             ):
                 raise ValidationError(
                     'You do not have permission to edit this user'
@@ -350,21 +350,20 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         # delete inform_user payload
         validated_data.pop('inform_user', None)
         # pop roles request data
-        roles_data = validated_data.pop('roles', [])
+        roles_data = validated_data.pop('roles', None)
         # pop forms request data
-        forms = validated_data.pop('forms', [])
+        forms = validated_data.pop('forms', None)
         instance: SystemUser = super(
             AddEditUserSerializer,
             self
         ).update(instance, validated_data)
         instance.updated = timezone.now()
         instance.save()
-        # Delete old user forms
-        user_forms = UserForms.objects.filter(user=instance).all()
-        if user_forms:
-            user_forms.delete()
-        # add new user forms
+
         if forms:
+            # Delete old user forms
+            user_forms = UserForms.objects.filter(user=instance).all()
+            user_forms.delete()
             for form in forms:
                 UserForms.objects.create(user=instance, form=form)
         # Handle multiple role assignments
@@ -780,3 +779,32 @@ class RoleOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Role
         fields = ["label", "value", "administration_level"]
+
+
+class UpdateProfileSerializer(serializers.ModelSerializer):
+    email = CustomEmailField(required=False)
+    first_name = CustomCharField(required=False)
+    last_name = CustomCharField(required=False)
+    phone_number = CustomCharField(required=False)
+    organisation = CustomPrimaryKeyRelatedField(
+        queryset=Organisation.objects.none(), required=False
+    )
+
+    def validate(self, attrs):
+        if not any(attrs.values()):
+            raise ValidationError("At least one field must be updated")
+        return attrs
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fields.get("organisation").queryset = Organisation.objects.all()
+
+    class Meta:
+        model = SystemUser
+        fields = [
+            "email",
+            "first_name",
+            "last_name",
+            "phone_number",
+            "organisation"
+        ]

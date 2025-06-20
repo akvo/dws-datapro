@@ -16,6 +16,7 @@ from api.v1.v1_users.views import (
     list_organisation_options,
     add_organisation,
     OrganisationEditDeleteView,
+    update_profile,
 )
 from api.v1.v1_profile.views import list_entity_data
 
@@ -60,4 +61,5 @@ urlpatterns = [
         ),
         list_entity_data,
     ),
+    re_path(r"^(?P<version>(v1))/update-profile", update_profile),
 ]

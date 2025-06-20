@@ -54,6 +54,7 @@ from api.v1.v1_users.serializers import (
     AddEditOrganisationSerializer,
     OrganisationAttributeChildrenSerializer,
     RoleOptionSerializer,
+    UpdateProfileSerializer,
 )
 from mis.settings import REST_FRAMEWORK, WEBDOMAIN
 from utils.custom_permissions import IsSuperAdmin
@@ -532,10 +533,6 @@ def list_users(request, version):
     user_ids = list(queryset.exclude(**exclude_data)
                     .values_list('id', flat=True)
                     .distinct())
-    # Always include the current user
-    current_user_id = request.user.id
-    if current_user_id not in user_ids:
-        user_ids.append(current_user_id)
 
     # Then query again with the distinct IDs
     queryset = (
@@ -835,4 +832,28 @@ def list_organisation_options(request, version, selected_id=None):
     return Response(
         OrganisationAttributeChildrenSerializer(instance=instance).data,
         status=status.HTTP_200_OK,
+    )
+
+
+@extend_schema(
+    request=UpdateProfileSerializer,
+    responses={200: UserSerializer},
+    tags=["User"],
+    summary="To update user profile",
+)
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_profile(request, version):
+    serializer = UpdateProfileSerializer(
+        data=request.data, instance=request.user
+    )
+    if not serializer.is_valid():
+        return Response(
+            {"message": validate_serializers_message(serializer.errors)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    user = serializer.save()
+    return Response(
+        UserSerializer(instance=user).data,
+        status=status.HTTP_200_OK
     )
