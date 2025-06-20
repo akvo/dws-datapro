@@ -12,6 +12,11 @@ parallel = true
 # Required for parallel
 concurrency = multiprocessing
 
+[paths]
+source =
+    /app/backend
+    backend
+
 [report]
 precision = 1
 show_missing = True
