@@ -73,7 +73,29 @@ const ApproversTree = () => {
         )
         .then((res) => {
           setDataset((prev) => {
+            // Create deep clone of previous state
             let adminClone = JSON.parse(JSON.stringify(prev));
+
+            // Update users data in prev state with data from res.data
+            adminClone = adminClone.map((admin) => ({
+              ...admin,
+              children:
+                admin.children?.map((child) => {
+                  // Find matching child in res.data
+                  const resChild = res.data.find(
+                    (rc) => rc.administration.id === child.administration.id
+                  );
+                  if (resChild) {
+                    return {
+                      ...child,
+                      users: resChild.users || child.users || [],
+                    };
+                  }
+                  return child;
+                }) || [],
+            }));
+
+            // Truncate adminClone to the appropriate length
             adminClone.length = administration.length - 1;
             adminClone = [
               ...adminClone,
