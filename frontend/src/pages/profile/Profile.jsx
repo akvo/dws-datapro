@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import "./style.scss";
-import { Space, Card, Divider, Row, Tag } from "antd";
+import { Space, Card, Divider, Row, Tag, Button } from "antd";
 import { api, store, uiText } from "../../lib";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { ProfileTour } from "./components";
@@ -8,6 +8,7 @@ import moment from "moment";
 import { useCallback } from "react";
 import { useState } from "react";
 import { useEffect } from "react";
+import { Link } from "react-router-dom";
 
 const Profile = () => {
   const { forms, user: authUser } = store.useState((s) => s);
@@ -91,22 +92,24 @@ const Profile = () => {
               <span>{authUser?.phone_number}</span>
             </Space>
           </li>
-          <li>
-            <h3>{text.roleLabel}</h3>
-            <ul>
-              {authUser?.roles?.map((r, rI) => (
-                <li key={rI}>
-                  <Space align="center">
-                    <span>{r?.role}</span>
-                    <span> - </span>
-                    <span style={{ fontStyle: "italic" }}>
-                      {r.administration?.full_name}
-                    </span>
-                  </Space>
-                </li>
-              ))}
-            </ul>
-          </li>
+          {authUser?.roles?.length > 0 && (
+            <li>
+              <h3>{text.roleLabel}</h3>
+              <ul>
+                {authUser.roles.map((r, rI) => (
+                  <li key={rI}>
+                    <Space align="center">
+                      <span>{r?.role}</span>
+                      <span> - </span>
+                      <span style={{ fontStyle: "italic" }}>
+                        {r.administration?.full_name}
+                      </span>
+                    </Space>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          )}
           <li>
             <h3>{text.userOrganisation}</h3>
             <Space size="large" align="center">
@@ -120,9 +123,11 @@ const Profile = () => {
           <li>
             <h3>{text.questionnairesLabel}</h3>
             <Space size="large" align="center">
-              {forms.map((qi, qiI) => (
-                <span key={qiI}>{qi.name}</span>
-              ))}
+              {forms
+                .filter((f) => !f?.content?.parent)
+                .map((qi, qiI) => (
+                  <span key={qiI}>{qi.name}</span>
+                ))}
             </Space>
           </li>
           <li>
@@ -138,6 +143,12 @@ const Profile = () => {
             </Space>
           </li>
         </ul>
+        <Divider />
+        <Link to="/control-center/profile/edit">
+          <Button type="primary" style={{ marginBottom: 12 }} shape="round">
+            {text.editProfile}
+          </Button>
+        </Link>
       </Card>
     </div>
   );

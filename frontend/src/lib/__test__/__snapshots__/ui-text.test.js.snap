@@ -256,6 +256,7 @@ Object {
        platform.
     </React.Fragment>,
     "editOrganisation": "Edit Organization",
+    "editProfile": "Edit Profile",
     "editRole": "Edit Role",
     "editUser": "Edit User",
     "endOfListLabel": "End of List",

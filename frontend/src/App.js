@@ -18,6 +18,7 @@ import {
   Approvals,
   ApproversTree,
   Profile,
+  EditProfile,
   UploadData,
   NewsEvents,
   HowWeWork,
@@ -279,6 +280,10 @@ const RouteList = () => {
         <Route
           path="profile"
           element={<Private element={Profile} alias="profile" />}
+        />
+        <Route
+          path="profile/edit"
+          element={<Private element={EditProfile} alias="profile" />}
         />
       </Route>
       <Route

@@ -870,6 +870,7 @@ const uiText = {
     rolesRequired: "Please select at least one role",
     yesText: "Yes",
     noText: "No",
+    editProfile: "Edit Profile",
   },
 
   de: {},

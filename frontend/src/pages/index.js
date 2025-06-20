@@ -45,3 +45,4 @@ export { default as DownloadAdministrationData } from "./upload-administration-d
 export { default as DownloadEntitiesData } from "./upload-administration-data/DownloadEntitiesData";
 export { default as Roles } from "./roles/Roles";
 export { default as AddRole } from "./add-role/AddRole";
+export { default as EditProfile } from "./profile/EditProfile";
