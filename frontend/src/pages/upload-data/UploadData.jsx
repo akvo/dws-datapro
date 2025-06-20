@@ -146,21 +146,16 @@ const UploadData = () => {
 
   const handleChange = (e) => {
     // check only for data entry role
-    // TODO: Implement RBAC for this
-    if (!user?.is_superuser) {
-      api.get(`form/check-approver/${e}`).then((res) => {
-        if (!res.data.count) {
-          notify({
-            type: "error",
-            message: text.bulkUploadNoApproverMessage,
-          });
-        } else {
-          setFormId(e);
-        }
-      });
-    } else {
-      setFormId(e);
-    }
+    api.get(`form/check-approver/${e}`).then((res) => {
+      if (!res.data.count) {
+        notify({
+          type: "error",
+          message: text.bulkUploadNoApproverMessage,
+        });
+      } else {
+        setFormId(e);
+      }
+    });
   };
 
   const downloadTemplate = () => {

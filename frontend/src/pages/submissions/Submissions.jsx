@@ -35,7 +35,7 @@ const Submissions = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [deleting, setDeleting] = useState(false);
-  const { selectedForm, user } = store.useState((state) => state);
+  const { selectedForm } = store.useState((state) => state);
   const [batchName, setBatchName] = useState("");
   const [comment, setComment] = useState("");
   const [editedRecord, setEditedRecord] = useState({});
@@ -207,21 +207,16 @@ const Submissions = () => {
       // check only for data entry role
       setBatchName("");
       setComment("");
-      // TODO : Implement RBAC
-      if (!user?.is_superuser) {
-        api.get(`form/check-approver/${selectedForm}`).then((res) => {
-          if (!res.data.count) {
-            notify({
-              type: "error",
-              message: text.batchNoApproverMessage,
-            });
-          } else {
-            setModalVisible(true);
-          }
-        });
-      } else {
-        setModalVisible(true);
-      }
+      api.get(`form/check-approver/${selectedForm}`).then((res) => {
+        if (!res.data.count) {
+          notify({
+            type: "error",
+            message: text.batchNoApproverMessage,
+          });
+        } else {
+          setModalVisible(true);
+        }
+      });
     };
     return (
       dataTab === "pending-submission" && (
@@ -243,7 +238,6 @@ const Submissions = () => {
     notify,
     selectedForm,
     text.batchNoApproverMessage,
-    user?.is_superuser,
   ]);
 
   const hasSelected = !isEmpty(selectedRowKeys);
