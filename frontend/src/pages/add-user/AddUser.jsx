@@ -43,6 +43,8 @@ const AddUser = () => {
   const [modalContent, setModalContent] = useState([]);
   const [isUserFetched, setIsUserFetched] = useState(false);
 
+  const isSelfData = id && authUser?.id === parseInt(id, 10);
+
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
@@ -304,7 +306,7 @@ const AddUser = () => {
                   </div>
                   <div className="form-row">
                     <Form.Item label="Is Superadmin?" name="is_superuser">
-                      <Radio.Group>
+                      <Radio.Group disabled={isSelfData}>
                         <Radio value={true}>{text.yesText}</Radio>
                         <Radio value={false}>{text.noText}</Radio>
                       </Radio.Group>
@@ -325,6 +327,7 @@ const AddUser = () => {
                           form={formInstance}
                           roles={roles}
                           text={text}
+                          disabled={isSelfData}
                         />
                       </Col>
                     </Row>

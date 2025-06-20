@@ -3,7 +3,7 @@ import { Form, Space, Select, Button, Row, Col } from "antd";
 import { MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import { AdministrationDropdown } from "../../../components";
 
-const FormRoles = ({ form, text, roles = [] }) => {
+const FormRoles = ({ form, text, roles = [], disabled = false }) => {
   return (
     <Form.List
       name="roles"
@@ -70,6 +70,7 @@ const FormRoles = ({ form, text, roles = [] }) => {
                                 .includes(input.toLowerCase())
                             }
                             style={{ minWidth: 240, width: "100%" }}
+                            disabled={disabled}
                           />
                         </Form.Item>
                       )}
@@ -86,9 +87,13 @@ const FormRoles = ({ form, text, roles = [] }) => {
                           field.name,
                           "administration",
                         ])}
+                        disabled={disabled}
                       />
                     </Form.Item>
-                    <MinusCircleOutlined onClick={() => remove(field.name)} />
+                    <MinusCircleOutlined
+                      onClick={() => remove(field.name)}
+                      disabled={disabled}
+                    />
                   </Space>
                 </Col>
               </Row>
@@ -99,8 +104,9 @@ const FormRoles = ({ form, text, roles = [] }) => {
             <Button
               type="dashed"
               onClick={() => add()}
-              block
               icon={<PlusOutlined />}
+              disabled={disabled}
+              block
             >
               {text.addRole}
             </Button>
