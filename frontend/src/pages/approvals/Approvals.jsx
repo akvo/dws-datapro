@@ -59,7 +59,6 @@ const Approvals = () => {
   }, [text, user]);
 
   const finalApproval = useMemo(() => {
-    // TODO: Implement RBAC
     if (!user.is_superuser && approvalTab === "approved") {
       return true;
     }
