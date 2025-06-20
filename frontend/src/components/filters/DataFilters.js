@@ -14,6 +14,7 @@ import {
   DownloadOutlined,
   UploadOutlined,
 } from "@ant-design/icons";
+import { Can } from "../can/index.js";
 //import AdvancedFiltersButton from "./AdvancedFiltersButton";
 
 const DataFilters = ({ loading, showAdm = true, resetFilter = true }) => {
@@ -98,33 +99,42 @@ const DataFilters = ({ loading, showAdm = true, resetFilter = true }) => {
         </Col>
         <Col>
           <Space>
-            <Link to="/control-center/data/upload">
-              <Button shape="round" icon={<UploadOutlined />}>
-                Bulk Upload
-              </Button>
-            </Link>
-            {pathname === "/control-center/data" && (
-              <Dropdown menu={{ items: downloadTypes }} placement="bottomRight">
-                <Button
-                  icon={<DownloadOutlined />}
-                  shape="round"
-                  loading={exporting}
-                >
-                  {text.download}
+            <Can I="upload" a="data">
+              <Link to="/control-center/data/upload">
+                <Button shape="round" icon={<UploadOutlined />}>
+                  Bulk Upload
                 </Button>
-              </Dropdown>
+              </Link>
+            </Can>
+            {pathname === "/control-center/data" && (
+              <Can I="create" a="downloads">
+                <Dropdown
+                  menu={{ items: downloadTypes }}
+                  placement="bottomRight"
+                >
+                  <Button
+                    icon={<DownloadOutlined />}
+                    shape="round"
+                    loading={exporting}
+                  >
+                    {text.download}
+                  </Button>
+                </Dropdown>
+              </Can>
             )}
-            <Button
-              shape="round"
-              icon={<PlusOutlined />}
-              type="primary"
-              disabled={
-                !isUserHasForms && authUser?.role?.value !== "Super Admin"
-              }
-              onClick={goToAddForm}
-            >
-              Add New
-            </Button>
+            <Can I="manage" a="submissions">
+              <Button
+                shape="round"
+                icon={<PlusOutlined />}
+                type="primary"
+                disabled={
+                  !isUserHasForms && authUser?.role?.value !== "Super Admin"
+                }
+                onClick={goToAddForm}
+              >
+                Add New
+              </Button>
+            </Can>
           </Space>
         </Col>
       </Row>
