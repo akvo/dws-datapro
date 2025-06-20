@@ -67,8 +67,6 @@ const Header = ({ className = "header", ...props }) => {
         ),
       },
     ];
-    // TODO: Implement RBAC
-    // return userMenu.filter((menu) => menu.key !== "controlCenter");
     return userMenu;
   }, [text, signOut]);
 
