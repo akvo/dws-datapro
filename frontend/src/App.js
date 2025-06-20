@@ -1,5 +1,5 @@
 import "./App.scss";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   Route,
   Routes,
@@ -60,9 +60,11 @@ import { Layout, PageLoader } from "./components";
 import { useNotification } from "./util/hooks";
 import { eraseCookieFromAllPaths } from "./util/date";
 import { reloadData } from "./util/form";
+import { ability, AbilityContext } from "./components/can";
 
-const Private = ({ element: Element }) => {
+const Private = ({ element: Element, alias }) => {
   const [cookies] = useCookies(["expiration_time"]);
+  const ability = useContext(AbilityContext);
 
   const navigate = useNavigate();
 
@@ -85,8 +87,15 @@ const Private = ({ element: Element }) => {
 
   const { user: authUser } = store.useState((state) => state);
   if (authUser) {
-    // TODO: Implement RBAC
-    return authUser.is_superuser ? <Element /> : <Navigate to="/not-found" />;
+    return ability.can("manage", alias) ||
+      ability.can("read", alias) ||
+      ability.can("create", alias) ||
+      ability.can("edit", alias) ||
+      ability.can("upload", alias) ? (
+      <Element />
+    ) : (
+      <Navigate to="/not-found" />
+    );
   }
   return <Navigate to="/login" />;
 };
@@ -376,16 +385,18 @@ const App = () => {
     .filter((x) => x)?.length;
 
   return (
-    <Layout>
-      <Layout.Header />
-      <Layout.Body>
-        {loading && !isHome && !isPublic ? (
-          <PageLoader message="Initializing. Please wait.." />
-        ) : (
-          <RouteList />
-        )}
-      </Layout.Body>
-    </Layout>
+    <AbilityContext.Provider value={ability(authUser)}>
+      <Layout>
+        <Layout.Header />
+        <Layout.Body>
+          {loading && !isHome && !isPublic ? (
+            <PageLoader message="Initializing. Please wait.." />
+          ) : (
+            <RouteList />
+          )}
+        </Layout.Body>
+      </Layout>
+    </AbilityContext.Provider>
   );
 };
 
