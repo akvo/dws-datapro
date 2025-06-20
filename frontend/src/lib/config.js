@@ -1,11 +1,4 @@
 import api from "./api";
-import {
-  FORM_APPROVER_ACCESS,
-  FORM_EDITOR_ACCESS,
-  FORM_READER_ACCESS,
-  IS_ADMIN,
-  IS_SUPER_ADMIN,
-} from "./constants";
 
 const config = {
   siteLogo: "/logo-full.png",
@@ -29,86 +22,6 @@ const config = {
       name: "Partnership Organisation",
     },
   ],
-  roles: [
-    {
-      id: IS_SUPER_ADMIN,
-      name: "Super Admin",
-      filter_form: false,
-      delete_data: true,
-      page_access: [
-        "profile",
-        "user",
-        "roles",
-        "control-center",
-        "data",
-        "visualisation",
-        "questionnaires",
-        "submissions",
-        "approvals",
-        "approvers",
-        "form",
-        "reports",
-        "settings",
-        "organisation",
-        "master-data",
-        "downloads",
-        "mobile",
-      ],
-      description:
-        "Super Admin has access to all the forms and can manage all the data.",
-      control_center_order: [
-        "manage-user",
-        "manage-data",
-        "manage-master-data",
-        "manage-mobile",
-        "approvals",
-        "download",
-      ],
-    },
-    {
-      id: IS_ADMIN,
-      name: "Admin",
-      filter_form: false,
-      delete_data: true,
-      page_access: [
-        "profile",
-        "user",
-        "control-center",
-        "data",
-        "visualisation",
-        "questionnaires",
-        "submissions",
-        "approvals",
-        "approvers",
-        "form",
-        "reports",
-        "downloads",
-        "mobile",
-        "submissions",
-      ],
-      description: "",
-      control_center_order: [
-        "manage-user",
-        "manage-mobile",
-        "manage-data",
-        "approvals",
-        "submission",
-        "download",
-      ],
-    },
-  ],
-  checkAccess: (roles, page) => {
-    // return roles?.page_access?.includes(page);
-    return roles || page; // TODO: Implement RBAC
-  },
-  checkApproverAccess: (forms = []) => {
-    return forms
-      ?.flatMap((f) => f?.access)
-      ?.some((a) => a?.value === FORM_APPROVER_ACCESS);
-  },
-  hasEditAccess: (form = {}) => {
-    return form?.access?.some((a) => a?.value === FORM_EDITOR_ACCESS);
-  },
   approvalsLiteral: (props = { isButton: false }) => {
     return props?.isButton ? "Approve" : "Approvals";
   },
@@ -809,23 +722,6 @@ const config = {
   },
   maxLevelApproval: 3,
   minEntityLevel: 0,
-  accessFormTypes: [
-    {
-      id: FORM_READER_ACCESS,
-      label: "Read Only",
-      value: false,
-    },
-    {
-      id: FORM_EDITOR_ACCESS,
-      label: "Editor",
-      value: false,
-    },
-    {
-      id: FORM_APPROVER_ACCESS,
-      label: "Approver",
-      value: false,
-    },
-  ],
 };
 
 export default config;
