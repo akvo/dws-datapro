@@ -30,7 +30,6 @@ const defineAbilityFor = (user) => {
       can("upload", "data");
     }
     can("read", "data");
-    can("read", "mobile");
     can("read", "downloads");
     can("read", "approvals");
     can("read", "approvers");
