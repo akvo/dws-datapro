@@ -29,12 +29,7 @@ const AddUser = () => {
     language,
   } = store.useState((s) => s);
   const { active: activeLang } = language;
-  const forms = allForms
-    .filter((f) => !f?.content?.parent)
-    .map((f) => ({
-      ...f,
-      access: config.accessFormTypes,
-    }));
+  const forms = allForms.filter((f) => !f?.content?.parent);
 
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(false);
