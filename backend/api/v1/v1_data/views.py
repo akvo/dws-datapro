@@ -534,7 +534,7 @@ class PendingFormDataView(APIView):
         queryset = FormData.objects.filter(
             form_id__in=form_ids,
             created_by=request.user,
-            batch__isnull=True,
+            data_batch_list__isnull=True,
             is_pending=True
         ).order_by("-created")
 
