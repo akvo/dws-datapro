@@ -512,6 +512,9 @@ class FormApproverResponseSerializer(serializers.ModelSerializer):
         approvers = instance.user_role_administration.filter(
             role__role_role_access__data_access=DataAccessTypes.approve
         ).select_related("user")
+        approvers = [
+            approver.user for approver in approvers
+        ]
         return FormApproverUserSerializer(
             instance=approvers, many=True
         ).data
