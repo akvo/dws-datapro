@@ -1,17 +1,19 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useContext } from "react";
 import { Tour } from "../../../components";
-import { store, config, uiText } from "../../../lib";
+import { store, uiText } from "../../../lib";
+import { AbilityContext } from "../../../components/can";
 
 const ControlCenterTour = () => {
-  const { user: authUser } = store.useState((s) => s);
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
 
+  const ability = useContext(AbilityContext);
+
   const steps = [
-    ...(config.checkAccess(authUser?.roles, "data")
+    ...(ability?.can("manage", "data")
       ? [
           {
             image: "/assets/tour/control-center/1.png",
@@ -25,7 +27,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(authUser?.role_id !== 4 && config.checkAccess(authUser?.roles, "form")
+    ...(ability?.can("manage", "form")
       ? [
           {
             image: "/assets/tour/control-center/3.png",
@@ -34,7 +36,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(config.checkAccess(authUser?.roles, "user")
+    ...(ability?.can("manage", "user")
       ? [
           {
             image: "/assets/tour/control-center/4.png",
@@ -43,7 +45,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(authUser?.role_id === 4 || config.checkAccess(authUser?.roles, "form")
+    ...(ability?.can("manage", "form")
       ? [
           {
             image: "/assets/tour/control-center/5.png",
@@ -52,7 +54,7 @@ const ControlCenterTour = () => {
           },
         ]
       : []),
-    ...(config.checkAccess(authUser?.roles, "approvals")
+    ...(ability?.can("manage", "approvals")
       ? [
           {
             image: "/assets/tour/control-center/6.png",
