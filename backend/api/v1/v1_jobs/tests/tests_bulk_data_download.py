@@ -64,7 +64,9 @@ class BulkUnitTestCase(TestCase):
             },
         ]
         administration_seeder.seed_administration_test(rows=rows)
-        call_command("demo_approval_flow", "--test", True)
+        # Seed default roles after administration seeder
+        call_command("default_roles_seeder", "--test", 1)
+
         user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post('/api/v1/login',
                                 user,

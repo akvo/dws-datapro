@@ -13,8 +13,11 @@ from api.v1.v1_forms.models import (
     QuestionOptions,
     QuestionAttribute,
 )
-from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_profile.models import Administration, Entity
+from api.v1.v1_profile.models import (
+    Administration,
+    Entity,
+    DataAccessTypes,
+)
 from api.v1.v1_users.models import SystemUser
 from mis.settings import FORM_GEO_VALUE
 from utils.custom_serializer_fields import (
@@ -81,7 +84,14 @@ class ListQuestionSerializer(serializers.ModelSerializer):
     def get_api(self, instance: Questions):
         if instance.type == QuestionTypes.administration:
             user = self.context.get("user")
-            administration = user.user_access.administration
+            administration = Administration.objects.filter(
+                parent__isnull=True
+            ).first()
+            user_role = user.user_user_role.filter(
+                administration__parent__isnull=False
+            ).first()
+            if user_role:
+                administration = user_role.administration
             # max depth for cascade question in national form
             max_level = False
             extra_objects = {}
@@ -89,7 +99,7 @@ class ListQuestionSerializer(serializers.ModelSerializer):
                 extra_objects = {
                     "query_params": "?max_level=1",
                 }
-            if user.user_access.role is not UserRoleTypes.super_admin:
+            if not user.is_superuser:
                 if max_level:
                     extra_objects = {
                         "query_params": "&max_level=1",
@@ -224,7 +234,11 @@ class ListQuestionSerializer(serializers.ModelSerializer):
                 "file": "administrator.sqlite",
                 "parent_id": [a.id for a in assignment.administrations.all()]
                 if assignment
-                else [user.user_access.administration.id],
+                else [
+                    ur.administration.id
+                    for ur in
+                    user.user_user_role.all()
+                ],
                 **extra_objects,
             }
         return None
@@ -490,17 +504,20 @@ class FormApproverUserSerializer(serializers.ModelSerializer):
 
 
 class FormApproverResponseSerializer(serializers.ModelSerializer):
-    user = serializers.SerializerMethodField()
+    users = serializers.SerializerMethodField()
     administration = serializers.SerializerMethodField()
 
     @extend_schema_field(FormApproverUserSerializer(many=True))
-    def get_user(self, instance: Administration):
-        assignment = instance.administration_data_approval.filter(
-            form=self.context.get("form")
-        ).first()
-        if assignment:
-            return FormApproverUserSerializer(instance=assignment.user).data
-        return None
+    def get_users(self, instance: Administration):
+        approvers = instance.user_role_administration.filter(
+            role__role_role_access__data_access=DataAccessTypes.approve
+        ).select_related("user")
+        approvers = [
+            approver.user for approver in approvers
+        ]
+        return FormApproverUserSerializer(
+            instance=approvers, many=True
+        ).data
 
     @extend_schema_field(CommonDataSerializer)
     def get_administration(self, instance: Administration):
@@ -508,4 +525,4 @@ class FormApproverResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Administration
-        fields = ["user", "administration"]
+        fields = ["users", "administration"]

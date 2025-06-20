@@ -37,6 +37,7 @@ from api.v1.v1_jobs.serializers import (
     DownloadListSerializer,
     UploadExcelSerializer,
 )
+from api.v1.v1_profile.models import Administration
 from utils import storage
 from utils.custom_serializer_fields import validate_serializers_message
 
@@ -246,6 +247,14 @@ def upload_excel(request, form_id, version):
     form_name = re.sub(r"[\W_]+", "_", form.name)
     filename = f"{form_name}-{user_name}-{uuid}.xlsx"
     storage.upload(file=file_path, filename=filename, folder="upload")
+    adm = Administration.objects.filter(
+        parent__isnull=True
+    ).first()
+    if (
+        not request.user.is_superuser and
+        request.user.user_user_role.count()
+    ):
+        adm = request.user.user_user_role.first().administration
     job = Jobs.objects.create(
         type=JobTypes.validate_data,
         status=JobStatus.on_progress,
@@ -253,7 +262,7 @@ def upload_excel(request, form_id, version):
         info={
             "file": filename,
             "form": form_id,
-            "administration": request.user.user_access.administration_id,
+            "administration": adm.id,
             "is_update": is_update,
         },
     )

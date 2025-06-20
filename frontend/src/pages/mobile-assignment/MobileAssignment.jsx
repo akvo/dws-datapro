@@ -9,6 +9,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { api, store, uiText } from "../../lib";
 import DetailAssignment from "./DetailAssignment";
+import { Can } from "../../components/can";
 
 const { Search } = Input;
 
@@ -111,10 +112,7 @@ const MobileAssignment = () => {
             shape="round"
             type="primary"
             onClick={() => handleOnEdit(record)}
-            disabled={
-              record.created_by !== authUser.email &&
-              authUser.administration.level !== 2
-            }
+            disabled={record.created_by !== authUser.email}
           >
             {text.editButton}
           </Button>
@@ -179,11 +177,13 @@ const MobileAssignment = () => {
               </Space>
             </Col>
             <Col>
-              <Link to="/control-center/mobile-assignment/add">
-                <Button icon={<PlusOutlined />} type="primary" shape="round">
-                  {text.mobileButtonAdd}
-                </Button>
-              </Link>
+              <Can I="manage" a="mobile">
+                <Link to="/control-center/mobile-assignment/add">
+                  <Button icon={<PlusOutlined />} type="primary" shape="round">
+                    {text.mobileButtonAdd}
+                  </Button>
+                </Link>
+              </Can>
             </Col>
           </Row>
           <Divider />

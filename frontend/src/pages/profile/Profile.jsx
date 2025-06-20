@@ -83,9 +83,6 @@ const Profile = () => {
             <h3>{text.nameLabel}</h3>
             <Space size="large" align="center">
               <span>{authUser?.name}</span>
-              <span style={{ fontStyle: "italic" }}>
-                {authUser?.role?.value}
-              </span>
             </Space>
           </li>
           <li>
@@ -96,9 +93,19 @@ const Profile = () => {
           </li>
           <li>
             <h3>{text.roleLabel}</h3>
-            <Space size="large" align="center">
-              <span>{authUser?.role?.value}</span>
-            </Space>
+            <ul>
+              {authUser?.roles?.map((r, rI) => (
+                <li key={rI}>
+                  <Space align="center">
+                    <span>{r?.role}</span>
+                    <span> - </span>
+                    <span style={{ fontStyle: "italic" }}>
+                      {r.administration?.full_name}
+                    </span>
+                  </Space>
+                </li>
+              ))}
+            </ul>
           </li>
           <li>
             <h3>{text.userOrganisation}</h3>

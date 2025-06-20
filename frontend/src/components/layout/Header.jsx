@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from "react";
 import PropTypes from "prop-types";
-import { Row, Col, Space, Button, Dropdown } from "antd";
+import { Row, Col, Button, Dropdown } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { config, store, uiText } from "../../lib";
@@ -67,11 +67,8 @@ const Header = ({ className = "header", ...props }) => {
         ),
       },
     ];
-    if (!config.checkAccess(user?.role_detail, "control-center")) {
-      return userMenu.filter((menu) => menu.key !== "controlCenter");
-    }
     return userMenu;
-  }, [text, user, signOut]);
+  }, [text, signOut]);
 
   return (
     <Row
@@ -95,35 +92,6 @@ const Header = ({ className = "header", ...props }) => {
       </Col>
       {!location.pathname.includes("/report/") && (
         <Col>
-          <div className="navigation">
-            <Space>
-              {/* old dashboard */}
-              {/* <Link to="/data/visualisation">{text?.dashboards}</Link> */}
-              {/* new dashboard
-              <Link className="dev" to="/reports">
-                {text?.reports}
-              </Link>
-              <Dropdown menu={{ items: DashboardMenu }}>
-                <a
-                  className="ant-dropdown-link"
-                  onClick={(e) => {
-                    e.preventDefault();
-                  }}
-                >
-                  {text?.dashboards}
-                  <FaChevronDown />
-                </a>
-              </Dropdown>
-               */}
-              {/* <a className="dev">Monitoring</a> */}
-              {/* <Link className="dev" to="/how-we-work">
-              How We Work
-            </Link> */}
-              {/* <Link className="dev" to="/news-events">
-                {text?.newsEvents}
-              </Link> */}
-            </Space>
-          </div>
           <div className="account">
             {isLoggedIn ? (
               <Dropdown menu={{ items: accessUserMenu }}>
@@ -134,7 +102,6 @@ const Header = ({ className = "header", ...props }) => {
                   }}
                 >
                   {user?.name || ""}
-                  <span className="role">, {user?.role?.value || ""}</span>
                   <span className="icon">
                     <UserOutlined />
                   </span>

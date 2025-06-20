@@ -1,12 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { Table, Button, Space, Spin, Alert } from "antd";
 import { LoadingOutlined, HistoryOutlined } from "@ant-design/icons";
 import { EditableCell } from "../../components";
-import { api, config, QUESTION_TYPES, store, uiText } from "../../lib";
+import { api, QUESTION_TYPES, store, uiText } from "../../lib";
 import { useNotification } from "../../util/hooks";
 import { flatten, isEqual } from "lodash";
 import { HistoryTable } from "../../components";
 import { validateDependency } from "../../util";
+import { AbilityContext } from "../../components/can";
 
 const DataDetail = ({
   record,
@@ -23,16 +30,16 @@ const DataDetail = ({
   const [saving, setSaving] = useState(false);
   const [resetButton, setresetButton] = useState({});
   const pendingData = record?.pending_data?.created_by || false;
-  const { user: authUser } = store.useState((state) => state);
   const { notify } = useNotification();
   const { language, forms: allForms } = store.useState((s) => s);
   const { active: activeLang } = language;
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
-  const { hasEditAccess } = config;
-  const userForm = authUser?.forms?.find((f) => f.id === record?.form);
-  const isEditor = hasEditAccess(userForm);
+  const ability = useContext(AbilityContext);
+
+  const isEditor = ability.can("edit", "data");
+
   const questionGroups = useMemo(() => {
     return allForms.find((f) => f.id === record?.form)?.content?.question_group;
   }, [record?.form, allForms]);
@@ -274,13 +281,6 @@ const DataDetail = ({
       : false;
   }, [dataset]);
 
-  const deleteData = useMemo(() => {
-    const currentUser = config.roles.find(
-      (role) => role.name === authUser?.role_detail?.name
-    );
-    return currentUser?.delete_data;
-  }, [authUser]);
-
   return loading ? (
     <Space style={{ paddingTop: 18, color: "#9e9e9e" }} size="middle">
       <Spin indicator={<LoadingOutlined style={{ color: "#1b91ff" }} spin />} />
@@ -368,7 +368,7 @@ const DataDetail = ({
             >
               {text.saveEditButton}
             </Button>
-            {deleteData && (
+            {ability.can("manage", "data") && (
               <Button
                 type="danger"
                 onClick={() => setDeleteData(record)}

@@ -14,7 +14,6 @@ from utils.upload_entities import (
     validate_entity_file,
     validate_entity_data,
 )
-from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_forms.models import Forms, QuestionOptions
 from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_jobs.constants import JobStatus, JobTypes
@@ -223,7 +222,7 @@ def seed_data_job(job_id):
 def seed_data_job_result(task):
     job = Jobs.objects.get(task_id=task.id)
     job.attempt = job.attempt + 1
-    is_super_admin = job.user.user_access.role == UserRoleTypes.super_admin
+    is_super_admin = job.user.is_superuser
     if task.result:
         job.status = JobStatus.done
         job.available = timezone.now()

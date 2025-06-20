@@ -18,7 +18,7 @@ from mis.settings import (
 )
 from django.http import HttpResponse
 from django.utils import timezone
-from django.db.models import Q, OuterRef, Exists
+from django.db.models import Q
 
 from rest_framework import status, serializers
 from rest_framework.response import Response
@@ -46,8 +46,7 @@ from .serializers import (
     MobileDataPointDownloadListSerializer,
 )
 from .models import MobileAssignment, MobileApk
-from api.v1.v1_forms.models import Forms, Questions, QuestionTypes, UserForms
-from api.v1.v1_profile.models import Access
+from api.v1.v1_forms.models import Forms, Questions, QuestionTypes
 from api.v1.v1_data.models import FormData
 from api.v1.v1_forms.serializers import WebFormDetailSerializer
 from api.v1.v1_data.serializers import SubmitPendingFormSerializer
@@ -55,6 +54,7 @@ from api.v1.v1_files.serializers import (
     UploadImagesSerializer,
     AttachmentsSerializer,
 )
+from api.v1.v1_profile.constants import DataAccessTypes
 from api.v1.v1_files.functions import handle_upload
 from utils.custom_helper import CustomPasscode
 from utils.default_serializers import DefaultResponseSerializer
@@ -139,9 +139,14 @@ def sync_pending_form_data(request, version):
     form = get_object_or_404(Forms, pk=request.data.get("formId"))
     assignment = cast(MobileAssignmentToken, request.auth).assignment
     user = assignment.user
-    # administration = Access.objects.filter(user=user).first().administration
-    administration = Access.objects.select_related(
-        'administration').filter(user=user).first().administration
+    administration = assignment.administrations.first()
+    if user.user_user_role.exists():
+        user_role = user.user_user_role.filter(
+            role__role_role_access__data_access=DataAccessTypes.submit
+        ).first()
+        if user_role:
+            # If user has a role with data access, use that administration
+            administration = user_role.administration
 
     if not request.data.get("answers"):
         return Response(
@@ -442,31 +447,17 @@ class MobileAssignmentViewSet(ModelViewSet):
         mobile_users = MobileAssignment.objects.prefetch_related(
             "administrations", "forms"
         ).filter(user=user)
-
-        user_adm = user.user_access.administration
-        adm_path = f"{user_adm.path}{user_adm.id}"
-        descendant_users = MobileAssignment.objects.prefetch_related(
+        adm_q = Q()
+        for ur in user.user_user_role.all():
+            adm = ur.administration
+            path = adm.path \
+                if adm.path else f"{adm.id}."
+            adm_q |= Q(administrations__path__startswith=path)
+        if adm_q:
+            descendant_users = MobileAssignment.objects.prefetch_related(
                 "administrations", "forms"
-            ) \
-            .filter(
-                administrations__path__startswith=adm_path,
-            )
-        if user_adm.level.level > 2:
-            # Check if the user is under a level 2 administration
-            user_form_subquery = UserForms.objects.filter(
-                user=user,
-                form_id=OuterRef("forms__pk"),
-            ).values("form_id")
-            exclude_ids = (
-                MobileAssignment.objects.filter(
-                    administrations__path__startswith=adm_path
-                )
-                .annotate(has_matching_user_form=Exists(user_form_subquery))
-                .filter(has_matching_user_form=False)
-                .distinct()
-            )
-            descendant_users = descendant_users.exclude(pk__in=exclude_ids)
-        mobile_users |= descendant_users
+            ).filter(adm_q)
+            mobile_users |= descendant_users
         return mobile_users.order_by("-id").distinct()
 
 

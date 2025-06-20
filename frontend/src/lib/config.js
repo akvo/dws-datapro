@@ -1,11 +1,4 @@
 import api from "./api";
-import {
-  FORM_APPROVER_ACCESS,
-  FORM_EDITOR_ACCESS,
-  FORM_READER_ACCESS,
-  IS_ADMIN,
-  IS_SUPER_ADMIN,
-} from "./constants";
 
 const config = {
   siteLogo: "/logo-full.png",
@@ -29,141 +22,9 @@ const config = {
       name: "Partnership Organisation",
     },
   ],
-  roles: [
-    {
-      id: IS_SUPER_ADMIN,
-      name: "Super Admin",
-      filter_form: false,
-      delete_data: true,
-      page_access: [
-        "profile",
-        "user",
-        "control-center",
-        "data",
-        "visualisation",
-        "questionnaires",
-        "submissions",
-        "approvals",
-        "approvers",
-        "form",
-        "reports",
-        "settings",
-        "organisation",
-        "master-data",
-        "downloads",
-        "mobile",
-      ],
-      description:
-        "Super Admin has access to all the forms and can manage all the data.",
-      control_center_order: [
-        "manage-user",
-        "manage-data",
-        "manage-master-data",
-        "manage-mobile",
-        "approvals",
-        "download",
-      ],
-    },
-    {
-      id: IS_ADMIN,
-      name: "Admin",
-      filter_form: false,
-      delete_data: true,
-      page_access: [
-        "profile",
-        "user",
-        "control-center",
-        "data",
-        "visualisation",
-        "questionnaires",
-        "submissions",
-        "approvals",
-        "approvers",
-        "form",
-        "reports",
-        "downloads",
-        "mobile",
-        "submissions",
-      ],
-      description: "",
-      control_center_order: [
-        "manage-user",
-        "manage-mobile",
-        "manage-data",
-        "approvals",
-        "submission",
-        "download",
-      ],
-    },
-  ],
-  checkAccess: (roles, page) => {
-    return roles?.page_access?.includes(page);
-  },
-  checkApproverAccess: (forms = []) => {
-    return forms
-      ?.flatMap((f) => f?.access)
-      ?.some((a) => a?.value === FORM_APPROVER_ACCESS);
-  },
-  hasEditAccess: (form = {}) => {
-    return form?.access?.some((a) => a?.value === FORM_EDITOR_ACCESS);
-  },
   approvalsLiteral: (props = { isButton: false }) => {
     return props?.isButton ? "Approve" : "Approvals";
   },
-  designations: [
-    {
-      id: 1,
-      name: "NSE (National Sanitation Extender)",
-    },
-    {
-      id: 2,
-      name: "CSE (County Sanitation Extender)",
-    },
-    {
-      id: 3,
-      name: "PPHO (Principal Public Health Officer)",
-    },
-    {
-      id: 4,
-      name: "PHO (Public Health Officer)",
-    },
-    {
-      id: 5,
-      name: "CPHO (County Public Health Officer)",
-    },
-    {
-      id: 6,
-      name: "CWASH (County WASH Officer)",
-    },
-    {
-      id: 7,
-      name: "CHA (Community Health Assistant)",
-    },
-    {
-      id: 8,
-      name: "CHEW (Community Health Extension Worker)",
-    },
-    {
-      id: 13,
-      name: "CHV (Community Health Volunteer)",
-    },
-    {
-      id: 9,
-      name: "M&E",
-    },
-    {
-      id: 12,
-      name: "Teacher",
-    },
-    {
-      id: 10,
-      name: "IT",
-    },
-    {
-      id: 11,
-      name: "System Admin",
-    },
-  ],
   templates: [
     {
       id: 1,
@@ -861,23 +722,6 @@ const config = {
   },
   maxLevelApproval: 3,
   minEntityLevel: 0,
-  accessFormTypes: [
-    {
-      id: FORM_READER_ACCESS,
-      label: "Read Only",
-      value: false,
-    },
-    {
-      id: FORM_EDITOR_ACCESS,
-      label: "Editor",
-      value: false,
-    },
-    {
-      id: FORM_APPROVER_ACCESS,
-      label: "Approver",
-      value: false,
-    },
-  ],
 };
 
 export default config;

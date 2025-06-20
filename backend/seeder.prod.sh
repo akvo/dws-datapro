@@ -7,6 +7,13 @@ if [[ "${seed_administration}" == 'y' || "${seed_administration}" == 'Y' ]]; the
     python manage.py resetsequence v1_profile
 fi
 
+echo "Seed Form? [y/n]"
+read -r seed_form
+if [[ "${seed_form}" == 'y' || "${seed_form}" == 'Y' ]]; then
+    python manage.py form_seeder
+    python manage.py generate_config
+fi
+
 echo "Add New Super Admin? [y/n]"
 read -r add_account
 if [[ "${add_account}" == 'y' || "${add_account}" == 'Y' ]]; then
@@ -14,15 +21,8 @@ if [[ "${add_account}" == 'y' || "${add_account}" == 'Y' ]]; then
     read -r email_address
     if [[ "${email_address}" != '' ]]; then
         python manage.py createsuperuser --email "${email_address}"
-        python manage.py assign_access "${email_address}"
+        python manage.py assign_forms "${email_address}"
     fi
-fi
-
-echo "Seed Form? [y/n]"
-read -r seed_form
-if [[ "${seed_form}" == 'y' || "${seed_form}" == 'Y' ]]; then
-    python manage.py form_seeder
-    python manage.py generate_config
 fi
 
 echo "Seed Organisation? [y/n]"

@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+  useContext,
+} from "react";
 import "./style.scss";
 import {
   Row,
@@ -25,10 +31,11 @@ import {
   FormOutlined,
 } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
-import { api, config, store, uiText } from "../../lib";
+import { api, store, uiText } from "../../lib";
 import DataDetail from "./DataDetail";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
+import { AbilityContext } from "../../components/can";
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
@@ -60,11 +67,13 @@ const MonitoringDetail = () => {
   const [deleteData, setDeleteData] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [editedRecord, setEditedRecord] = useState({});
-  const [editable, setEditable] = useState(false);
   const [dataTab, setDataTab] = useState(
     formIdFromUrl ? "monitoring-data" : "registration-data"
   );
   const [selectedForm, setSelectedForm] = useState(defaultFormId);
+  const ability = useContext(AbilityContext);
+
+  const editable = ability.can("edit", "data");
 
   const { active: activeLang } = language;
   const text = useMemo(() => {
@@ -85,14 +94,7 @@ const MonitoringDetail = () => {
     },
   ];
 
-  const { questionGroups, user: authUser } = store.useState((state) => state);
-
-  useEffect(() => {
-    const currentUser = config.roles.find(
-      (role) => role.name === authUser?.role_detail?.name
-    );
-    setEditable(!currentUser?.delete_data);
-  }, [authUser]);
+  const { questionGroups } = store.useState((state) => state);
 
   const columns = [
     {

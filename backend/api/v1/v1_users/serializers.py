@@ -1,27 +1,35 @@
 from django.core import signing
 from django.core.signing import BadSignature
 from django.utils import timezone
+from django.db.models import Q
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from api.v1.v1_data.constants import DataApprovalStatus
+# from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_forms.models import (
-    FormApprovalAssignment,
     UserForms,
     Forms,
-    FormAccess,
 )
-from api.v1.v1_forms.constants import FormAccessTypes
-from api.v1.v1_profile.constants import UserRoleTypes, OrganisationTypes
-from api.v1.v1_profile.models import Administration, Access, Levels
+from api.v1.v1_profile.constants import OrganisationTypes
+from api.v1.v1_profile.models import (
+    Administration,
+    Levels,
+    Role,
+    UserRole,
+)
 from api.v1.v1_users.models import SystemUser, \
         Organisation, OrganisationAttribute
 from api.v1.v1_mobile.models import MobileAssignment
-from utils.custom_serializer_fields import CustomEmailField, CustomCharField, \
-    CustomPrimaryKeyRelatedField, CustomChoiceField, CustomBooleanField, \
-    CustomMultipleChoiceField
+from api.v1.v1_approval.models import DataBatch
+from utils.custom_serializer_fields import (
+    CustomEmailField,
+    CustomCharField,
+    CustomPrimaryKeyRelatedField,
+    CustomBooleanField,
+    CustomMultipleChoiceField,
+)
 from utils.custom_helper import CustomPasscode
 from utils.custom_generator import update_sqlite
 
@@ -79,11 +87,6 @@ class OrganisationListSerializer(serializers.ModelSerializer):
     class Meta:
         model = Organisation
         fields = ['id', 'name', 'attributes', 'users']
-
-
-class UserRoleSerializer(serializers.Serializer):
-    id = serializers.IntegerField()
-    value = serializers.CharField()
 
 
 class AddEditOrganisationSerializer(serializers.ModelSerializer):
@@ -250,80 +253,58 @@ class ListAdministrationSerializer(serializers.ModelSerializer):
         ]
 
 
-class FormAccessSerializer(serializers.Serializer):
-    form_id = CustomPrimaryKeyRelatedField(
-        queryset=Forms.objects.none()
+class AddRolesSerializer(serializers.Serializer):
+    role = CustomPrimaryKeyRelatedField(
+        queryset=Role.objects.none(),
+        required=True,
+        help_text='Role to assign to user'
     )
-    access_type = CustomChoiceField(
-        choices=list(FormAccessTypes.FieldStr.keys())
+    administration = CustomPrimaryKeyRelatedField(
+        queryset=Administration.objects.none(),
+        required=True,
+        help_text='Administration to assign role to user'
     )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.fields.get(
-            'form_id'
-        ).queryset = Forms.objects.filter(parent__isnull=True).all()
+        self.fields.get('role').queryset = Role.objects.all()
+        admin_field = self.fields.get('administration')
+        admin_field.queryset = Administration.objects.all()
 
     class Meta:
-        fields = ["form_id", "access_type"]
+        fields = ['role', 'administration']
 
 
 class AddEditUserSerializer(serializers.ModelSerializer):
-    administration = CustomPrimaryKeyRelatedField(
-        queryset=Administration.objects.none())
     organisation = CustomPrimaryKeyRelatedField(
         queryset=Organisation.objects.none(), required=False)
     trained = CustomBooleanField(default=False)
-    role = CustomChoiceField(choices=list(UserRoleTypes.FieldStr.keys()))
-    access_forms = FormAccessSerializer(many=True)
+    roles = AddRolesSerializer(many=True, required=False)
+    forms = CustomPrimaryKeyRelatedField(
+        queryset=Forms.objects.filter(parent__isnull=True).all(),
+        many=True,
+        required=False,
+    )
     inform_user = CustomBooleanField(default=True)
+    is_superuser = CustomBooleanField(
+        default=False,
+        required=False,
+        help_text='Set user as superuser. Superuser can access all data.'
+    )
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.fields.get(
-            'administration').queryset = Administration.objects.all()
         self.fields.get('organisation').queryset = Organisation.objects.all()
-
-    def validate_role(self, role):
-        if (
-            self.context.get('user').user_access.role == UserRoleTypes.admin
-            and role not in [UserRoleTypes.admin]
-        ):
-            raise ValidationError({
-                'You do not have permission to create/edit '
-                'user with selected role.'
-            })
-        return role
-
-    def validate_administration(self, administration):
-        if not self.context.get(
-                'user').user_access.role == UserRoleTypes.super_admin \
-                and administration.level.level <= self.context.get('user') \
-                .user_access.administration.level.level:
-            raise ValidationError({
-                'You do not have permission to create/edit '
-                'user with selected administration.'
-            })
-        return administration
 
     def validate(self, attrs):
         if self.instance:
             if (
-                self.context.get(
-                    'user'
-                ).user_access.role != UserRoleTypes.super_admin
+                not self.context.get('user').is_superuser
                 and self.instance == self.context.get('user')
             ):
                 raise ValidationError(
-                    'You do not have permission to edit this user')
-            if (
-                self.context.get(
-                    'user'
-                ).user_access.role == UserRoleTypes.admin
-                and self.instance.user_access.role not in [UserRoleTypes.admin]
-            ):
-                raise ValidationError(
-                    'You do not have permission to edit this user')
+                    'You do not have permission to edit this user'
+                )
         return attrs
 
     def create(self, validated_data):
@@ -341,84 +322,173 @@ class AddEditUserSerializer(serializers.ModelSerializer):
         except SystemUser.DoesNotExist:
             # delete inform_user payload
             validated_data.pop('inform_user', None)
-            administration = validated_data.pop('administration')
-            role = validated_data.pop('role')
-            access_forms_data = validated_data.pop('access_forms', [])
+            roles_data = validated_data.pop('roles', [])
+            forms = validated_data.pop('forms', [])
             user = super(AddEditUserSerializer, self).create(validated_data)
-            Access.objects.create(
-                user=user,
-                administration=administration,
-                role=role
-            )
-            # Create user forms and access permissions
-            self._create_user_forms_and_access(
-                user=user,
-                access_forms_data=access_forms_data
-            )
+            # Assign roles to user
+            if roles_data:
+                for role_data in roles_data:
+                    UserRole.objects.create(
+                        user=user,
+                        administration=role_data['administration'],
+                        role=role_data['role']
+                    )
+            # add new user forms
+            for form in forms:
+                UserForms.objects.create(user=user, form=form)
+            # if forms is empty and is_superuser is True
+            # then assign all parent forms to user
+            if not forms and user.is_superuser:
+                parent_forms = Forms.objects.filter(
+                    parent__isnull=True
+                ).all()
+                for form in parent_forms:
+                    UserForms.objects.create(user=user, form=form)
             return user
 
     def update(self, instance, validated_data):
         # delete inform_user payload
         validated_data.pop('inform_user', None)
-        administration = validated_data.pop('administration')
-        role = validated_data.pop('role')
-        access_forms_data = validated_data.pop('access_forms', [])
-
-        instance: SystemUser = super(AddEditUserSerializer,
-                                     self).update(instance, validated_data)
+        # pop roles request data
+        roles_data = validated_data.pop('roles', [])
+        # pop forms request data
+        forms = validated_data.pop('forms', [])
+        instance: SystemUser = super(
+            AddEditUserSerializer,
+            self
+        ).update(instance, validated_data)
         instance.updated = timezone.now()
         instance.save()
-        instance.user_access.role = role
-        instance.user_access.administration = administration
-        instance.user_access.save()
-
         # Delete old user forms
         user_forms = UserForms.objects.filter(user=instance).all()
         if user_forms:
             user_forms.delete()
+        # add new user forms
+        if forms:
+            for form in forms:
+                UserForms.objects.create(user=instance, form=form)
+        # Handle multiple role assignments
+        if roles_data:
+            # Get existing roles
+            existing_roles = UserRole.objects.filter(user=instance).all()
+            # Create a set of unique identifiers for existing roles
+            existing_role_identifiers = {
+                (str(role.role.id), str(role.administration.id)): role
+                for role in existing_roles
+            }
 
-        # Create new user forms and access permissions
-        self._create_user_forms_and_access(instance, access_forms_data)
+            # Create a set of unique identifiers for new roles
+            new_role_identifiers = {}
+            for role_data in roles_data:
+                role_id = str(role_data['role'].id)
+                admin_id = str(role_data['administration'].id)
+                new_role_identifiers[(role_id, admin_id)] = role_data
+            # Delete roles that are not in the new set
+            for key, role in list(existing_role_identifiers.items()):
+                if key not in new_role_identifiers:
+                    role.delete()
+            # Create or update roles
+            for key, role_data in new_role_identifiers.items():
+                if key in existing_role_identifiers:
+                    # Update existing role
+                    role = existing_role_identifiers[key]
+                    role.role = role_data['role']
+                    role.administration = role_data['administration']
+                    role.save()
+                else:
+                    # Create new role
+                    UserRole.objects.create(
+                        user=instance,
+                        administration=role_data['administration'],
+                        role=role_data['role']
+                    )
+        else:
+            # If no roles provided, delete all roles
+            UserRole.objects.filter(user=instance).delete()
         return instance
 
-    def _create_form_access(self, user, form, access_types):
-        user_form, _ = UserForms.objects.get_or_create(
-            user=user,
-            form=form
-        )
-        for access in access_types:
-            FormAccess.objects.create(
-                user_form=user_form,
-                access_type=access
-            )
+    def to_internal_value(self, data):
+        roles_data = data.pop('roles', None)
+        internal_value = super().to_internal_value(data)
 
-    def _create_user_forms_and_access(self, user, access_forms_data):
-        # If no access data is provided,
-        # assign defaults for super_admin and nothing for admin
-        if not access_forms_data:
-            if user.user_access.role == UserRoleTypes.super_admin:
-                default_access = [
-                    FormAccessTypes.read,
-                    FormAccessTypes.edit
-                ]
-                for form in Forms.objects.filter(parent__isnull=True).all():
-                    self._create_form_access(user, form, default_access)
-            return
+        if roles_data:
+            # Validate each role data
+            serializer = AddRolesSerializer(data=roles_data, many=True)
+            if not serializer.is_valid():
+                errors = {}
+                # Process role validation errors
+                if any('role' in item for item in serializer.errors):
+                    role_errors = []
+                    for i, error_item in enumerate(serializer.errors):
+                        if 'role' in error_item:
+                            for err in error_item['role']:
+                                if 'does not exist' in str(err):
+                                    try:
+                                        invalid_id = str(roles_data[i]['role'])
+                                        role_errors.append(
+                                            f"Invalid role ID: {invalid_id}"
+                                        )
+                                    except (IndexError, KeyError):
+                                        role_errors.append("Invalid role ID")
+                                else:
+                                    role_errors.append(str(err))
+                    if role_errors:
+                        errors['role'] = role_errors
 
-        # Process provided access form data
-        for item in access_forms_data:
-            self._create_form_access(
-                user=user,
-                form=item["form_id"],
-                access_types=[item["access_type"]]
-            )
+                # Process administration validation errors
+                if any('administration' in item for item in serializer.errors):
+                    admin_errors = []
+                    for i, error_item in enumerate(serializer.errors):
+                        if 'administration' in error_item:
+                            for err in error_item['administration']:
+                                if 'does not exist' in str(err):
+                                    try:
+                                        invalid_id = str(
+                                            roles_data[i]['administration']
+                                        )
+                                        admin_errors.append(
+                                            f"Invalid administration ID: "
+                                            f"{invalid_id}"
+                                        )
+                                    except (IndexError, KeyError):
+                                        admin_errors.append(
+                                            "Invalid administration ID"
+                                        )
+                                else:
+                                    admin_errors.append(str(err))
+                    if admin_errors:
+                        errors['administration'] = admin_errors
+                # Raise custom ValidationError with better error messages
+                if errors:
+                    raise ValidationError(errors)
+                # Otherwise, re-raise the original errors
+                raise ValidationError(serializer.errors)
+            internal_value['roles'] = serializer.validated_data
+
+        return internal_value
+
+    def to_representation(self, instance):
+        representation = super().to_representation(instance)
+        # Get user roles
+        user_roles = UserRole.objects.filter(user=instance).all()
+
+        # Convert roles to representation
+        roles_data = []
+        for role in user_roles:
+            roles_data.append({
+                'role': role.role.id,
+                'administration': role.administration.id
+            })
+
+        representation['roles'] = roles_data
+        return representation
 
     class Meta:
         model = SystemUser
         fields = [
-            'first_name', 'last_name', 'email', 'administration',
-            'organisation', 'trained', 'role', 'phone_number',
-            'access_forms', 'inform_user'
+            'first_name', 'last_name', 'email',
+            'organisation', 'trained', 'roles', 'phone_number',
+            'forms', 'inform_user', 'is_superuser'
         ]
 
 
@@ -434,62 +504,45 @@ class UserAdministrationSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'level', 'full_name']
 
 
-class FormAccessSerializer(serializers.ModelSerializer):
-    label = serializers.SerializerMethodField()
-    value = serializers.SerializerMethodField()
-
-    @extend_schema_field(OpenApiTypes.STR)
-    def get_label(self, instance: FormAccess):
-        return FormAccessTypes.FieldStr.get(instance.access_type)
-
-    @extend_schema_field(OpenApiTypes.NUMBER)
-    def get_value(self, instance: FormAccess):
-        return instance.access_type
-
-    class Meta:
-        model = FormAccess
-        fields = ["label", "value"]
-
-
 class UserFormSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField(source='form.id')
     name = serializers.ReadOnlyField(source='form.name')
-    access = serializers.SerializerMethodField()
-
-    @extend_schema_field(FormAccessSerializer(many=True))
-    def get_access(self, instance: UserForms):
-        access = instance.user_form_access.all()
-        return FormAccessSerializer(instance=access, many=True).data
 
     class Meta:
         model = UserForms
-        fields = ["id", "name", "access"]
+        fields = ["id", "name"]
+
+
+class UserRoleSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source='role.name')
+    administration = serializers.CharField(source='administration.name')
+
+    class Meta:
+        model = UserRole
+        fields = [
+            'role',
+            'administration',
+        ]
 
 
 class ListUserSerializer(serializers.ModelSerializer):
-    administration = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     trained = CustomBooleanField()
-    role = serializers.SerializerMethodField()
     invite = serializers.SerializerMethodField()
     forms = serializers.SerializerMethodField()
     last_login = serializers.SerializerMethodField()
 
-    @extend_schema_field(UserAdministrationSerializer)
-    def get_administration(self, instance: SystemUser):
-        return UserAdministrationSerializer(
-            instance=instance.user_access.administration).data
+    @extend_schema_field(UserRoleSerializer(many=True))
+    def get_roles(self, instance: SystemUser):
+        return UserRoleSerializer(
+            instance=instance.user_user_role.all(),
+            many=True,
+        ).data
 
     @extend_schema_field(OrganisationSerializer)
     def get_organisation(self, instance: SystemUser):
         return OrganisationSerializer(instance=instance.organisation).data
-
-    @extend_schema_field(UserRoleSerializer)
-    def get_role(self, instance: SystemUser):
-        return {
-            'id': instance.user_access.role,
-            'value': UserRoleTypes.FieldStr.get(instance.user_access.role)
-        }
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_invite(self, instance: SystemUser):
@@ -509,20 +562,20 @@ class ListUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemUser
         fields = [
-            'id', 'first_name', 'last_name', 'email', 'administration',
-            'organisation', 'trained', 'role', 'phone_number',
+            'id', 'first_name', 'last_name', 'email', 'roles',
+            'organisation', 'trained', 'phone_number',
             'invite', 'forms', 'last_login'
         ]
 
 
 class ListUserRequestSerializer(serializers.Serializer):
     trained = CustomCharField(required=False, default=None)
-    role = CustomChoiceField(choices=list(UserRoleTypes.FieldStr.keys()),
-                             required=False)
     organisation = CustomPrimaryKeyRelatedField(
         queryset=Organisation.objects.none(), required=False)
     administration = CustomPrimaryKeyRelatedField(
         queryset=Administration.objects.none(), required=False)
+    role = CustomPrimaryKeyRelatedField(
+        queryset=Role.objects.none(), required=False)
     pending = CustomBooleanField(default=False)
     descendants = CustomBooleanField(default=True)
     search = CustomCharField(required=False)
@@ -532,33 +585,59 @@ class ListUserRequestSerializer(serializers.Serializer):
         self.fields.get(
             'administration').queryset = Administration.objects.all()
         self.fields.get('organisation').queryset = Organisation.objects.all()
+        self.fields.get('role').queryset = Role.objects.all()
+
+
+class UserRoleListSerializer(serializers.ModelSerializer):
+    role = serializers.CharField(source='role.name')
+    administration = serializers.CharField(source='administration.name')
+
+    class Meta:
+        model = UserRole
+        fields = [
+            'id', 'role', 'administration',
+            'is_approver', 'is_submitter', 'is_editor'
+        ]
 
 
 class UserSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
     administration = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     trained = CustomBooleanField(default=False)
-    role = serializers.SerializerMethodField()
     forms = serializers.SerializerMethodField()
     last_login = serializers.SerializerMethodField()
     passcode = serializers.SerializerMethodField()
 
     @extend_schema_field(UserAdministrationSerializer)
     def get_administration(self, instance: SystemUser):
-        return UserAdministrationSerializer(
-            instance=instance.user_access.administration).data
+        if instance.is_superuser:
+            adm = Administration.objects.filter(
+                parent__isnull=True,
+                level__level=0
+            ).first()
+            return UserAdministrationSerializer(instance=adm).data
+        # Order UserRole by administration level and get the first one
+        user_role = UserRole.objects.filter(user=instance) \
+            .order_by('administration__level__level').first()
+        if user_role:
+            return UserAdministrationSerializer(
+                instance=user_role.administration
+            ).data
+        return None
+
+    @extend_schema_field(UserRoleListSerializer(many=True))
+    def get_roles(self, instance: SystemUser):
+        user_roles = UserRole.objects.filter(user=instance).all()
+        return UserRoleListSerializer(
+            instance=user_roles,
+            many=True,
+        ).data
 
     @extend_schema_field(OrganisationSerializer)
     def get_organisation(self, instance: SystemUser):
         return OrganisationSerializer(instance=instance.organisation).data
-
-    @extend_schema_field(UserRoleSerializer)
-    def get_role(self, instance: SystemUser):
-        return {
-            'id': instance.user_access.role,
-            'value': UserRoleTypes.FieldStr.get(instance.user_access.role)
-        }
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_name(self, instance):
@@ -587,9 +666,10 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = SystemUser
         fields = [
-            'email', 'name', 'administration', 'trained', 'role',
+            'email', 'name', 'roles', 'trained',
             'phone_number', 'forms', 'organisation',
-            'last_login', 'passcode',
+            'last_login', 'passcode', 'is_superuser',
+            'administration',
         ]
 
 
@@ -599,35 +679,61 @@ class ListLevelSerializer(serializers.ModelSerializer):
         fields = ['id', 'name', 'level']
 
 
-class UserApprovalAssignmentSerializer(serializers.ModelSerializer):
-    id = serializers.ReadOnlyField(source='form.id')
-    name = serializers.ReadOnlyField(source='form.name')
+class UserRoleEditSerializer(serializers.ModelSerializer):
+    role = serializers.IntegerField(source='role.id')
+    adm_path = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.ANY)
+    def get_adm_path(self, instance: UserRole):
+        if instance.administration.path:
+            adm = instance.administration
+            return [
+                int(p) for p in adm.path.split('.') if p.isdigit()
+            ] + [adm.id]
+        return [instance.administration.id]
 
     class Meta:
-        model = FormApprovalAssignment
-        fields = ['id', 'name']
+        model = UserRole
+        fields = ['role', 'administration', 'adm_path']
 
 
 class UserDetailSerializer(serializers.ModelSerializer):
-    administration = serializers.ReadOnlyField(
-        source='user_access.administration.id')
+    administration = serializers.SerializerMethodField()
+    roles = serializers.SerializerMethodField()
     organisation = serializers.SerializerMethodField()
     trained = CustomBooleanField(default=False)
-    role = serializers.ReadOnlyField(source='user_access.role')
-    approval_assignment = serializers.SerializerMethodField()
     forms = serializers.SerializerMethodField()
     pending_approval = serializers.SerializerMethodField()
     data = serializers.SerializerMethodField()
     pending_batch = serializers.SerializerMethodField()
 
+    @extend_schema_field(UserAdministrationSerializer)
+    def get_administration(self, instance: SystemUser):
+        if instance.is_superuser:
+            adm = Administration.objects.filter(
+                parent__isnull=True,
+                level__level=0
+            ).first()
+            return UserAdministrationSerializer(instance=adm).data
+        # Order UserRole by administration level and get the first one
+        user_role = UserRole.objects.filter(user=instance) \
+            .order_by('administration__level__level').first()
+        if user_role:
+            return UserAdministrationSerializer(
+                instance=user_role.administration
+            ).data
+        return None
+
+    @extend_schema_field(UserRoleEditSerializer(many=True))
+    def get_roles(self, instance: SystemUser):
+        return UserRoleEditSerializer(
+            instance=instance.user_user_role.all(),
+            many=True,
+        ).data
+
     @extend_schema_field(OrganisationSerializer)
     def get_organisation(self, instance: SystemUser):
         return OrganisationSerializer(instance=instance.organisation).data
-
-    @extend_schema_field(UserApprovalAssignmentSerializer(many=True))
-    def get_approval_assignment(self, instance: SystemUser):
-        return UserApprovalAssignmentSerializer(
-            instance=instance.user_data_approval.all(), many=True).data
 
     @extend_schema_field(UserFormSerializer(many=True))
     def get_forms(self, instance: SystemUser):
@@ -636,8 +742,17 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_pending_approval(self, instance: SystemUser):
-        return instance.user_assigned_pending_data.filter(
-            status=DataApprovalStatus.pending).count()
+        batch_q = Q(approved=False)
+        for ur in instance.user_user_role.all():
+            adm = ur.administration
+            path = adm.path \
+                if hasattr(adm, 'path') and adm.path else f"{adm.id}."
+            batch_q |= Q(
+                administration__path__startswith=path,
+                approved=False,
+            )
+        total_batches = DataBatch.objects.filter(batch_q).count()
+        return total_batches
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_data(self, instance: SystemUser):
@@ -645,14 +760,23 @@ class UserDetailSerializer(serializers.ModelSerializer):
 
     @extend_schema_field(OpenApiTypes.INT)
     def get_pending_batch(self, instance: SystemUser):
-        return instance.user_pending_data_batch.filter(
+        return instance.user_data_batch.filter(
             approved=False).all().count()
 
     class Meta:
         model = SystemUser
         fields = [
-            'first_name', 'last_name', 'email', 'administration',
-            'organisation', 'trained', 'role', 'phone_number',
-            'forms', 'approval_assignment', 'pending_approval', 'data',
-            'pending_batch'
+            'first_name', 'last_name', 'email', 'roles',
+            'organisation', 'trained', 'phone_number',
+            'forms', 'pending_approval', 'data',
+            'pending_batch', 'is_superuser', 'administration',
         ]
+
+
+class RoleOptionSerializer(serializers.ModelSerializer):
+    label = serializers.CharField(source='name')
+    value = serializers.IntegerField(source='id')
+
+    class Meta:
+        model = Role
+        fields = ["label", "value", "administration_level"]

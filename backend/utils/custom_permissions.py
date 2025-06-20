@@ -1,72 +1,61 @@
 from rest_framework.permissions import BasePermission
 
 from django.db.models import Q
-from api.v1.v1_profile.constants import UserRoleTypes
-from api.v1.v1_forms.models import FormAccess
-from api.v1.v1_forms.constants import FormAccessTypes
+from api.v1.v1_profile.constants import DataAccessTypes
 
 
 class IsEditor(BasePermission):
     def has_permission(self, request, view):
-        # Check for approver access via FormAccess
-        has_edit_access = FormAccess.objects.filter(
-            user_form__user=request.user,
-            access_type=FormAccessTypes.edit
-        ).exists()
-        if has_edit_access:
-            return True
-        return False
+        if not request.user.is_superuser:
+            # Check if the user has edit or delete access
+            return request.user.user_user_role.filter(
+                role__role_role_access__data_access__in=[
+                    DataAccessTypes.edit,
+                    DataAccessTypes.delete,
+                ]
+            ).exists()
+        return request.user.is_superuser
 
 
 class IsApprover(BasePermission):
     def has_permission(self, request, view):
-        # Check if user has any form with approver access
-        has_approver_access = FormAccess.objects.filter(
-            user_form__user=request.user,
-            access_type=FormAccessTypes.approve
-        ).exists()
-        return has_approver_access
+        if not request.user.is_superuser:
+            # Check if the user has approve access
+            return request.user.user_user_role.filter(
+                role__role_role_access__data_access=DataAccessTypes.approve
+            ).exists()
+        return request.user.is_superuser
 
 
-class IsAdmin(BasePermission):
+class IsSubmitter(BasePermission):
     def has_permission(self, request, view):
-        if request.user.user_access.role == UserRoleTypes.admin:
-            return True
-        return False
+        if not request.user.is_superuser:
+            # Check if the user has submit access
+            return request.user.user_user_role.filter(
+                role__role_role_access__data_access=DataAccessTypes.submit
+            ).exists()
+        return request.user.is_superuser
 
 
 class IsSuperAdmin(BasePermission):
     def has_permission(self, request, view):
-        if request.user.user_access.role == UserRoleTypes.super_admin:
-            return True
-        return False
-
-
-class IsEditorOrSuperAdmin(BasePermission):
-    def has_permission(self, request, view):
-        is_editor = IsEditor().has_permission(request, view)
-        is_super_admin = IsSuperAdmin().has_permission(request, view)
-        return is_editor or is_super_admin
+        return request.user.is_superuser
 
 
 class IsSuperAdminOrFormUser(BasePermission):
     # Check if the user is a super admin or has form access
     def has_permission(self, request, view):
+        if not request.user.is_superuser:
+            has_form_access = request.user.user_form.filter(
+                Q(
+                    form_id=view.kwargs.get("form_id")
+                ) | Q(
+                    form__children__id=view.kwargs.get("form_id")
+                )
+            ).exists()
+            return has_form_access
         # Check if user is super admin
-        if request.user.user_access.role == UserRoleTypes.super_admin:
-            return True
-        # Check if user has any form or form is part of their children
-        has_form_access = FormAccess.objects.filter(
-            Q(
-                user_form__user=request.user,
-                user_form__form_id=view.kwargs.get("form_id")
-            ) |
-            Q(
-                user_form__user=request.user,
-                user_form__form__children__id=view.kwargs.get("form_id")
-            ),
-        ).exists()
-        return has_form_access
+        return request.user.is_superuser
 
 
 class PublicGet(BasePermission):

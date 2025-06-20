@@ -1,87 +1,16 @@
-import pandas as pd
+# import pandas as pd
 from django.core.management import BaseCommand
+from django.core.management import call_command
 from faker import Faker
-from api.v1.v1_data.models import (
-    FormData,
-    PendingDataBatch,
-    PendingDataApproval,
+from api.v1.v1_data.models import FormData
+from api.v1.v1_approval.models import (
+    DataBatch,
+    DataApproval,
+    DataApprovalStatus,
 )
-from api.v1.v1_forms.models import Forms, FormApprovalAssignment
-from api.v1.v1_data.management.commands.fake_data_seeder import (
-    add_fake_answers,
-)
-from api.v1.v1_profile.models import Administration
-from api.v1.v1_data.tasks import seed_approved_data
-from api.v1.v1_data.constants import DataApprovalStatus
+from api.v1.v1_data.functions import add_fake_answers
 
 fake = Faker()
-
-
-def seed_data(form, datapoint, user, repeat, approved):
-    pendings = []
-    for child_form in form.children.all():
-        for i in range(repeat):
-            data = FormData.objects.create(
-                parent=datapoint,
-                name=datapoint.name,
-                geo=datapoint.geo,
-                uuid=datapoint.uuid,
-                form=child_form,
-                administration=datapoint.administration,
-                created_by=user,
-                is_pending=not approved,
-            )
-            add_fake_answers(data)
-            pendings.append(data)
-    pending_items = [
-        {"administration_id": pending.administration.id, "instance": pending}
-        for pending in pendings
-    ]
-    df = pd.DataFrame(pending_items)
-    grouped_data = df.groupby(["administration_id"]).apply(
-        lambda x: x.to_dict("records")
-    )
-    for administration_id, items in grouped_data.items():
-        [dp] = items[:1]
-        batch_name = fake.sentence(nb_words=3)
-        batch = PendingDataBatch.objects.create(
-            form=dp["instance"].form,
-            administration=dp["instance"].administration,
-            user=dp["instance"].created_by,
-            name=f"{batch_name}-{administration_id}",
-            approved=approved,
-        )
-        batch_items = [i["instance"] for i in items]
-        batch.batch_form_data.add(*batch_items)
-        path = "{0}{1}".format(
-            user.user_access.administration.path,
-            user.user_access.administration_id,
-        )
-        parent_adms = Administration.objects.filter(id__in=path.split("."))
-        for adm in parent_adms:
-            assignment = FormApprovalAssignment.objects.filter(
-                form_id=form.id, administration=adm
-            ).first()
-            if assignment:
-                level = assignment.user.user_access.administration.level_id
-                approval_status = (
-                    DataApprovalStatus.approved
-                    if batch.approved
-                    else DataApprovalStatus.pending
-                )
-                PendingDataApproval.objects.create(
-                    batch=batch,
-                    user=assignment.user,
-                    level_id=level,
-                    status=approval_status,
-                )
-        if batch.approved:
-            # Use FormData objects with is_pending=True
-            for pending in batch.batch_form_data.filter(
-                batch=batch,
-                is_pending=True
-            ).all():
-                seed_approved_data(pending)
 
 
 class Command(BaseCommand):
@@ -106,18 +35,67 @@ class Command(BaseCommand):
         repeat = options.get("repeat")
         approved = options.get("approved")
 
-        forms = Forms.objects.filter(
-            parent__isnull=True,
-            children__isnull=False,
-        ).all()
-        for form in forms:
-            if not test:
-                print(f"Seeding - {form.name}")
-            for dp in form.form_form_data.all():
-                seed_data(
-                    form=form,
-                    datapoint=dp,
-                    user=dp.created_by,
-                    repeat=repeat,
-                    approved=approved,
+        if test:
+            # Call fake_data_seeder with test=True
+            call_command(
+                "fake_data_seeder",
+                test=True,
+                repeat=repeat,
+            )
+
+        data = FormData.objects.filter(
+            is_pending=False,
+            form__parent__isnull=True,
+        ).all()[:repeat]
+
+        for d in data:
+            items = []
+            for f in d.form.children():
+                # random date
+                created = fake.date_time_this_decade()
+                # format Y-m-d H:M:S
+                created = created.strftime("%Y-%m-%d %H:%M:%S")
+                monitoring_data = FormData.objects.create(
+                    name=f"{created} - {d.name}",
+                    form=f,
+                    created=created,
+                    created_by=d.created_by,
+                    administration=d.administration,
+                    geo=d.geo,
+                    uuid=d.uuid,
                 )
+                add_fake_answers(monitoring_data)
+                items.append(monitoring_data)
+
+            if (
+                d.has_approval and
+                not approved
+            ):
+                for i in items:
+                    i.is_pending = True
+                    i.save()
+
+            if d.has_approval and approved:
+                # Create Batch for approved data
+                batch = DataBatch.objects.create(
+                    name=f"Batch for {d.name}",
+                    form=d.form,
+                    created_by=d.created_by,
+                    approved=True,
+                )
+                # Add items to DataBatchList
+                batch.data_batch_list.set(items)
+
+                # Add DataApproval
+                for approver in batch.approvers:
+                    DataApproval.objects.create(
+                        batch=batch,
+                        administration=approver["administration"],
+                        role=approver["role"],
+                        user=approver["user"],
+                        status=DataApprovalStatus.approved
+                    )
+                    batch.batch_batch_comments.create(
+                        user=approver["user"],
+                        comment=f"Data approved by {approver['user'].email}",
+                    )
