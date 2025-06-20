@@ -56,3 +56,4 @@ if [[ "${seed_entities}" == 'y' || "${seed_entities}" == 'Y' ]]; then
 fi
 
 python manage.py generate_sqlite
+python manage.py generate_config
