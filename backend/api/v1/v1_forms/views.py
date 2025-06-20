@@ -122,12 +122,15 @@ def form_approver(request, version):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    adm = serializer.validated_data.get("administration_id")
+    path = adm.path if adm.path else f"{adm.id}."
     instance = Administration.objects.filter(
-        parent=serializer.validated_data.get("administration_id"),
+        path__startswith=path,
     )
-    instance = [serializer.validated_data.get("administration_id")] + list(
-        instance
-    )
+    ancestors = list(adm.ancestors.all()) if adm.ancestors else []
+    instance = ancestors + [
+        serializer.validated_data.get("administration_id")
+    ] + list(instance)
     return Response(
         FormApproverResponseSerializer(
             instance=instance,
