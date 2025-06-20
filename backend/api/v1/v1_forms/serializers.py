@@ -510,7 +510,8 @@ class FormApproverResponseSerializer(serializers.ModelSerializer):
     @extend_schema_field(FormApproverUserSerializer(many=True))
     def get_users(self, instance: Administration):
         approvers = instance.user_role_administration.filter(
-            role__role_role_access__data_access=DataAccessTypes.approve
+            role__role_role_access__data_access=DataAccessTypes.approve,
+            user__user_form__form=self.context.get("form"),
         ).select_related("user")
         approvers = [
             approver.user for approver in approvers
