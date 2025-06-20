@@ -528,9 +528,14 @@ def list_users(request, version):
             Q(email__icontains=search) | Q(fullname__icontains=search)
         )
     # First get unique IDs to avoid duplicates from joins
-    user_ids = queryset.exclude(**exclude_data)\
-        .values_list('id', flat=True)\
-        .distinct()
+    # But make sure to include current user's ID
+    user_ids = list(queryset.exclude(**exclude_data)
+                    .values_list('id', flat=True)
+                    .distinct())
+    # Always include the current user
+    current_user_id = request.user.id
+    if current_user_id not in user_ids:
+        user_ids.append(current_user_id)
 
     # Then query again with the distinct IDs
     queryset = (

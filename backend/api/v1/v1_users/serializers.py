@@ -669,7 +669,7 @@ class UserSerializer(serializers.ModelSerializer):
             'email', 'name', 'roles', 'trained',
             'phone_number', 'forms', 'organisation',
             'last_login', 'passcode', 'is_superuser',
-            'administration',
+            'administration', 'id',
         ]
 
 
