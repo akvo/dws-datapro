@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./style.scss";
 import { Row, Col, Divider, Space, Dropdown } from "antd";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
@@ -141,17 +141,20 @@ const ApproversTree = () => {
     }
   };
 
-  const handleFormScroll = ({ target }) => {
-    setScroll(target.scrollTop);
+  const handleFormScroll = useCallback(
+    ({ target }) => {
+      setScroll(target.scrollTop);
 
-    // Reset dataset to ensure synchronization when scrolling form nodes
-    if (dataset.length > 0) {
-      setDataset((prevDataset) => {
-        const resetDataset = JSON.parse(JSON.stringify(prevDataset));
-        return resetDataset;
-      });
-    }
-  };
+      // Reset dataset to ensure synchronization when scrolling form nodes
+      if (dataset.length > 0) {
+        setDataset((prevDataset) => {
+          const resetDataset = JSON.parse(JSON.stringify(prevDataset));
+          return resetDataset;
+        });
+      }
+    },
+    [dataset]
+  );
 
   const renderFormNodes = useMemo(() => {
     return nodes.map((nodeItem, i) => (
@@ -191,7 +194,7 @@ const ApproversTree = () => {
         ))}
       </Col>
     ));
-  }, [nodes, selectedForm, administration, dataset]);
+  }, [nodes, selectedForm, administration, handleFormScroll]);
 
   const renderAdminNodes = useMemo(() => {
     const handleClick = (e, index) => {
@@ -399,25 +402,26 @@ const ApproversTree = () => {
 
   return (
     <div id="approversTree">
-      <div className="description-container">
-        <Row justify="space-between">
-          <Col>
-            <Breadcrumbs pagePath={pagePath} />
-            <DescriptionPanel
-              description={text.approversDescription}
-              title={text.manageDataValidationSetup}
-            />
-          </Col>
-        </Row>
-      </div>
       <div className="table-section">
-        <div className="table-wrapper">
-          <ApproverFilters
-            loading={false}
-            disabled={isPristine || loading}
-            visible={false}
-          />
-          <Divider />
+        <div className="description-container">
+          <Row justify="space-between">
+            <Col>
+              <Breadcrumbs pagePath={pagePath} />
+              <DescriptionPanel
+                description={text.approversDescription}
+                title={text.manageDataValidationSetup}
+              />
+            </Col>
+          </Row>
+        </div>
+        <Divider />
+        <ApproverFilters
+          loading={false}
+          disabled={isPristine || loading}
+          visible={false}
+        />
+        <Divider />
+        <div className="approvers-tree-wrapper">
           <div style={{ padding: 0, minHeight: "40vh" }}>
             <Row
               wrap={false}

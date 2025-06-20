@@ -2,7 +2,9 @@
 
 #root {
   #approversTree {
-    .table-wrapper {
+    .approvers-tree-wrapper {
+      background-color: white;
+      padding: 24px;
       overflow-x: auto;
       width: 100%;
       position: relative;
