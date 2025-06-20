@@ -357,7 +357,6 @@ const PanelSubmissions = () => {
       // check only for data entry role
       setBatchName("");
       setComment("");
-      // TODO: check if the user has approver role
       if (!user.is_superuser) {
         api.get(`form/check-approver/${selectedForm}`).then((res) => {
           if (!res.data.count) {
