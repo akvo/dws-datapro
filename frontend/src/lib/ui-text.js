@@ -2,6 +2,25 @@ import React, { Fragment } from "react";
 
 const uiText = {
   en: {
+    // Sidebar Menu Labels
+    menuUsers: "Users",
+    menuControlCenter: "Control Center",
+    menuManagePlatformUsers: "Manage Platform Users",
+    menuValidationTree: "Validation Tree",
+    menuManageMobileUsers: "Manage Mobile Users",
+    menuManageRoles: "Manage Roles",
+    menuMasterData: "Master Data",
+    menuAdministrativeList: "Administrative List",
+    menuAttributes: "Attributes",
+    menuEntities: "Entities",
+    menuEntityTypes: "Entity Types",
+    menuOrganisations: "Organisations",
+    menuData: "Data",
+    menuManageData: "Manage Data",
+    menuPendingSubmissions: "Submissions",
+    menuApprovals: "Approvals",
+    menuDownloads: "Downloads",
+
     // Login
     loginLoadingTex: (
       <Fragment>
