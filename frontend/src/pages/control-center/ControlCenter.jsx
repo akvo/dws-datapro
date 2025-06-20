@@ -50,22 +50,24 @@ const ControlCenter = () => {
           </div>
         </div>
       </div>
-      <div className="table-section">
-        <Can I="manage" a="approvals">
+      <Can I="manage" a="approvals">
+        <div className="table-section">
           <div className="table-wrapper">
             <Col key="approvals-panel" span={24}>
               <PanelApprovals />
             </Col>
           </div>
-        </Can>
-        <Can I="manage" a="submissions">
+        </div>
+      </Can>
+      <Can I="manage" a="submissions">
+        <div className="table-section">
           <div className="table-wrapper">
             <Col key="submission-panel" span={24}>
               <PanelSubmissions />
             </Col>
           </div>
-        </Can>
-      </div>
+        </div>
+      </Can>
     </>
   );
 };
