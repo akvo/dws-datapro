@@ -141,9 +141,27 @@ const ApproversTree = () => {
     }
   };
 
+  const handleFormScroll = ({ target }) => {
+    setScroll(target.scrollTop);
+
+    // Reset dataset to ensure synchronization when scrolling form nodes
+    if (dataset.length > 0) {
+      setDataset((prevDataset) => {
+        const resetDataset = JSON.parse(JSON.stringify(prevDataset));
+        return resetDataset;
+      });
+    }
+  };
+
   const renderFormNodes = useMemo(() => {
     return nodes.map((nodeItem, i) => (
-      <Col key={i} span={5} className="tree-col-0" align="center">
+      <Col
+        key={i}
+        span={5}
+        className="tree-col-0"
+        align="center"
+        onScroll={handleFormScroll}
+      >
         {nodeItem.children.map((childItem, j) => (
           <div
             className={`tree-block tree-form-block-${childItem.id}
@@ -173,7 +191,7 @@ const ApproversTree = () => {
         ))}
       </Col>
     ));
-  }, [nodes, selectedForm, administration]);
+  }, [nodes, selectedForm, administration, dataset]);
 
   const renderAdminNodes = useMemo(() => {
     const handleClick = (e, index) => {
