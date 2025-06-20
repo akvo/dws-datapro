@@ -29,7 +29,6 @@ from api.v1.v1_profile.models import (
     UserRole,
 )
 from api.v1.v1_data.functions import get_cache, create_cache
-from utils.custom_permissions import IsSuperAdmin, IsSubmitter
 from utils.custom_serializer_fields import validate_serializers_message
 
 
@@ -114,7 +113,7 @@ def form_data(request, version, form_id):
     summary="To get approver user list",
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsSuperAdmin | IsSubmitter])
+@permission_classes([IsAuthenticated])
 def form_approver(request, version):
     serializer = FormApproverRequestSerializer(data=request.GET)
     if not serializer.is_valid():
