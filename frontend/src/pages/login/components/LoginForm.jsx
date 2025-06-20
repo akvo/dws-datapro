@@ -36,7 +36,6 @@ const LoginForm = () => {
         store.update((s) => {
           s.isLoggedIn = true;
           s.selectedForm = null;
-          // TODO: Implement RBAC
           s.user = res.data;
         });
         reloadData(res.data);
