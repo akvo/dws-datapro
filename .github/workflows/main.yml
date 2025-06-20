@@ -67,7 +67,7 @@ jobs:
           CI_PULL_REQUEST: ${{ env.PULL_REQUEST_EVENT }}
           CLOUDSDK_CORE_DISABLE_PROMPTS: 1
           COMPOSE_INTERACTIVE_NO_CLI: 1
-          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_IWSIMS_TOKEN }}
+          COVERALLS_REPO_TOKEN: ${{ secrets.COVERALLS_AKVO_MIS_TOKEN }}
           DBDOCS_TOKEN: ${{ secrets.DBDOCS_TOKEN }}
           ALL_CHANGED_FILES: ${{ steps.changed-files.outputs.all_changed_files }}
           SENTRY_DSN: ${{ secrets.SENTRY_DSN }}
