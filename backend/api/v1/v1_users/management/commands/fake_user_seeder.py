@@ -23,7 +23,8 @@ DEFAULT_PASSWORD = "Test#123"
 def create_user(
     administration: Administration,
     is_superuser: bool = False,
-    test: bool = False
+    test: bool = False,
+    is_approver: bool = False
 ) -> SystemUser:
     first_name = fake.first_name()
     last_name = fake.last_name()
@@ -52,7 +53,6 @@ def create_user(
         user.set_password(DEFAULT_PASSWORD)
     user.save()
 
-    is_approver = random.choice([True, False])
     role_name = "Approver" if is_approver else "Submitter"
     role = Role.objects.filter(
         administration_level=administration.level,
@@ -102,27 +102,35 @@ class Command(BaseCommand):
         test = options.get("test")
         level = 0
         total_levels = Levels.objects.count() - 1
+        national_adm = Administration.objects.filter(
+            parent__isnull=True
+        ).order_by("?").first()
+        parent_adm = national_adm
         for _ in range(repeat):
             if level > total_levels:
                 level = 0
-            is_superuser = level == 0
-            # Get administrations with entity data
-            administration = Administration.objects.filter(
-                level__level=level
-            ).exclude(
-                entity_data=None
-            ).order_by("?").first()
-
-            # Fall back to any administration if none with entity data exists
-            if not administration:
+                parent_adm = national_adm
+            if level > 0:
                 administration = Administration.objects.filter(
-                    level__level=level,
+                    level__level=level
                 ).order_by("?").first()
+                if not parent_adm.path:
+                    parent_adm = administration
 
+                if parent_adm.path:
+                    administration = Administration.objects.filter(
+                        level__level=level,
+                        path__startswith=parent_adm.path
+                    ).first()
+            else:
+                administration = national_adm
             level += 1
+            is_superuser = level == 0
+            is_approver = level < total_levels - 1
             create_user(
                 administration=administration,
                 is_superuser=is_superuser,
+                is_approver=is_approver,
                 test=test
             )
 
