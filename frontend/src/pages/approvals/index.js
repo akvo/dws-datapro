@@ -54,7 +54,7 @@ export const columnsApproval = [
     align: "center",
     dataIndex: "waiting_on",
     key: "waiting_on",
-    render: (_, row) => row.approver.name,
+    render: (_, row) => row.approver?.name || "No approver",
     width: 180,
   },
   {

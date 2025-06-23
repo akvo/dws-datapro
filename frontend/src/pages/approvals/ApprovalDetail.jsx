@@ -17,7 +17,15 @@ import {
   LoadingOutlined,
   HistoryOutlined,
 } from "@ant-design/icons";
-import { api, store, config, uiText, QUESTION_TYPES } from "../../lib";
+import {
+  api,
+  store,
+  config,
+  uiText,
+  QUESTION_TYPES,
+  APPROVAL_STATUS_APPROVED,
+  APPROVAL_STATUS_REJECTED,
+} from "../../lib";
 import { EditableCell } from "../../components";
 import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
@@ -188,9 +196,9 @@ const ApprovalDetail = ({
       });
   };
 
-  const handleApprove = (id, status) => {
+  const handleApprove = (batch, status) => {
     let payload = {
-      batch: id,
+      approval: batch?.approver?.id,
       status: status,
     };
     if (!comment.length) {
@@ -208,7 +216,7 @@ const ApprovalDetail = ({
         setExpandedParentKeys(
           expandedParentKeys.filter((e) => e !== record.id)
         );
-        setReload(id);
+        setReload(batch?.id);
       })
       .catch((e) => console.error(e));
   };
@@ -661,7 +669,7 @@ const ApprovalDetail = ({
           <Space style={{ marginTop: "20px", float: "right" }}>
             <Button
               type="danger"
-              onClick={() => handleApprove(record.id, 3)}
+              onClick={() => handleApprove(record, APPROVAL_STATUS_REJECTED)}
               disabled={!approve}
               shape="round"
             >
@@ -669,7 +677,7 @@ const ApprovalDetail = ({
             </Button>
             <Button
               type="primary"
-              onClick={() => handleApprove(record.id, 2)}
+              onClick={() => handleApprove(record, APPROVAL_STATUS_APPROVED)}
               disabled={!approve || approveButtonEnable}
               shape="round"
             >
