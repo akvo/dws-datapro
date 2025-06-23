@@ -9,11 +9,12 @@ from rest_framework.exceptions import ValidationError
 
 from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.models import (
-    FormData,
     DataApproval,
     DataBatch,
+    DataBatchList,
     DataBatchComments,
 )
+from api.v1.v1_data.models import FormData
 from api.v1.v1_data.models import Answers, AnswerHistory
 from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_forms.models import (
@@ -164,35 +165,33 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
     def get_approver(self, instance: DataBatch):
         user: SystemUser = self.context.get("user")
         approved: bool = self.context.get("approved")
-        user_role = user.user_user_role.filter(
-            role__role_role_access__data_access=DataAccessTypes.submit
+        subordinate: bool = self.context.get("subordinate", False)
+        user_role = self.context.get("user_role")
+        batch_status = DataApprovalStatus.pending
+        if approved:
+            batch_status = DataApprovalStatus.approved
+        approver = instance.batch_approval.filter(
+            user=user,
+            status=batch_status,
         ).first()
-        next_level = (
-            user_role.administration.level.level - 1
-            if approved
-            else user_role.administration.level.level + 1
+        if subordinate and user_role:
+            user_adm_level = user_role.administration.level.level
+            approver = instance.batch_approval.filter(
+                administration__level__level__gt=user_adm_level,
+                status=batch_status,
+            ).first()
+        if not approver:
+            return None
+        allow_approve = (
+            approver.status == DataApprovalStatus.pending
+            and user_role.administration_id == instance.administration_id
         )
-        approvers = instance.approvers(adm_level=next_level)
-        if not approvers:
-            return {
-                "id": None,
-                "name": None,
-                "status": DataApprovalStatus.pending,
-                "status_text": DataApprovalStatus.FieldStr.get(
-                    DataApprovalStatus.pending
-                ),
-                "allow_approve": False,
-            }
-        approver = approvers[0]
         return {
             "id": approver.id,
             "name": approver.user.get_full_name(),
             "status": approver.status,
             "status_text": DataApprovalStatus.FieldStr.get(approver.status),
-            "allow_approve": (
-                approver.status == DataApprovalStatus.pending
-                and user_role.administration_id == instance.administration_id
-            ),
+            "allow_approve": allow_approve,
         }
 
     class Meta:
@@ -250,8 +249,8 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
 
 
 class ApproveDataRequestSerializer(serializers.Serializer):
-    batch = CustomPrimaryKeyRelatedField(
-        queryset=DataBatch.objects.none()
+    approval = CustomPrimaryKeyRelatedField(
+        queryset=DataApproval.objects.none()
     )
     status = CustomChoiceField(
         choices=[DataApprovalStatus.approved, DataApprovalStatus.rejected]
@@ -261,30 +260,40 @@ class ApproveDataRequestSerializer(serializers.Serializer):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         user: SystemUser = self.context.get("user")
-        if user:
-            self.fields.get(
-                "batch"
-            ).queryset = DataBatch.objects.filter(
-                batch_approval__user=user, approved=False
-            )
+        self.fields.get("approval").queryset = DataApproval.objects.filter(
+            user=user,
+            status=DataApprovalStatus.pending,
+        ).select_related("batch", "administration", "role")
 
     def create(self, validated_data):
-        batch: DataBatch = validated_data.get("batch")
-        user = self.context.get("user")
-        comment = validated_data.get("comment")
-        user_level = user.user_user_role.administration.level
-        approval = DataApproval.objects.get(user=user, batch=batch)
-        approval.status = validated_data.get("status")
+        approval = validated_data.get("approval")
+        status = validated_data.get("status")
+        comment = validated_data.pop("comment", None)
+        user: SystemUser = self.context.get("user")
+        # Update the status of the approval
+        approval.status = status
         approval.save()
-        # Get the first form data in the batch to get submitter email
-        first_data = FormData.objects.filter(
-            batch=batch, is_pending=True
-        ).first()
-        data_count = FormData.objects.filter(
-            batch=batch, is_pending=True
-        ).count()
+
+        # Add comment if provided
+        if comment:
+            DataBatchComments.objects.create(
+                user=user,
+                batch=approval.batch,
+                comment=comment
+            )
+        # Get the batch and get all pending data for this batch
+        batch = approval.batch
+        pending_data = batch.batch_data_list.filter(
+            data__is_pending=True,
+        ).select_related("data__created_by", "data__form")
+        # Get all data submitted by the user
+        submitter_emails = pending_data.values_list(
+            "data__created_by__email", flat=True
+        ).distinct()
+        # Get total number of records
+        data_count = pending_data.count()
         data = {
-            "send_to": [first_data.created_by.email],
+            "send_to": submitter_emails,
             "batch": batch,
             "user": user,
         }
@@ -345,21 +354,17 @@ class ApproveDataRequestSerializer(serializers.Serializer):
                 }
             )
             send_email(context=data, type=EmailTypes.batch_rejection)
-            # send email to lower approval
-            lower_approvals = DataApproval.objects.filter(
-                batch=batch, level__level__gt=user_level.level
-            ).all()
-            # filter --> send email only to lower approval
-            lower_approval_user_ids = [u.user_id for u in lower_approvals]
-            lower_approval_users = SystemUser.objects.filter(
-                id__in=lower_approval_user_ids, deleted_at=None
-            ).all()
-            lower_approval_emails = [
-                u.email for u in lower_approval_users if u.email != user.email
-            ]
-            if lower_approval_emails:
+            # Send to lower level approvers
+            adm_level = approval.administration.level.level
+            lower_approvers = batch.batch_approval.filter(
+                administration__level__level__gt=adm_level,
+            )
+            if lower_approvers.exists():
+                lower_emails = [
+                    approver.user.email for approver in lower_approvers
+                ]
                 inform_data = {
-                    "send_to": lower_approval_emails,
+                    "send_to": lower_emails,
                     "listing": listing,
                     "extend_body": """
                     The data submitter has also been notified.
@@ -370,10 +375,6 @@ class ApproveDataRequestSerializer(serializers.Serializer):
                     context=inform_data,
                     type=EmailTypes.inform_batch_rejection_approver,
                 )
-        if validated_data.get("comment"):
-            DataBatchComments.objects.create(
-                user=user, batch=batch, comment=validated_data.get("comment")
-            )
         if not DataApproval.objects.filter(
             batch=batch,
             status__in=[
@@ -381,20 +382,22 @@ class ApproveDataRequestSerializer(serializers.Serializer):
                 DataApprovalStatus.rejected,
             ],
         ).count():
-            # Get all pending data for this batch
-            form_data_list = FormData.objects.filter(
-                batch=batch, is_pending=True
-            ).all()
             # Seed data via Async Task
-            for data in form_data_list:
+            for dl in batch.batch_data_list.filter(
+                data__is_pending=True,
+            ).all():
+                data = dl.data
                 async_task("api.v1.v1_data.tasks.seed_approved_data", data)
             batch.approved = True
             batch.updated = timezone.now()
             batch.save()
-        return object
+        return approval
 
     def update(self, instance, validated_data):
         pass
+
+    class Meta:
+        fields = ["approval", "status", "comment"]
 
 
 class ListBatchSerializer(serializers.ModelSerializer):
@@ -461,14 +464,13 @@ class ListBatchSerializer(serializers.ModelSerializer):
     def get_approvers(self, instance: DataBatch):
         data = []
         approvers = instance.batch_approval.order_by(
-            "level"
+            "administration__level__level"
         ).all()
         for approver in approvers:
-            approver_adm = approver.user.user_user_role.administration
             data.append(
                 {
                     "name": approver.user.get_full_name(),
-                    "administration": approver_adm.name,
+                    "administration": approver.administration.name,
                     "status": approver.status,
                     "status_text": DataApprovalStatus.FieldStr.get(
                         approver.status
@@ -520,7 +522,7 @@ class ListBatchSummarySerializer(serializers.ModelSerializer):
         batch = self.context.get("batch")
         if instance.question.type == QuestionTypes.number:
             val = Answers.objects.filter(
-                data__batch=batch,
+                data__data_batch_list__batch=batch,
                 data__is_pending=True,
                 question_id=instance.question.id
             ).aggregate(Sum("value"))
@@ -528,7 +530,7 @@ class ListBatchSummarySerializer(serializers.ModelSerializer):
         elif instance.question.type == QuestionTypes.administration:
             return (
                 Answers.objects.filter(
-                    data__batch=batch,
+                    data__data_batch_list__batch=batch,
                     data__is_pending=True,
                     question_id=instance.question.id
                 )
@@ -539,7 +541,7 @@ class ListBatchSummarySerializer(serializers.ModelSerializer):
             data = []
             for option in instance.question.options.all():
                 val = Answers.objects.filter(
-                    data__batch=batch,
+                    data__data_batch_list__batch=batch,
                     data__is_pending=True,
                     question_id=instance.question.id,
                     options__contains=option.value,
@@ -612,6 +614,22 @@ class CreateBatchSerializer(serializers.Serializer):
     def validate_data(self, data):
         if len(data) == 0:
             raise ValidationError("No data found for this batch")
+        for item in data:
+            # Check if the data item has approval
+            if not item.has_approval:
+                raise ValidationError(
+                    "One or more data items do not have approval."
+                )
+            # Check if the data item is pending
+            if not item.is_pending:
+                raise ValidationError(
+                    "One or more data items are not pending."
+                )
+            # Check if the data item was created by the user
+            if item.created_by != self.context.get("user"):
+                raise ValidationError(
+                    "One or more data items were not submitted by the user."
+                )
         return data
 
     def validate(self, attrs):
@@ -633,9 +651,11 @@ class CreateBatchSerializer(serializers.Serializer):
             data.administration_id for data in attrs.get("data")
         )
         if len(administrations) > 1:
-            raise ValidationError(
-                "All data must belong to the same administration."
-            )
+            raise ValidationError({
+                "data": (
+                    "All data must belong to the same administration."
+                )
+            })
         return attrs
 
     def create(self, validated_data):
@@ -651,12 +671,12 @@ class CreateBatchSerializer(serializers.Serializer):
             name=validated_data.get("name"),
         )
         for data in validated_data.get("data"):
-            obj.batch_data_list.add(data)
-        if obj.approvers:
-            # Send email to all approvers
-            emails = [
-                approver.user.email for approver in obj.approvers
-            ]
+            DataBatchList.objects.create(batch=obj, data=data)
+        # Send email to approvers
+        emails = [
+            approver["user"].email for approver in obj.approvers()
+        ]
+        if len(emails):
             number_of_records = obj.batch_data_list.count()
             data = {
                 "send_to": emails,
@@ -674,6 +694,15 @@ class CreateBatchSerializer(serializers.Serializer):
                 ],
             }
             send_email(context=data, type=EmailTypes.pending_approval)
+            # Create DataApproval for each approver
+            for approver in obj.approvers():
+                DataApproval.objects.create(
+                    batch=obj,
+                    administration=approver["administration"],
+                    role=approver["role"],
+                    user=approver["user"],
+                    status=DataApprovalStatus.pending,
+                )
 
         if validated_data.get("comment"):
             DataBatchComments.objects.create(

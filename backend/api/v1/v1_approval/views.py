@@ -41,6 +41,7 @@ from utils.custom_permissions import (
     IsSubmitter,
     IsApprover,
 )
+from api.v1.v1_profile.constants import DataAccessTypes
 from utils.custom_serializer_fields import validate_serializers_message
 from utils.default_serializers import DefaultResponseSerializer
 
@@ -85,7 +86,7 @@ period_length = 60 * 15
     summary="To get list of pending batch",
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsApprover | IsSubmitter | IsSuperAdmin])
+@permission_classes([IsAuthenticated, IsApprover])
 def list_pending_batch(request, version):
     serializer = BatchDataFilterSerializer(data=request.GET)
     if not serializer.is_valid():
@@ -98,15 +99,26 @@ def list_pending_batch(request, version):
 
     subordinate = serializer.validated_data.get("subordinate")
     approved = serializer.validated_data.get("approved")
-    if approved:
-        queryset = DataBatch.objects.filter(
-            user=user, approved=True
-        ).order_by("-created")
-    else:
-        queryset = DataBatch.objects.filter(
-            user=user, approved=False
-        ).order_by("-created")
+    user_role = user.user_user_role.filter(
+        role__role_role_access__data_access=DataAccessTypes.approve
+    ).first()
+    data_approval = user.data_approval_user.filter(
+        batch__approved=approved,
+        role=user_role.role,
+    ).all()
+    batch_ids = [
+        d.batch.id for d in data_approval
+    ]
+    queryset = DataBatch.objects.filter(
+        id__in=batch_ids,
+    ).order_by("-created")
 
+    next_level = user_role.administration.level.level + 1 \
+        if user_role else None
+    if subordinate and next_level:
+        queryset = queryset.filter(
+            batch_approval__administration__level__level=next_level,
+        )
     paginator = PageNumberPagination()
     paginator.paginate_queryset(queryset, request)
     total = queryset.count()
@@ -121,6 +133,7 @@ def list_pending_batch(request, version):
                 "user": user,
                 "approved": approved,
                 "subordinate": subordinate,
+                "user_role": user_role,
             },
             many=True,
         ).data,
@@ -139,9 +152,17 @@ def list_pending_batch(request, version):
 )
 def list_data_batch(request, version, batch_id):
     batch = get_object_or_404(DataBatch, pk=batch_id)
+    batch_list = batch.batch_data_list.filter(
+        batch__approved=False,
+        data__is_pending=True,
+    ).order_by("-created")
+    data = [
+        d.data for d in batch_list
+    ]
     return Response(
         ListPendingFormDataSerializer(
-            instance=batch.batch_data_list.all(), many=True
+            instance=data,
+            many=True
         ).data,
         status=status.HTTP_200_OK,
     )
@@ -242,12 +263,15 @@ class BatchView(APIView):
         )
         if not serializer.is_valid():
             return Response(
-                {"message": validate_serializers_message(serializer.errors)},
+                {"detail": serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         serializer.save(user=request.user)
         return Response(
-            {"message": "Data updated successfully"}, status=status.HTTP_200_OK
+            {
+                "message": "Batch created successfully",
+            },
+            status=status.HTTP_201_CREATED
         )
 
 
@@ -270,7 +294,7 @@ class BatchSummaryView(APIView):
         )
         # Get all answers for these questions in the batch
         answers = Answers.objects.filter(
-            data__batch_id=batch.id,
+            data__data_batch_list__batch=batch,
             data__is_pending=True,
             question__in=questions,
         ).distinct("question")
