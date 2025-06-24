@@ -1,12 +1,11 @@
-import { Row, Col, Tag } from "antd";
+import { Row, Col, Tag, Space } from "antd";
 import {
   FileTextFilled,
   CheckCircleOutlined,
-  CloseCircleOutlined,
   ClockCircleOutlined,
 } from "@ant-design/icons";
 
-export const columnsApproval = [
+export const columnsApproval = (levels) => [
   {
     title: "Submission",
     dataIndex: "name",
@@ -52,40 +51,54 @@ export const columnsApproval = [
   {
     title: "Waiting on",
     align: "center",
-    dataIndex: "waiting_on",
-    key: "waiting_on",
-    render: (_, row) => row.approver?.name || "No approver",
+    dataIndex: "approver",
+    key: "approver",
+    render: (approvers) => {
+      if (approvers?.length === 0) {
+        return <span>No approver assigned</span>;
+      }
+      return (
+        <div>
+          <ul style={{ paddingLeft: "20px", margin: 0 }}>
+            {approvers.map((approver, index) => {
+              const level = levels.find(
+                (l) => l.level === approver.administration_level
+              );
+              return (
+                <li key={index}>
+                  <Space>
+                    {level && <strong>({level.name})</strong>}
+                    <span>{approver.name}</span>
+                  </Space>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      );
+    },
     width: 180,
   },
   {
     title: "Status",
     align: "center",
-    dataIndex: "approver",
-    key: "approver",
-    render: ({ status_text }) => (
-      <span>
-        <Tag
-          icon={
-            status_text === "Pending" ? (
-              <ClockCircleOutlined />
-            ) : status_text === "Rejected" ? (
-              <CloseCircleOutlined />
-            ) : (
-              <CheckCircleOutlined />
-            )
-          }
-          color={
-            status_text === "Pending"
-              ? "default"
-              : status_text === "Rejected"
-              ? "error"
-              : "success"
-          }
-        >
-          {status_text}
-        </Tag>
-      </span>
-    ),
+    dataIndex: "approved",
+    key: "approved",
+    render: (_, record) => {
+      const allowApprove = record?.approver?.some((a) => a?.allow_approve);
+      return (
+        <span>
+          <Tag
+            icon={
+              allowApprove ? <ClockCircleOutlined /> : <CheckCircleOutlined />
+            }
+            color={allowApprove ? "default" : "success"}
+          >
+            {allowApprove ? "Pending" : "Approved"}
+          </Tag>
+        </span>
+      );
+    },
     width: 180,
   },
 ];
