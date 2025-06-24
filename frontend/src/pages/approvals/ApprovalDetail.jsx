@@ -122,6 +122,7 @@ const ApprovalDetail = ({
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(null);
   const [saving, setSaving] = useState(null);
+  const [approving, setApproving] = useState(null);
   const [selectedTab, setSelectedTab] = useState("data-summary");
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [comments, setComments] = useState([]);
@@ -138,6 +139,10 @@ const ApprovalDetail = ({
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
+
+  const allowApprove = useMemo(() => {
+    return record?.approver?.some((a) => a?.allow_approve);
+  }, [record?.approver]);
 
   //for checking the null value
   const approveButtonEnable = useMemo(() => {
@@ -197,8 +202,10 @@ const ApprovalDetail = ({
   };
 
   const handleApprove = (batch, status) => {
+    setApproving(status);
+    const approval = batch?.approver?.find((a) => a?.allow_approve);
     let payload = {
-      approval: batch?.approver?.id,
+      approval: approval?.id,
       status: status,
     };
     if (!comment.length) {
@@ -217,8 +224,12 @@ const ApprovalDetail = ({
           expandedParentKeys.filter((e) => e !== record.id)
         );
         setReload(batch?.id);
+        setApproving(null);
       })
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        console.error(e);
+        setApproving(null);
+      });
   };
 
   useEffect(() => {
@@ -670,16 +681,18 @@ const ApprovalDetail = ({
             <Button
               type="danger"
               onClick={() => handleApprove(record, APPROVAL_STATUS_REJECTED)}
-              disabled={!approve}
+              disabled={!allowApprove || approveButtonEnable}
               shape="round"
+              loading={approving === APPROVAL_STATUS_REJECTED}
             >
               Reject
             </Button>
             <Button
               type="primary"
               onClick={() => handleApprove(record, APPROVAL_STATUS_APPROVED)}
-              disabled={!approve || approveButtonEnable}
+              disabled={!allowApprove || approveButtonEnable}
               shape="round"
+              loading={approving === APPROVAL_STATUS_APPROVED}
             >
               {approvalsLiteral({ isButton: true })}
             </Button>
