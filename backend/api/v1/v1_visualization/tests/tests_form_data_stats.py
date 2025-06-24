@@ -1,0 +1,104 @@
+from rest_framework.test import APITestCase
+from rest_framework import status
+from api.v1.v1_data.models import FormData, Answers
+from api.v1.v1_forms.models import Forms, Questions, QuestionGroup
+from api.v1.v1_forms.constants import QuestionTypes
+from api.v1.v1_profile.models import Administration
+from api.v1.v1_users.models import SystemUser
+from api.v1.v1_visualization.serializers import FormDataStatSerializer
+from django.core.management import call_command
+from django.urls import reverse
+from datetime import datetime
+from django.utils.timezone import make_aware
+
+
+class FormDataStatsAPITest(APITestCase):
+    def setUp(self):
+        call_command("administration_seeder", "--test")
+        self.user = SystemUser.objects.create_user(
+            email="test@test.org",
+            password="test1234",
+            first_name="test",
+            last_name="testing",
+        )
+        self.administration = Administration.objects.filter(
+            parent__isnull=True
+        ).first()
+
+        self.registration = Forms.objects.create(
+            name="Registration Form",
+            parent=None,
+        )
+        self.monitoring = Forms.objects.create(
+            name="Monitoring Form",
+            parent=self.registration,
+        )
+
+        self.reg_data = FormData.objects.create(
+            created=make_aware(datetime(2023, 8, 1)),
+            administration=self.administration,
+            created_by=self.user,
+            form=self.registration,
+        )
+
+        self.monitoring_data = FormData.objects.create(
+            parent_id=self.registration.id,
+            created=make_aware(datetime(2023, 8, 1)),
+            administration=self.administration,
+            created_by=self.user,
+            form=self.registration,
+        )
+
+        self.question_group = QuestionGroup.objects.create(
+            form=self.monitoring, name="qg_1"
+        )
+
+        self.question = Questions.objects.create(
+            question_group=self.question_group,
+            form=self.monitoring,
+            name="question_x",
+            type=QuestionTypes.number,
+        )
+
+        self.date_question = Questions.objects.create(
+            question_group=self.question_group,
+            form=self.monitoring,
+            name="monitoring_date",
+            type=QuestionTypes.date,
+        )
+
+        Answers.objects.create(
+            data=self.monitoring_data,
+            question=self.question,
+            question_id=self.question.id,
+            name="Yes",
+            created_by=self.user,
+        )
+        Answers.objects.create(
+            data=self.monitoring_data,
+            question=self.date_question,
+            question_id=self.date_question.id,
+            name="2023-08-15",
+            created_by=self.user,
+        )
+
+    def test_stats_without_question_date(self):
+        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data}&question_id={self.question.id}"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data, [{"date": "2023-08-01", "value": "Yes"}]
+        )
+
+    def test_stats_with_question_date(self):
+        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data}&question_id={self.question.id}&question_date=monitoring_date"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(
+            response.data, [{"date": "2023-08-15", "value": "Yes"}]
+        )
+
+    def test_missing_params(self):
+        url = "/api/v1/visualization/formdata-stats/"
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
