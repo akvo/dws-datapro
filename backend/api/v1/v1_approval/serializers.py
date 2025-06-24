@@ -196,6 +196,12 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
             status=approval_status,
         ).first()
         next_level = my_approval.administration.level.level + 1
+        approvers = instance.batch_approval.filter(
+            administration__level__level__lt=next_level,
+            status=DataApprovalStatus.pending,
+        ).order_by(
+            "administration__level__level"
+        ).all()
         # Get all approvers grouped by administration level
         if approval_status == DataApprovalStatus.pending:
             # For pending status, check if all approvers at a level are pending
@@ -219,20 +225,12 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
             ).order_by(
                 "-administration__level__level"
             ).all()
-        else:
-            # For other statuses, use the original logic
-            approvers = instance.batch_approval.filter(
-                administration__level__level__gte=next_level,
-                status=approval_status,
-            ).order_by(
-                "-administration__level__level"
-            ).all()
         if subordinate:
             approvers = instance.batch_approval.filter(
                 administration__level__level=next_level,
                 status=DataApprovalStatus.pending,
             ).all()
-        if approvers.count() == 0:
+        if approvers.count() == 0 and not approved:
             approvers = [my_approval]
         return PendingBatchApproverSerializer(
             approvers,

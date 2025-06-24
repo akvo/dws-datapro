@@ -104,11 +104,48 @@ def list_pending_batch(request, version):
     approval_status = DataApprovalStatus.pending
     if approved:
         approval_status = DataApprovalStatus.approved
+    role_approver = user.user_user_role.filter(
+        role__role_role_access__data_access=DataAccessTypes.approve
+    )
+    # Base query to get batches for the current user
     queryset = DataBatch.objects.filter(
         batch_approval__user=user,
         batch_approval__status=approval_status,
-        approved=approved,
     ).order_by("-id")
+
+    if role_approver.exists() and not approved and not subordinate:
+        # For higher level administrators, implement level checking
+        # Get all batch IDs that should be visible
+        valid_batch_ids = []
+        for batch in queryset:
+            # For each batch, check if all lower levels have approved
+            batch_levels = batch.batch_approval.values_list(
+                'administration__level__level', flat=True
+            ).distinct().order_by('administration__level__level')
+            # Get my administration levels
+            my_levels = role_approver.values_list(
+                'administration__level__level', flat=True
+            ).distinct()
+            # Check if this batch should be visible
+            is_valid = True
+            for my_level in my_levels:
+                for batch_level in batch_levels:
+                    # If there's a lower level than mine in this batch
+                    if batch_level > my_level:
+                        # Check if that lower level has approved this batch
+                        has_lower_approval = batch.batch_approval.filter(
+                            administration__level__level=batch_level,
+                            status=DataApprovalStatus.approved
+                        ).exists()
+                        if not has_lower_approval:
+                            is_valid = False
+                            break
+                if not is_valid:
+                    break
+            if is_valid:
+                valid_batch_ids.append(batch.id)
+        # Filter queryset to only include valid batches
+        queryset = queryset.filter(id__in=valid_batch_ids)
     if subordinate:
         user_levels = user.user_user_role.filter(
             role__role_role_access__data_access=DataAccessTypes.approve
@@ -118,7 +155,8 @@ def list_pending_batch(request, version):
         adm_level = Q()
         for level in user_levels:
             adm_level |= Q(
-                batch_approval__administration__level__level=level + 1
+                batch_approval__administration__level__level=level + 1,
+                batch_approval__status=DataApprovalStatus.pending,
             )
         batch_ids = queryset.values_list("id", flat=True)
         queryset = DataBatch.objects.filter(
