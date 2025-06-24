@@ -15,7 +15,10 @@ class DataBatchDetailsTestCase(TestCase, ProfileTestHelperMixin):
 
         call_command("fake_data_seeder", "-r", 10, "-t", True)
 
-        self.data = FormData.objects.filter(is_pending=True).first()
+        self.data = FormData.objects.filter(
+            is_pending=True,
+            form__pk=2,
+        ).first()
         self.submitter = self.data.created_by
         self.submitter.set_password("test")
         self.submitter.save()
