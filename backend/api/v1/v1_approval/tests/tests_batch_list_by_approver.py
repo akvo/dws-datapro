@@ -71,33 +71,7 @@ class DataBatchListByApproverTestCase(TestCase, ProfileTestHelperMixin):
         self.assertIn("total_page", response_json)
         self.assertIn("batch", response_json)
         self.assertIsInstance(response_json["batch"], list)
-        self.assertEqual(response_json["total"], 1)
-
-        self.assertEqual(
-            list(response_json["batch"][0]),
-            [
-                "id",
-                "name",
-                "form",
-                "administration",
-                "created_by",
-                "created",
-                "approver",
-                "approved",
-                "total_data",
-            ]
-        )
-        self.assertEqual(
-            list(response_json["batch"][0]["approver"][0]),
-            [
-                "id",
-                "name",
-                "administration_level",
-                "status",
-                "status_text",
-                "allow_approve",
-            ]
-        )
+        self.assertEqual(response_json["total"], 0)
 
     def test_get_batch_list_by_subordinate(self):
         response = self.client.get(
@@ -234,16 +208,10 @@ class DataBatchListByApproverTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(a1_res.status_code, 200)
         a1_json = a1_res.json()
         # a1 waiting for a2 to approve
-        a1_batch = list(
-            filter(
-                lambda x: x["name"] == "Test Batch 2",
-                a1_json["batch"]
-            )
-        )[0]
-        self.assertNotIn(
-            a1.get_full_name(),
-            [b["name"] for b in a1_batch["approver"]],
-            "1st approver name should not be in the batch approver list"
+        self.assertEqual(
+            a1_json["total"],
+            0,
+            "First level approver should not see the batch yet"
         )
 
         # Get batch list by second level approver
@@ -268,16 +236,18 @@ class DataBatchListByApproverTestCase(TestCase, ProfileTestHelperMixin):
         )
         self.assertEqual(a2_res.status_code, 200)
         # a2 waiting for a3 to approve
+        a2_json = a2_res.json()
+        # Find the batch in the response
         a2_batch = list(
             filter(
                 lambda x: x["name"] == "Test Batch 2",
-                a2_res.json()["batch"]
+                a2_json["batch"]
             )
-        )[0]
-        self.assertNotIn(
-            a2.get_full_name(),
-            [b["name"] for b in a2_batch["approver"]],
-            "2nd approver name should not be in the batch approver list"
+        )
+        self.assertEqual(
+            len(a2_batch),
+            0,
+            "Second level approver should not see the batch yet"
         )
 
         # Get batch list by third level approver
@@ -302,6 +272,32 @@ class DataBatchListByApproverTestCase(TestCase, ProfileTestHelperMixin):
         )
         self.assertEqual(a3_res.status_code, 200)
         a3_json = a3_res.json()
+
+        self.assertEqual(
+            list(a3_json["batch"][0]),
+            [
+                "id",
+                "name",
+                "form",
+                "administration",
+                "created_by",
+                "created",
+                "approver",
+                "approved",
+                "total_data",
+            ]
+        )
+        self.assertEqual(
+            list(a3_json["batch"][0]["approver"][0]),
+            [
+                "id",
+                "name",
+                "administration_level",
+                "status",
+                "status_text",
+                "allow_approve",
+            ]
+        )
 
         a3_batch = list(
             filter(
