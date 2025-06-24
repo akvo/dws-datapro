@@ -46,18 +46,29 @@ class DataBatch(models.Model):
         # Get all user roles for this administration which have approve access
         # Get form from data_batch_list
         data_batch = self.batch_data_list.first()
+        form = data_batch.data.form
+        # Build base queryset with common filters
         user_roles = UserRole.objects.filter(
             administration__in=administrations,
-            user__user_form__form=data_batch.data.form,
             role__role_role_access__data_access=DataAccessTypes.approve,
         ).select_related("user", "role")
+        # Apply form access filter
+        # Get parent form if exists
+        parent_forms = Forms.objects.filter(children=form)
+        form_filter = [form]
+        if parent_forms.exists():
+            form_filter.extend(parent_forms)
+
+        user_roles = user_roles.filter(
+            user__user_form__form__in=form_filter
+        )
+
         if adm_level is not None or adm_level == 0:
             # Filter user roles by administration level
             user_roles = user_roles.filter(
                 administration__level__level=adm_level,
-                user__user_form__form=data_batch.data.form,
-                role__role_role_access__data_access=DataAccessTypes.approve,
             )
+
         # Show user and their administration order by administration level
         user_roles = user_roles.order_by(
             "user__email", "administration__level__level"
