@@ -24,6 +24,7 @@ class FormDataStatsAPITest(APITestCase):
         ).first()
 
         self.registration = Forms.objects.create(
+            id=8000,
             name="Registration Form",
             parent=None,
         )
@@ -40,7 +41,7 @@ class FormDataStatsAPITest(APITestCase):
         )
 
         self.monitoring_data = FormData.objects.create(
-            parent_id=self.registration.id,
+            parent=self.reg_data,
             created=make_aware(datetime(2023, 8, 1)),
             administration=self.administration,
             created_by=self.user,
