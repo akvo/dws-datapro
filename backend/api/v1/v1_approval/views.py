@@ -1,5 +1,4 @@
 from math import ceil
-# from django.db.models import F
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
     extend_schema,
@@ -282,9 +281,10 @@ class BatchView(APIView):
             user=request.user,
             approved=serializer.validated_data.get("approved"),
         ).order_by("-id")
-        form_id = serializer.validated_data.get("form")
-        if form_id:
-            queryset = queryset.filter(form_id=form_id)
+        form = serializer.validated_data.get("form")
+        if form:
+            forms = [form] + list(form.children.all())
+            queryset = queryset.filter(form__in=forms)
         paginator = PageNumberPagination()
         instance = paginator.paginate_queryset(queryset, request)
         page_size = REST_FRAMEWORK.get("PAGE_SIZE")
