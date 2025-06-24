@@ -14,10 +14,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.db.models import Q
 # from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.models import (
     DataBatch,
 )
+from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.serializers import (
     ApproveDataRequestSerializer,
     ListBatchSerializer,
@@ -99,26 +101,31 @@ def list_pending_batch(request, version):
 
     subordinate = serializer.validated_data.get("subordinate")
     approved = serializer.validated_data.get("approved")
-    user_role = user.user_user_role.filter(
-        role__role_role_access__data_access=DataAccessTypes.approve
-    ).first()
-    data_approval = user.data_approval_user.filter(
-        batch__approved=approved,
-        role=user_role.role,
-    ).all()
-    batch_ids = [
-        d.batch.id for d in data_approval
-    ]
+    approval_status = DataApprovalStatus.pending
+    if approved:
+        approval_status = DataApprovalStatus.approved
     queryset = DataBatch.objects.filter(
-        id__in=batch_ids,
-    ).order_by("-created")
-
-    next_level = user_role.administration.level.level + 1 \
-        if user_role else None
-    if subordinate and next_level:
-        queryset = queryset.filter(
-            batch_approval__administration__level__level=next_level,
+        batch_approval__user=user,
+        batch_approval__status=approval_status,
+        approved=approved,
+    ).order_by("-id")
+    if subordinate:
+        user_levels = user.user_user_role.filter(
+            role__role_role_access__data_access=DataAccessTypes.approve
+        ).values_list(
+            "administration__level__level", flat=True
         )
+        adm_level = Q()
+        for level in user_levels:
+            adm_level |= Q(
+                batch_approval__administration__level__level=level + 1
+            )
+        batch_ids = queryset.values_list("id", flat=True)
+        queryset = DataBatch.objects.filter(
+            adm_level,
+            id__in=batch_ids,
+            approved=approved,
+        ).distinct().order_by("-id")
     paginator = PageNumberPagination()
     paginator.paginate_queryset(queryset, request)
     total = queryset.count()
@@ -133,7 +140,6 @@ def list_pending_batch(request, version):
                 "user": user,
                 "approved": approved,
                 "subordinate": subordinate,
-                "user_role": user_role,
             },
             many=True,
         ).data,

@@ -1,4 +1,4 @@
-from django.db.models import Sum
+from django.db.models import Sum, Count, Q, F
 from django.utils import timezone
 from django_q.tasks import async_task
 
@@ -115,6 +115,38 @@ class BatchDataFilterSerializer(serializers.Serializer):
     subordinate = CustomBooleanField(default=False)
 
 
+class PendingBatchApproverSerializer(serializers.ModelSerializer):
+    name = serializers.CharField(source="user.get_full_name")
+    administration_level = serializers.CharField(
+        source="administration.level.level"
+    )
+    status_text = serializers.SerializerMethodField()
+    allow_approve = serializers.SerializerMethodField()
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_status_text(self, instance: DataApproval):
+        return DataApprovalStatus.FieldStr.get(instance.status)
+
+    @extend_schema_field(OpenApiTypes.BOOL)
+    def get_allow_approve(self, instance: DataApproval):
+        user: SystemUser = self.context.get("user")
+        if instance.status == DataApprovalStatus.pending:
+            # Check if the user is the approver
+            return instance.user == user
+        return False
+
+    class Meta:
+        model = DataApproval
+        fields = [
+            "id",
+            "name",
+            "administration_level",
+            "status",
+            "status_text",
+            "allow_approve",
+        ]
+
+
 class ListDataBatchSerializer(serializers.ModelSerializer):
     created_by = serializers.SerializerMethodField()
     created = serializers.SerializerMethodField()
@@ -150,49 +182,63 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
     def get_created(self, instance: DataBatch):
         return update_date_time_format(instance.created)
 
-    @extend_schema_field(
-        inline_serializer(
-            "PendingBatchApprover",
-            fields={
-                "id": serializers.IntegerField(),
-                "name": serializers.CharField(),
-                "status": serializers.IntegerField(),
-                "status_text": serializers.CharField(),
-                "allow_approve": serializers.BooleanField(),
-            },
-        )
-    )
+    @extend_schema_field(PendingBatchApproverSerializer(many=True))
     def get_approver(self, instance: DataBatch):
         user: SystemUser = self.context.get("user")
         approved: bool = self.context.get("approved")
         subordinate: bool = self.context.get("subordinate", False)
-        user_role = self.context.get("user_role")
-        batch_status = DataApprovalStatus.pending
+        approval_status = DataApprovalStatus.pending
         if approved:
-            batch_status = DataApprovalStatus.approved
-        approver = instance.batch_approval.filter(
+            approval_status = DataApprovalStatus.approved
+        # Get my approval
+        my_approval = instance.batch_approval.filter(
             user=user,
-            status=batch_status,
+            status=approval_status,
         ).first()
-        if subordinate and user_role:
-            user_adm_level = user_role.administration.level.level
-            approver = instance.batch_approval.filter(
-                administration__level__level__gt=user_adm_level,
-                status=batch_status,
-            ).first()
-        if not approver:
-            return None
-        allow_approve = (
-            approver.status == DataApprovalStatus.pending
-            and user_role.administration_id == instance.administration_id
-        )
-        return {
-            "id": approver.id,
-            "name": approver.user.get_full_name(),
-            "status": approver.status,
-            "status_text": DataApprovalStatus.FieldStr.get(approver.status),
-            "allow_approve": allow_approve,
-        }
+        next_level = my_approval.administration.level.level + 1
+        # Get all approvers grouped by administration level
+        if approval_status == DataApprovalStatus.pending:
+            # For pending status, check if all approvers at a level are pending
+            # Get levels where all approvers are pending
+            adm_levels_with_all_pending = instance.batch_approval.values(
+                'administration__level__level'
+            ).annotate(
+                total=Count('id'),
+                pending=Count(
+                    'id', filter=Q(status=DataApprovalStatus.pending)
+                )
+            ).filter(
+                # Only include levels where all approvers are pending
+                total=F('pending'),
+                administration__level__level__gte=next_level
+            ).values_list('administration__level__level', flat=True)
+            # Get approvers from those levels where all are pending
+            approvers = instance.batch_approval.filter(
+                administration__level__level__in=adm_levels_with_all_pending,
+                status=DataApprovalStatus.pending
+            ).order_by(
+                "-administration__level__level"
+            ).all()
+        else:
+            # For other statuses, use the original logic
+            approvers = instance.batch_approval.filter(
+                administration__level__level__gte=next_level,
+                status=approval_status,
+            ).order_by(
+                "-administration__level__level"
+            ).all()
+        if subordinate:
+            approvers = instance.batch_approval.filter(
+                administration__level__level=next_level,
+                status=DataApprovalStatus.pending,
+            ).all()
+        if approvers.count() == 0:
+            approvers = [my_approval]
+        return PendingBatchApproverSerializer(
+            approvers,
+            many=True,
+            context={"user": user}
+        ).data
 
     class Meta:
         model = DataBatch
@@ -375,13 +421,24 @@ class ApproveDataRequestSerializer(serializers.Serializer):
                     context=inform_data,
                     type=EmailTypes.inform_batch_rejection_approver,
                 )
-        if not DataApproval.objects.filter(
-            batch=batch,
-            status__in=[
-                DataApprovalStatus.pending,
-                DataApprovalStatus.rejected,
-            ],
-        ).count():
+        # Check if all administration levels have at least one approval
+        # Get all unique administration levels for this batch
+        adm_levels_with_status = batch.batch_approval.values(
+            'administration__level__level'
+        ).annotate(
+            total=Count('id'),
+            approved=Count(
+                'id', filter=Q(status=DataApprovalStatus.approved)
+            )
+        )
+
+        # Check if each administration level has at least one approval
+        all_levels_have_approval = all(
+            level_data['approved'] > 0
+            for level_data in adm_levels_with_status
+        )
+        # If all levels have
+        if all_levels_have_approval:
             # Seed data via Async Task
             for dl in batch.batch_data_list.filter(
                 data__is_pending=True,
