@@ -20,7 +20,7 @@ import {
   CheckCircleOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { DataFilters } from "../../../components";
+import { ApproverDetailTable, DataFilters } from "../../../components";
 import { api, store, uiText } from "../../../lib";
 import { Link } from "react-router-dom";
 import { useNotification } from "../../../util/hooks";
@@ -168,61 +168,6 @@ const columnsPending = [
     width: 100,
   },
 ];
-
-const columnsApprover = [
-  {
-    title: "Approver",
-    dataIndex: "name",
-    key: "name",
-  },
-  {
-    title: "Administration",
-    dataIndex: "administration",
-    key: "administration",
-  },
-  {
-    title: "Status",
-    dataIndex: "status_text",
-    key: "status_text",
-    render: (status_text) => (
-      <span>
-        <Tag
-          icon={
-            status_text === "Pending" ? (
-              <ClockCircleOutlined />
-            ) : status_text === "Rejected" ? (
-              <CloseCircleOutlined />
-            ) : (
-              <CheckCircleOutlined />
-            )
-          }
-          color={
-            status_text === "Pending"
-              ? "default"
-              : status_text === "Rejected"
-              ? "error"
-              : "success"
-          }
-        >
-          {status_text}
-        </Tag>
-      </span>
-    ),
-  },
-];
-
-const ApproverDetail = (record) => {
-  return (
-    <Table
-      columns={columnsApprover}
-      dataSource={record.approvers.map((r, ri) => ({
-        key: ri,
-        ...r,
-      }))}
-      pagination={false}
-    />
-  );
-};
 
 const PanelSubmissions = () => {
   const [dataset, setDataset] = useState([]);
@@ -431,7 +376,9 @@ const PanelSubmissions = () => {
           pane === "pending-data"
             ? false
             : {
-                expandedRowRender: ApproverDetail,
+                expandedRowRender: (record) => (
+                  <ApproverDetailTable data={record?.approvers} />
+                ),
                 expandIcon: (expand) => {
                   return expand.expanded ? (
                     <DownCircleOutlined

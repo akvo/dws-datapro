@@ -7,11 +7,10 @@ import {
   HistoryOutlined,
 } from "@ant-design/icons";
 import { api, QUESTION_TYPES, store, uiText } from "../../lib";
-import { EditableCell } from "../../components";
+import { ApproverDetailTable, EditableCell } from "../../components";
 import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
 import { HistoryTable } from "../../components";
-import { columnsApprover } from "./";
 import { getTimeDifferenceText } from "../../util/date";
 import { SubmissionTypeIcon } from "../../components/Icons";
 const { TabPane } = Tabs;
@@ -101,7 +100,6 @@ const UploadDetail = ({ record, setReload }) => {
   const [questionGroups, setQuestionGroups] = useState([]);
   const [resetButton, setresetButton] = useState({});
   const { notify } = useNotification();
-  const { user } = store.useState((state) => state);
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
   const text = useMemo(() => {
@@ -344,18 +342,6 @@ const UploadDetail = ({ record, setReload }) => {
       });
   };
 
-  const ApproverDetail = () => (
-    <Table
-      columns={columnsApprover}
-      dataSource={record.approvers?.map((r, ri) => ({
-        key: ri,
-        ...r,
-      }))}
-      rowClassName="expandable-row"
-      pagination={false}
-    />
-  );
-
   const isEdited = (id) => {
     return (
       !!flatten(
@@ -368,11 +354,12 @@ const UploadDetail = ({ record, setReload }) => {
 
   const isEditable =
     (record.approvers || []).filter((a) => a.status_text === "Rejected")
-      .length > 0 && user?.role?.id === 4;
+      .length > 0;
+  // && user?.role?.id === 4; // TODO remove hardcoded role id
 
   return (
     <div id="upload-detail">
-      <ApproverDetail />
+      <ApproverDetailTable data={record?.approvers} />
       <Tabs centered activeKey={selectedTab} onTabClick={handleTabSelect}>
         <TabPane tab={text.uploadTab1} key="data-summary" />
         <TabPane tab={text.uploadTab2} key="raw-data" />
