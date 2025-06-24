@@ -5,9 +5,7 @@ from api.v1.v1_forms.models import Forms, Questions, QuestionGroup
 from api.v1.v1_forms.constants import QuestionTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_visualization.serializers import FormDataStatSerializer
 from django.core.management import call_command
-from django.urls import reverse
 from datetime import datetime
 from django.utils.timezone import make_aware
 
@@ -83,13 +81,22 @@ class FormDataStatsAPITest(APITestCase):
         )
 
     def test_stats_without_question_date(self):
-        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data.id}&question_id={self.question.id}"
+        url = (
+            f"/api/v1/visualization/formdata-stats/"
+            f"?parent_id={self.reg_data.id}"
+            f"&question_id={self.question.id}"
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), [{"date": "24-06-2025", "value": 1}])
 
     def test_stats_with_question_date(self):
-        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data.id}&question_id={self.question.id}&question_date={self.date_question.id}"
+        url = (
+            f"/api/v1/visualization/formdata-stats/"
+            f"?parent_id={self.reg_data.id}"
+            f"&question_id={self.question.id}"
+            f"&question_date={self.date_question.id}"
+        )
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), [{"date": "24-06-2025", "value": 1}])
