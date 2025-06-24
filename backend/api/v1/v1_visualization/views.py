@@ -74,7 +74,7 @@ def formdata_stats(request, version):
 
             stats.append(
                 {
-                    "date": date,
+                    "date": date.date(),
                     "value": answer.name or answer.value or answer.options,
                 }
             )

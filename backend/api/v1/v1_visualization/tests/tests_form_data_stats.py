@@ -68,35 +68,31 @@ class FormDataStatsAPITest(APITestCase):
         )
 
         Answers.objects.create(
+            value=1,
             data=self.monitoring_data,
             question=self.question,
             question_id=self.question.id,
-            name="Yes",
             created_by=self.user,
         )
         Answers.objects.create(
+            name="2025-06-24",
             data=self.monitoring_data,
             question=self.date_question,
             question_id=self.date_question.id,
-            name="2023-08-15",
             created_by=self.user,
         )
 
     def test_stats_without_question_date(self):
-        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data}&question_id={self.question.id}"
+        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data.id}&question_id={self.question.id}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data, [{"date": "2023-08-01", "value": "Yes"}]
-        )
+        self.assertEqual(response.json(), [{"date": "24-06-2025", "value": 1}])
 
     def test_stats_with_question_date(self):
-        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data}&question_id={self.question.id}&question_date=monitoring_date"
+        url = f"/api/v1/visualization/formdata-stats/?parent_id={self.reg_data.id}&question_id={self.question.id}&question_date={self.date_question.id}"
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(
-            response.data, [{"date": "2023-08-15", "value": "Yes"}]
-        )
+        self.assertEqual(response.json(), [{"date": "24-06-2025", "value": 1}])
 
     def test_missing_params(self):
         url = "/api/v1/visualization/formdata-stats/"
