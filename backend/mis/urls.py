@@ -25,6 +25,11 @@ urlpatterns = [
     path("api/", include("api.v1.v1_jobs.urls"), name="v1_jobs"),
     path("api/", include("api.v1.v1_mobile.urls"), name="v1_mobile"),
     path("api/", include("api.v1.v1_files.urls"), name="v1_files"),
+    path(
+        "api/",
+        include("api.v1.v1_visualization.urls"),
+        name="v1_visualization",
+    ),
     path("api/", include("api.sentry_test.urls"), name="sentry_test"),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(

@@ -36,9 +36,11 @@ import DataDetail from "./DataDetail";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { useNotification } from "../../util/hooks";
 import { AbilityContext } from "../../components/can";
+import MonitoringOverview from "./MonitoringOverview";
 
 const { Title } = Typography;
 const { TabPane } = Tabs;
+const questionOverviewTypes = ["number", "date"];
 
 const MonitoringDetail = () => {
   const { form, parentId } = useParams();
@@ -48,6 +50,7 @@ const MonitoringDetail = () => {
   const childrenForms = useMemo(() => {
     return window?.forms?.filter((f) => `${f.content?.parent}` === form);
   }, [form]);
+
   // Get form_id from URL as default selectedForm
   const formIdFromUrl = new URLSearchParams(window.location.search).get(
     "form_id"
@@ -71,6 +74,9 @@ const MonitoringDetail = () => {
     formIdFromUrl ? "monitoring-data" : "registration-data"
   );
   const [selectedForm, setSelectedForm] = useState(defaultFormId);
+  const [selectedOverviewQuestion, setSelectedOverviewQuestion] =
+    useState(null);
+  const [selectedOverviewDate, setSelectedOverviewDate] = useState(null);
   const ability = useContext(AbilityContext);
 
   const editable = ability.can("edit", "data");
@@ -95,6 +101,21 @@ const MonitoringDetail = () => {
   ];
 
   const { questionGroups } = store.useState((state) => state);
+
+  const overviewQuestions = useMemo(() => {
+    return questionGroups
+      .map(
+        (qg) =>
+          qg.question.filter((q) => questionOverviewTypes.includes(q.type)) ||
+          []
+      )
+      .flat()
+      .map((q) => ({
+        id: q.id,
+        name: q.label,
+        type: q.type,
+      }));
+  }, [questionGroups]);
 
   const columns = [
     {
@@ -261,7 +282,10 @@ const MonitoringDetail = () => {
               className="manage-data-tab"
               activeKey={dataTab}
               onChange={(activeKey) => {
-                if (activeKey === "monitoring-data") {
+                if (
+                  activeKey === "monitoring-data" ||
+                  activeKey === "monitoring-overview"
+                ) {
                   setUpdateRecord(true);
                 }
                 setDataTab(activeKey);
@@ -346,6 +370,62 @@ const MonitoringDetail = () => {
                     expandRowByClick
                   />
                 </ConfigProvider>
+              </TabPane>
+              <TabPane tab={text.manageDataTab3} key="monitoring-overview">
+                <Row style={{ marginBottom: "16px" }}>
+                  <Col>
+                    <Select
+                      value={selectedForm}
+                      onChange={(value) => {
+                        setSelectedForm(value);
+                        setUpdateRecord(true);
+                        setCurrentPage(1);
+                      }}
+                      fieldNames={{ label: "name", value: "id" }}
+                      options={childrenForms}
+                      placeholder={text.selectFormPlaceholder}
+                    />
+                    <Select
+                      style={{ marginLeft: "16px", width: "300px" }}
+                      prefix="Select Indicator"
+                      value={selectedOverviewQuestion?.id || null}
+                      onChange={(value) => {
+                        setSelectedOverviewQuestion(
+                          overviewQuestions.find((q) => q.id === value)
+                        );
+                      }}
+                      fieldNames={{ label: "name", value: "id" }}
+                      options={overviewQuestions.filter(
+                        (x) => x.type === "number"
+                      )}
+                      placeholder={text.selectIndicatorPlaceholder}
+                    />
+                    <Select
+                      style={{ marginLeft: "16px", width: "300px" }}
+                      prefix="Select Date"
+                      value={selectedOverviewDate?.id || null}
+                      onChange={(value) => {
+                        setSelectedOverviewDate(
+                          overviewQuestions.find((q) => q.id === value)
+                        );
+                      }}
+                      fieldNames={{ label: "name", value: "id" }}
+                      options={overviewQuestions.filter(
+                        (x) => x.type === "date"
+                      )}
+                      placeholder={text.selectIndicatorPlaceholder}
+                    />
+                  </Col>
+                </Row>
+                <ConfigProvider
+                  renderEmpty={() => <Empty description={text.noFormText} />}
+                ></ConfigProvider>
+                <Row>
+                  <MonitoringOverview
+                    question={selectedOverviewQuestion}
+                    date={selectedOverviewDate}
+                  />
+                </Row>
               </TabPane>
             </Tabs>
           </div>
