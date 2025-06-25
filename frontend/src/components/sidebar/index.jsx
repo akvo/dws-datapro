@@ -10,7 +10,7 @@ import {
   DashboardOutlined,
   DownloadOutlined,
 } from "@ant-design/icons";
-import { AbilityContext, Can } from "../can";
+import { AbilityContext } from "../can";
 
 const { Sider } = Layout;
 
@@ -163,11 +163,11 @@ const Sidebar = () => {
           title={text.menuUsers}
         >
           {/* Wrap each menu item explicitly with a unique key for Can */}
-          <Can I="manage" a="user" key="can-platform-users">
+          {ability.can("manage", "user") && (
             <Menu.Item key="menu-users" data-url="/control-center/users">
               {text.menuManagePlatformUsers}
             </Menu.Item>
-          </Can>
+          )}
           <Menu.Item key="menu-tree" data-url="/control-center/approvers/tree">
             {text.menuValidationTree}
           </Menu.Item>
@@ -216,7 +216,7 @@ const Sidebar = () => {
         </Menu.SubMenu>
 
         {/* Master Data SubMenu */}
-        <Can I="manage" a="master-data" key="can-master-data">
+        {ability.can("manage", "master-data") && (
           <Menu.SubMenu
             key="manage-master-data"
             icon={<DatabaseOutlined />}
@@ -253,7 +253,7 @@ const Sidebar = () => {
               {text.menuOrganisations}
             </Menu.Item>
           </Menu.SubMenu>
-        </Can>
+        )}
 
         {/* Downloads */}
         {ability.can("read", "downloads") && (
