@@ -1,6 +1,7 @@
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
+from datetime import datetime
 from django.utils.dateparse import parse_date
 from api.v1.v1_data.models import FormData, Answers
 from api.v1.v1_visualization.serializers import FormDataStatSerializer
@@ -53,8 +54,9 @@ def formdata_stats(request, version):
         stats = []
 
         for formdata in formdata_qs:
-            answer = Answers.objects.filter(data=formdata,
-                                            question_id=question_id).first()
+            answer = Answers.objects.filter(
+                data=formdata, question_id=question_id
+            ).first()
             if not answer:
                 continue
 
@@ -64,22 +66,26 @@ def formdata_stats(request, version):
             # Optional override from another question
             if question_date_key:
                 date_answer = Answers.objects.filter(
-                    data=formdata, question__name=question_date_key).first()
+                    data=formdata, question_id=question_date_key
+                ).first()
                 if date_answer and date_answer.name:
-                    parsed_date = parse_date(date_answer.name)
+                    parsed_date = datetime.strptime(
+                        date_answer.name, "%Y-%m-%dT%H:%M:%S.%fZ"
+                    )
                     if parsed_date:
                         date = parsed_date
 
-            stats.append({
-                "date":
-                date.date(),
-                "value":
-                answer.name or answer.value or answer.options,
-            })
+            stats.append(
+                {
+                    "date": date.date(),
+                    "value": answer.name or answer.value or answer.options,
+                }
+            )
 
         serializer = FormDataStatSerializer(stats, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     except Exception as e:
-        return Response({"detail": str(e)},
-                        status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(
+            {"detail": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
+        )

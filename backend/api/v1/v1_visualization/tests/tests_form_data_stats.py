@@ -73,11 +73,11 @@ class FormDataStatsAPITest(APITestCase):
             question_id=self.question.id,
             created_by=self.user,
         )
+        self.answer_date = "2025-06-01T07:19:32.243Z"
         Answers.objects.create(
-            name="2025-06-24",
+            name=self.answer_date,
             data=self.monitoring_data,
             question=self.date_question,
-            question_id=self.date_question.id,
             created_by=self.user,
         )
 
@@ -88,8 +88,9 @@ class FormDataStatsAPITest(APITestCase):
             f"&question_id={self.question.id}"
         )
         response = self.client.get(url)
+        today = datetime.today().strftime("%d-%m-%Y")
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), [{"date": "24-06-2025", "value": 1}])
+        self.assertEqual(response.json(), [{"date": today, "value": 1}])
 
     def test_stats_with_question_date(self):
         url = (
@@ -99,8 +100,9 @@ class FormDataStatsAPITest(APITestCase):
             f"&question_date={self.date_question.id}"
         )
         response = self.client.get(url)
+
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), [{"date": "24-06-2025", "value": 1}])
+        self.assertEqual(response.json(), [{"date": "01-06-2025", "value": 1}])
 
     def test_missing_params(self):
         url = "/api/v1/visualization/formdata-stats/"
