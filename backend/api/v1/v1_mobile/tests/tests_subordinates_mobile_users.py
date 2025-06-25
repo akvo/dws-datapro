@@ -6,7 +6,6 @@ from rest_framework_simplejwt.tokens import RefreshToken
 
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.models import SystemUser, Administration, Levels
-from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 
@@ -18,6 +17,7 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
         super().setUp()
         call_command("administration_seeder", "--test")
         call_command('form_seeder', '--test')
+        call_command("default_roles_seeder", "--test", 1)
         last_level = Levels.objects.order_by('-id').first()
         administration = Administration.objects.filter(
             level=last_level
@@ -25,6 +25,7 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
         form = Forms.objects.get(pk=1)
         self.form = form
 
+        self.administration = administration
         self.user = self.create_user(
             email='user@akvo.org',
             role_level=self.IS_ADMIN,
@@ -47,7 +48,7 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
         payload = {
             'name': 'user1 assignment',
             'forms': [self.form.id],
-            'administrations': [self.user.user_access.administration.id],
+            'administrations': [self.administration.id],
         }
 
         response = typing.cast(
@@ -77,7 +78,7 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
         payload = {
             'name': 'user2 assignment',
             'forms': [self.form.id],
-            'administrations': [self.user.user_access.administration.id],
+            'administrations': [self.administration.id],
         }
 
         response = typing.cast(
@@ -93,9 +94,9 @@ class SubordinatesMobileUsersTestCase(TestCase, ProfileTestHelperMixin):
 
         # login with other users of the same level
         same_level_user = SystemUser.objects.filter(
-            user_access__role=UserRoleTypes.admin
+            user_user_role__administration__level=self.administration.level,
         ).first()
-        [self.user.user_access.administration.id],
+
         t = RefreshToken.for_user(same_level_user)
 
         response = typing.cast(
@@ -114,7 +115,7 @@ def test_subordinates_with_diff_forms(self):
     payload = {
         'name': 'user3 assignment',
         'forms': [self.form2.id],
-        'administrations': [self.user.user_access.administration.id],
+        'administrations': [self.administration.id],
     }
 
     response = typing.cast(

@@ -6,7 +6,6 @@ import pathlib
 from math import ceil
 from wsgiref.util import FileWrapper
 from django.utils import timezone
-from django.db.models import F
 from django.http import HttpResponse
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import (
@@ -23,14 +22,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from api.v1.v1_data.constants import DataApprovalStatus
 from api.v1.v1_data.models import (
     FormData,
     Answers,
-    PendingDataBatch,
-    ViewPendingDataApproval,
     AnswerHistory,
-    PendingDataApproval,
 )
 from api.v1.v1_data.serializers import (
     SubmitFormSerializer,
@@ -38,16 +33,8 @@ from api.v1.v1_data.serializers import (
     ListFormDataRequestSerializer,
     ListDataAnswerSerializer,
     ListPendingDataAnswerSerializer,
-    ApprovePendingDataRequestSerializer,
-    ListBatchSerializer,
-    CreateBatchSerializer,
-    ListPendingDataBatchSerializer,
     ListPendingFormDataSerializer,
-    PendingBatchDataFilterSerializer,
     SubmitPendingFormSerializer,
-    ListBatchSummarySerializer,
-    ListBatchCommentSerializer,
-    BatchListRequestSerializer,
     SubmitFormDataAnswerSerializer,
     FormDataSerializer,
 )
@@ -56,14 +43,11 @@ from api.v1.v1_forms.constants import (
 )
 from api.v1.v1_forms.models import Forms, Questions
 from api.v1.v1_profile.models import Administration
-from api.v1.v1_users.models import SystemUser
+from api.v1.v1_approval.constants import DataApprovalStatus
 
 from mis.settings import REST_FRAMEWORK
 from utils.custom_permissions import (
-    IsSuperAdmin,
-    IsAdmin,
-    IsApprover,
-    IsEditorOrSuperAdmin,
+    IsEditor,
     IsSuperAdminOrFormUser,
     PublicGet,
 )
@@ -81,7 +65,7 @@ class FormDataAddListView(APIView):
         if self.request.method == "GET":
             return [IsAuthenticated(), IsSuperAdminOrFormUser()]
         if self.request.method == "PUT":
-            return [IsAuthenticated(), IsEditorOrSuperAdmin()]
+            return [IsAuthenticated(), IsEditor()]
         return [IsAuthenticated()]
 
     @extend_schema(
@@ -150,6 +134,7 @@ class FormDataAddListView(APIView):
             # Only get the children data
             queryset = form.form_form_data.filter(
                 uuid=parent,
+                is_pending=False
             )
             queryset = queryset.order_by("-created")
             instance = paginator.paginate_queryset(queryset, request)
@@ -171,7 +156,6 @@ class FormDataAddListView(APIView):
         filter_data = {
             "is_pending": False,
         }
-        access = request.user.user_access
 
         if serializer.validated_data.get("administration"):
             filter_administration = serializer.validated_data.get(
@@ -191,9 +175,15 @@ class FormDataAddListView(APIView):
             filter_descendants.append(filter_administration.id)
             filter_data["administration_id__in"] = filter_descendants
         else:
-            user_path = (
-                access.administration.path or f"{access.administration.pk}."
-            )
+            # Filter data by user administration path
+            adm = Administration.objects.filter(
+                parent__isnull=True,
+            ).first()
+            if not request.user.is_superuser:
+                user_role = request.user.user_user_role.first()
+                if user_role:
+                    adm = user_role.administration
+            user_path = adm.path if adm.path else f"{adm.pk}."
             filter_data["administration__path__startswith"] = user_path
 
         queryset = form.form_form_data.filter(**filter_data).order_by(
@@ -368,144 +358,6 @@ class DataAnswerDetailDeleteView(APIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
-@extend_schema(
-    responses={
-        (200, "application/json"): inline_serializer(
-            "PendingDataBatchResponse",
-            fields={
-                "current": serializers.IntegerField(),
-                "total": serializers.IntegerField(),
-                "total_page": serializers.IntegerField(),
-                "batch": ListPendingDataBatchSerializer(many=True),
-            },
-        )
-    },
-    tags=["Pending Data"],
-    parameters=[
-        OpenApiParameter(
-            name="page",
-            required=True,
-            type=OpenApiTypes.NUMBER,
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(
-            name="approved",
-            required=False,
-            default=False,
-            type=OpenApiTypes.BOOL,
-            location=OpenApiParameter.QUERY,
-        ),
-        OpenApiParameter(
-            name="subordinate",
-            required=False,
-            default=False,
-            type=OpenApiTypes.BOOL,
-            location=OpenApiParameter.QUERY,
-        ),
-    ],
-    summary="To get list of pending batch",
-)
-@api_view(["GET"])
-@permission_classes([IsAuthenticated, IsApprover | IsAdmin | IsSuperAdmin])
-def list_pending_batch(request, version):
-    serializer = PendingBatchDataFilterSerializer(data=request.GET)
-    if not serializer.is_valid():
-        return Response(
-            {"message": validate_serializers_message(serializer.errors)},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    user: SystemUser = request.user
-    page_size = REST_FRAMEWORK.get("PAGE_SIZE")
-
-    subordinate = serializer.validated_data.get("subordinate")
-    approved = serializer.validated_data.get("approved")
-    queryset = ViewPendingDataApproval.objects.filter(user_id=user.id)
-    rejected = ViewPendingDataApproval.objects.filter(
-        batch_id__in=queryset.values_list("batch_id", flat=True),
-        status=DataApprovalStatus.rejected,
-    )
-    if approved:
-        queryset = queryset.filter(
-            status=DataApprovalStatus.approved,
-        )
-        queryset = queryset.exclude(
-            batch_id__in=rejected.values_list("batch_id", flat=True)
-        )
-    else:
-        rejected_by_current_user = ViewPendingDataApproval.objects.filter(
-            status=DataApprovalStatus.rejected, user=user
-        )
-        if subordinate:
-            queryset = queryset.filter(
-                level_id__lt=F("pending_level"), batch__approved=False
-            )
-            queryset = queryset.union(
-                rejected_by_current_user.values_list("batch_id", flat=True)
-            )
-        else:
-            queryset = queryset.filter(
-                level_id=F("pending_level"), batch__approved=False
-            )
-            if rejected_by_current_user:
-                # only run this filter if user has rejected batch
-                queryset = queryset.exclude(
-                    batch_id__in=rejected_by_current_user.values_list(
-                        "batch_id", flat=True
-                    )
-                )
-                rejected = rejected.exclude(
-                    batch_id__in=rejected_by_current_user.values_list(
-                        "batch_id", flat=True
-                    )
-                )
-                queryset = queryset.union(
-                    rejected.values_list("batch_id", flat=True)
-                )
-    queryset = queryset.values_list("batch_id", flat=True).order_by("-id")
-
-    paginator = PageNumberPagination()
-    instance = paginator.paginate_queryset(queryset, request)
-
-    values = PendingDataBatch.objects.filter(id__in=list(instance)).order_by(
-        "-created"
-    )
-
-    data = {
-        "current": int(request.GET.get("page", "1")),
-        "total": queryset.count(),
-        "total_page": ceil(queryset.count() / page_size),
-        "batch": ListPendingDataBatchSerializer(
-            instance=values,
-            context={
-                "user": user,
-                "approved": approved,
-                "subordinate": subordinate,
-            },
-            many=True,
-        ).data,
-    }
-    return Response(data, status=status.HTTP_200_OK)
-
-
-@extend_schema(
-    responses={200: ListPendingFormDataSerializer(many=True)},
-    tags=["Pending Data"],
-    summary="To get list of pending data by batch",
-)
-@api_view(["GET"])
-@permission_classes(
-    [IsAuthenticated, IsSuperAdmin | IsAdmin | IsApprover]
-)
-def list_pending_data_batch(request, version, batch_id):
-    batch = get_object_or_404(PendingDataBatch, pk=batch_id)
-    return Response(
-        ListPendingFormDataSerializer(
-            instance=batch.batch_form_data.all(), many=True
-        ).data,
-        status=status.HTTP_200_OK,
-    )
-
-
 class PendingDataDetailDeleteView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -586,158 +438,6 @@ class DataDetailDeleteView(APIView):
             )
         instance.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@extend_schema(
-    request=ApprovePendingDataRequestSerializer(),
-    responses={200: DefaultResponseSerializer},
-    tags=["Pending Data"],
-    summary="Approve pending data",
-)
-@api_view(["POST"])
-@permission_classes([IsAuthenticated, IsApprover | IsAdmin | IsSuperAdmin])
-def approve_pending_data(request, version):
-    serializer = ApprovePendingDataRequestSerializer(
-        data=request.data, context={"user": request.user}
-    )
-    if not serializer.is_valid():
-        return Response(
-            {"message": validate_serializers_message(serializer.errors)},
-            status=status.HTTP_400_BAD_REQUEST,
-        )
-    serializer.save()
-    return Response({"message": "Ok"}, status=status.HTTP_200_OK)
-
-
-class BatchView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        responses={
-            (200, "application/json"): inline_serializer(
-                "ListDataBatchResponse",
-                fields={
-                    "current": serializers.IntegerField(),
-                    "total": serializers.IntegerField(),
-                    "total_page": serializers.IntegerField(),
-                    "data": ListBatchSerializer(many=True),
-                },
-            )
-        },
-        tags=["Pending Data"],
-        summary="To get list of batch",
-        parameters=[
-            OpenApiParameter(
-                name="page",
-                required=True,
-                type=OpenApiTypes.NUMBER,
-                location=OpenApiParameter.QUERY,
-            ),
-            OpenApiParameter(
-                name="form",
-                required=False,
-                type=OpenApiTypes.NUMBER,
-                location=OpenApiParameter.QUERY,
-            ),
-            OpenApiParameter(
-                name="approved",
-                default=False,
-                type=OpenApiTypes.BOOL,
-                location=OpenApiParameter.QUERY,
-            ),
-        ],
-    )
-    def get(self, request, version):
-        serializer = BatchListRequestSerializer(data=request.GET)
-        if not serializer.is_valid():
-            return Response(
-                {"message": validate_serializers_message(serializer.errors)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        queryset = PendingDataBatch.objects.filter(
-            user=request.user,
-            approved=serializer.validated_data.get("approved"),
-        ).order_by("-id")
-        form_id = serializer.validated_data.get("form")
-        if form_id:
-            queryset = queryset.filter(form_id=form_id)
-        paginator = PageNumberPagination()
-        instance = paginator.paginate_queryset(queryset, request)
-        page_size = REST_FRAMEWORK.get("PAGE_SIZE")
-        data = {
-            "current": int(request.GET.get("page", "1")),
-            "total": queryset.count(),
-            "total_page": ceil(queryset.count() / page_size),
-            "data": ListBatchSerializer(instance=instance, many=True).data,
-        }
-        return Response(data, status=status.HTTP_200_OK)
-
-    @extend_schema(
-        request=CreateBatchSerializer(),
-        tags=["Pending Data"],
-        summary="To create batch",
-    )
-    def post(self, request, version):
-        serializer = CreateBatchSerializer(
-            data=request.data, context={"user": request.user}
-        )
-        if not serializer.is_valid():
-            return Response(
-                {"message": validate_serializers_message(serializer.errors)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-        serializer.save(user=request.user)
-        return Response(
-            {"message": "Data updated successfully"}, status=status.HTTP_200_OK
-        )
-
-
-class BatchSummaryView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        responses={200: ListBatchSummarySerializer(many=True)},
-        tags=["Pending Data"],
-        summary="To get batch summary",
-    )
-    def get(self, request, batch_id, version):
-        batch = get_object_or_404(PendingDataBatch, pk=batch_id)
-        # Get questions for option and multiple_option types
-        questions = Questions.objects.filter(
-            type__in=[
-                QuestionTypes.option,
-                QuestionTypes.multiple_option,
-            ]
-        )
-        # Get all answers for these questions in the batch
-        answers = Answers.objects.filter(
-            data__batch_id=batch.id,
-            data__is_pending=True,
-            question__in=questions,
-        ).distinct("question")
-        return Response(
-            ListBatchSummarySerializer(
-                instance=answers, many=True, context={"batch": batch}
-            ).data,
-            status=status.HTTP_200_OK,
-        )
-
-
-class BatchCommentView(APIView):
-    permission_classes = [IsAuthenticated]
-
-    @extend_schema(
-        responses={200: ListBatchCommentSerializer(many=True)},
-        tags=["Pending Data"],
-        summary="To get batch comment",
-    )
-    def get(self, request, batch_id, version):
-        batch = get_object_or_404(PendingDataBatch, pk=batch_id)
-        instance = batch.batch_batch_comment.all().order_by("-id")
-        return Response(
-            ListBatchCommentSerializer(instance=instance, many=True).data,
-            status=status.HTTP_200_OK,
-        )
 
 
 @extend_schema(tags=["File"], summary="Export Form data")
@@ -835,7 +535,7 @@ class PendingFormDataView(APIView):
         queryset = FormData.objects.filter(
             form_id__in=form_ids,
             created_by=request.user,
-            batch__isnull=True,
+            data_batch_list__isnull=True,
             is_pending=True
         ).order_by("-created")
 
@@ -936,16 +636,13 @@ class PendingFormDataView(APIView):
         pending_data.updated = timezone.now()
         pending_data.updated_by = user
         pending_data.save()
-
-        # if pending_data updated already has batch,
-        # update reject status into pending
-        if pending_data.batch:
-            approvals = PendingDataApproval.objects.filter(
-                batch=pending_data.batch
-            ).all()
-            # change approval status to pending
+        if pending_data.data_batch_list.exists():
+            # If this pending data is part of a batch,
+            # update the batch approval status as pending
+            approvals = pending_data.data_batch_list.batch_approval.all()
             for approval in approvals:
                 approval.status = DataApprovalStatus.pending
+                approval.updated = timezone.now()
                 approval.save()
         return Response(
             {"message": "update success"}, status=status.HTTP_200_OK

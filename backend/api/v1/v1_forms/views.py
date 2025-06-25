@@ -12,9 +12,9 @@ from rest_framework.generics import get_object_or_404
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
+from django.db.models import Q
 from api.v1.v1_forms.models import (
     Forms,
-    FormApprovalAssignment,
 )
 from api.v1.v1_forms.serializers import (
     ListFormSerializer,
@@ -23,9 +23,12 @@ from api.v1.v1_forms.serializers import (
     FormApproverRequestSerializer,
     FormApproverResponseSerializer,
 )
-from api.v1.v1_profile.models import Administration
+from api.v1.v1_profile.models import (
+    Administration,
+    DataAccessTypes,
+    UserRole,
+)
 from api.v1.v1_data.functions import get_cache, create_cache
-from utils.custom_permissions import IsSuperAdmin, IsAdmin
 from utils.custom_serializer_fields import validate_serializers_message
 
 
@@ -52,7 +55,15 @@ def list_form(request, version):
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def web_form_details(request, version, form_id):
-    administration = request.user.user_access.administration
+    administration = Administration.objects.filter(
+        parent__isnull=True,
+    ).first()
+    if not request.user.is_superuser:
+        user_role = request.user.user_user_role.filter(
+            role__role_role_access__data_access=DataAccessTypes.submit
+        ).first()
+        if user_role:
+            administration = user_role.administration
     cache_name = f"webform-{form_id}-{administration.id}"
     cache_data = get_cache(cache_name)
     if cache_data:
@@ -102,7 +113,7 @@ def form_data(request, version, form_id):
     summary="To get approver user list",
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsSuperAdmin | IsAdmin])
+@permission_classes([IsAuthenticated])
 def form_approver(request, version):
     serializer = FormApproverRequestSerializer(data=request.GET)
     if not serializer.is_valid():
@@ -111,12 +122,15 @@ def form_approver(request, version):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
+    adm = serializer.validated_data.get("administration_id")
+    path = adm.path if adm.path else f"{adm.id}."
     instance = Administration.objects.filter(
-        parent=serializer.validated_data.get("administration_id"),
+        path__startswith=path,
     )
-    instance = [serializer.validated_data.get("administration_id")] + list(
-        instance
-    )
+    ancestors = list(adm.ancestors.all()) if adm.ancestors else []
+    instance = ancestors + [
+        serializer.validated_data.get("administration_id")
+    ] + list(instance)
     return Response(
         FormApproverResponseSerializer(
             instance=instance,
@@ -143,17 +157,17 @@ def form_approver(request, version):
 @permission_classes([IsAuthenticated])
 def check_form_approver(request, form_id, version):
     form = get_object_or_404(Forms, pk=form_id)
-    # find administration id from logged in user
-    if not request.user.user_access.administration.path:
-        return Response(
-            {"message": "National level does not have an approver"},
-            status=status.HTTP_404_NOT_FOUND,
-        )
-    adm_ids = request.user.user_access.administration.path[:-1].split(".")
-    adm_ids += [request.user.user_access.administration_id]
-    adm_ids = [int(adm) for adm in adm_ids]
-    # check into form approval assignment table
-    approver = FormApprovalAssignment.objects.filter(
-        form=form, administration_id__in=adm_ids
+    # Check if the user has any roles that allow them to approve the form
+    # This will include checking the user's administration and its ancestors
+    by_ancestors = Q()
+    for ur in request.user.user_user_role.all():
+        adm = ur.administration
+        if adm.ancestors:
+            ancestors = list(adm.ancestors.all()) + [adm]
+            by_ancestors |= Q(administration__in=ancestors)
+    approver = UserRole.objects.filter(
+        by_ancestors,
+        user__user_form__form=form,
+        role__role_role_access__data_access=DataAccessTypes.approve,
     ).count()
     return Response({"count": approver}, status=status.HTTP_200_OK)

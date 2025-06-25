@@ -1,32 +1,35 @@
 from django.test import TestCase
 from api.v1.v1_mobile.authentication import MobileAssignmentToken
-from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.models import Administration, Access
-from api.v1.v1_profile.constants import UserRoleTypes
+from api.v1.v1_profile.models import Administration
 from django.core.management import call_command
 from api.v1.v1_mobile.models import MobileAssignment
 from api.v1.v1_forms.models import Forms
+from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from rest_framework import status
 
 
-class MobileAssignmentApiTest(TestCase):
+class MobileAssignmentApiTest(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         call_command('administration_seeder', '--test')
         call_command('form_seeder', '--test')
-        self.user = SystemUser.objects.create_user(
-            email='test@test.org',
-            password='test1234',
-            first_name='test',
-            last_name='testing',
-        )
+        call_command("default_roles_seeder", "--test", 1)
         self.administration = Administration.objects.filter(
             parent__isnull=True
         ).first()
-        role = UserRoleTypes.admin
-        self.user_access = Access.objects.create(
-            user=self.user, role=role, administration=self.administration
+
+        self.user = self.create_user(
+            email='test@test.org',
+            administration=self.administration,
+            role_level=self.IS_ADMIN,
         )
+
         self.forms = Forms.objects.filter(parent__isnull=True).all()
+
+        for form in self.forms:
+            self.user.user_form.create(
+                form=form
+            )
+
         self.passcode = 'passcode1234'
         self.mobile_assignment = MobileAssignment.objects.create_assignment(
             user=self.user, name='test', passcode=self.passcode

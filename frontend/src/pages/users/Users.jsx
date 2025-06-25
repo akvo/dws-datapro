@@ -75,18 +75,6 @@ const Users = () => {
       dataIndex: "email",
     },
     {
-      title: "Role",
-      dataIndex: "role",
-      render: (role) => role?.value || "",
-    },
-    {
-      title: "Region",
-      dataIndex: "administration",
-      render: (administration) => {
-        return administration?.full_name;
-      },
-    },
-    {
       title: "Phone",
       dataIndex: "phone_number",
       render: (phone_number) => (phone_number ? phone_number : "-"),

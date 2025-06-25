@@ -7,7 +7,6 @@ from api.v1.v1_jobs.job import (
     job_generate_data_download,
 )
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.constants import UserRoleTypes
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_profile.functions import get_max_administration_level
 
@@ -17,18 +16,15 @@ class JobDownloadUnitTestCase(TestCase):
     def setUp(self):
         call_command("form_seeder", "--test")
         call_command("administration_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
+        call_command("default_roles_seeder", "--test", 1)
         user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post('/api/v1/login',
                                 user,
                                 content_type='application/json')
-        call_command("fake_data_seeder", "-r", 2, "--test", True)
 
     def test_download_all_data(self):
         form = Forms.objects.get(pk=1)
-        admin = SystemUser.objects.filter(
-            user_access__role=UserRoleTypes.admin
-        ).first()
+        admin = SystemUser.objects.first()
         result = call_command(
             "job_download",
             form.id,
@@ -48,9 +44,7 @@ class JobDownloadUnitTestCase(TestCase):
 
     def test_download_recent_data_with_administration(self):
         form = Forms.objects.get(pk=1)
-        admin = SystemUser.objects.filter(
-            user_access__role=UserRoleTypes.admin
-        ).first()
+        admin = SystemUser.objects.first()
 
         max_level = get_max_administration_level()
         ward = Administration.objects.filter(

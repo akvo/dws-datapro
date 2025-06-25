@@ -12,6 +12,8 @@ def seed_approved_data(data: FormData):
     data.save()
 
     # Save to file after approval
-    data.save_to_file
+    if not data.form.parent:
+        # If the form is a parent form, save to file
+        data.save_to_file
 
     return data

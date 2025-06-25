@@ -7,8 +7,6 @@ import { api, store, uiText, config } from "../../lib";
 import { columnsApproval } from "./";
 import ApprovalDetails from "./ApprovalDetail";
 
-const columns = [...columnsApproval, Table.EXPAND_COLUMN];
-
 const Approvals = () => {
   const [batches, setBatches] = useState([]);
   const [approvalTab, setApprovalTab] = useState("my-pending");
@@ -17,13 +15,15 @@ const Approvals = () => {
   const [expandedKeys, setExpandedKeys] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reload, setReload] = useState(0);
-  const { user } = store.useState((state) => state);
+  const { user, levels } = store.useState((state) => state);
   const { language } = store.useState((s) => s);
   const { approvalsLiteral } = config;
   const { active: activeLang } = language;
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
+
+  const columns = [...columnsApproval(levels), Table.EXPAND_COLUMN];
 
   const pagePath = [
     {
@@ -51,7 +51,7 @@ const Approvals = () => {
       },
     ];
 
-    if (user.role_detail.name === "Super Admin") {
+    if (user.is_superuser) {
       return items.filter((item) => item.key !== "subordinate");
     }
 
@@ -59,7 +59,7 @@ const Approvals = () => {
   }, [text, user]);
 
   const finalApproval = useMemo(() => {
-    if (user.role.id === 2 && approvalTab === "approved") {
+    if (!user.is_superuser && approvalTab === "approved") {
       return true;
     }
     return false;

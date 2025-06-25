@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import "./style.scss";
-import { Row, Col, Divider, Space, Popover } from "antd";
+import { Row, Col, Space, Dropdown } from "antd";
 import { Breadcrumbs, DescriptionPanel } from "../../components";
 import { api, config, store, uiText } from "../../lib";
 import ApproverFilters from "../../components/filters/ApproverFilters";
@@ -56,7 +56,7 @@ const ApproversTree = () => {
           .filter((f) => !f?.content?.parent)
           .map((dt) => ({
             ...dt,
-            user: null,
+            users: null,
             active: false,
           })),
       },
@@ -73,7 +73,29 @@ const ApproversTree = () => {
         )
         .then((res) => {
           setDataset((prev) => {
+            // Create deep clone of previous state
             let adminClone = JSON.parse(JSON.stringify(prev));
+
+            // Update users data in prev state with data from res.data
+            adminClone = adminClone.map((admin) => ({
+              ...admin,
+              children:
+                admin?.children?.map((child) => {
+                  // Find matching child in res.data
+                  const resChild = res.data.find(
+                    (rc) => rc.administration.id === child.administration.id
+                  );
+                  if (resChild) {
+                    return {
+                      ...child,
+                      users: resChild.users || child.users || [],
+                    };
+                  }
+                  return child;
+                }) || [],
+            }));
+
+            // Truncate adminClone to the appropriate length
             adminClone.length = administration.length - 1;
             adminClone = [
               ...adminClone,
@@ -84,7 +106,7 @@ const ApproversTree = () => {
                   selectedAdministration?.children_level_name,
                 children: res.data.map((cI) => ({
                   ...cI,
-                  user: cI.user,
+                  users: cI?.users || [],
                 })),
               },
             ];
@@ -119,9 +141,30 @@ const ApproversTree = () => {
     }
   };
 
+  const handleFormScroll = useCallback(
+    ({ target }) => {
+      setScroll(target.scrollTop);
+
+      // Reset dataset to ensure synchronization when scrolling form nodes
+      if (dataset.length > 0) {
+        setDataset((prevDataset) => {
+          const resetDataset = JSON.parse(JSON.stringify(prevDataset));
+          return resetDataset;
+        });
+      }
+    },
+    [dataset]
+  );
+
   const renderFormNodes = useMemo(() => {
     return nodes.map((nodeItem, i) => (
-      <Col key={i} span={5} className="tree-col-0" align="center">
+      <Col
+        key={i}
+        span={5}
+        className="tree-col-0"
+        align="center"
+        onScroll={handleFormScroll}
+      >
         {nodeItem.children.map((childItem, j) => (
           <div
             className={`tree-block tree-form-block-${childItem.id}
@@ -151,7 +194,7 @@ const ApproversTree = () => {
         ))}
       </Col>
     ));
-  }, [nodes, selectedForm, administration]);
+  }, [nodes, selectedForm, administration, handleFormScroll]);
 
   const renderAdminNodes = useMemo(() => {
     const handleClick = (e, index) => {
@@ -199,12 +242,16 @@ const ApproversTree = () => {
                 align="center"
               >
                 {adminItem.children?.map((childItem, l) => {
-                  const approver =
+                  const approvers =
                     dataset[k]?.children?.find(
                       (c) => c.administration.id === childItem.id
-                    )?.user || childItem?.user;
-                  const approverName = approver
-                    ? `${approver.first_name} ${approver.last_name}`
+                    )?.users || childItem?.users;
+                  const approverName = approvers?.length
+                    ? approvers?.length > 1
+                      ? `${approvers[0].first_name} ${
+                          approvers[0].last_name
+                        } and ${approvers.length - 1} more`
+                      : `${approvers[0].first_name} ${approvers[0].last_name}`
                     : text.notAssigned;
                   const isParent =
                     administration[k + 1]?.children[0]?.parent === childItem.id;
@@ -219,7 +266,7 @@ const ApproversTree = () => {
                         k >= administration.length - 1 || isSelectedLine
                           ? "active"
                           : ""
-                      } ${approver ? "assigned" : ""}
+                      } ${approvers?.length ? "assigned" : ""}
                     `}
                       key={l}
                       onClick={() => {
@@ -233,16 +280,23 @@ const ApproversTree = () => {
                         }
                       }}
                     >
-                      {approver && (
+                      {approvers?.length > 0 && (
                         <div className="info-icon">
-                          <Popover title={`Email: ${approver?.email}`}>
+                          <Dropdown
+                            menu={{
+                              items: approvers.map((a) => ({
+                                key: a.id,
+                                label: a.email,
+                              })),
+                            }}
+                          >
                             <InfoCircleOutlined />
-                          </Popover>
+                          </Dropdown>
                         </div>
                       )}
                       <Space direction="vertical">
                         <div>{childItem.name}</div>
-                        <h3 className={approver ? "" : "not-assigned"}>
+                        <h3 className={approvers?.length ? "" : "not-assigned"}>
                           {approverName}
                         </h3>
                       </Space>
@@ -348,25 +402,26 @@ const ApproversTree = () => {
 
   return (
     <div id="approversTree">
-      <div className="description-container">
-        <Row justify="space-between">
-          <Col>
-            <Breadcrumbs pagePath={pagePath} />
-            <DescriptionPanel
-              description={text.approversDescription}
-              title={text.manageDataValidationSetup}
-            />
-          </Col>
-        </Row>
-      </div>
       <div className="table-section">
-        <div className="table-wrapper">
+        <div className="description-container">
+          <Row justify="space-between">
+            <Col>
+              <Breadcrumbs pagePath={pagePath} />
+              <DescriptionPanel
+                description={text.approversDescription}
+                title={text.manageDataValidationSetup}
+              />
+            </Col>
+          </Row>
+        </div>
+        <div className="filters-wrapper">
           <ApproverFilters
             loading={false}
             disabled={isPristine || loading}
             visible={false}
           />
-          <Divider />
+        </div>
+        <div className="approvers-tree-wrapper">
           <div style={{ padding: 0, minHeight: "40vh" }}>
             <Row
               wrap={false}

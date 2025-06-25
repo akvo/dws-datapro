@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from "react";
 import { Form, Input, Button, Checkbox } from "antd";
-import { api, store, config, uiText } from "../../../lib";
+import { api, store, uiText } from "../../../lib";
 import { useNavigate } from "react-router-dom";
 import { useNotification } from "../../../util/hooks";
 import { reloadData } from "../../../util/form";
@@ -39,19 +39,10 @@ const RegistrationForm = (props) => {
       .put("user/set-password", postData)
       .then((res) => {
         api.setToken(res.data.token);
-        const role_details = config.roles.find(
-          (r) => r.id === res.data.role.id
-        );
-        const designation = config.designations.find(
-          (d) => d.id === parseInt(res.data?.designation)
-        );
         store.update((s) => {
           s.isLoggedIn = true;
-          s.user = {
-            ...res.data,
-            role_detail: role_details,
-            designation: designation,
-          };
+          // TODO: Implement RBAC
+          s.user = res.data;
         });
         reloadData(res.data);
         setLoading(false);

@@ -2,12 +2,15 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.core import signing
 from django.test.utils import override_settings
+from django.db.models import Count
 
 from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import FormAccessTypes
-from api.v1.v1_profile.models import Administration
+from api.v1.v1_profile.models import (
+    Administration,
+    Role,
+    DataAccessTypes,
+)
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.constants import UserRoleTypes
 
 
 @override_settings(USE_TZ=False)
@@ -17,6 +20,7 @@ class FormDataUpdateTestCase(TestCase):
         self.maxDiff = None
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
+        call_command("default_roles_seeder", "--test", 1)
         self.adm = Administration.objects.filter(
             level__level=2
         ).order_by("?").first()
@@ -30,11 +34,9 @@ class FormDataUpdateTestCase(TestCase):
                                 content_type='application/json')
         user = user.json()
         # Assign super admin role to the user
-        su_user = SystemUser.objects.filter(
+        SystemUser.objects.filter(
             email="admin@akvo.org"
         ).first()
-        su_user.user_access.role = UserRoleTypes.super_admin
-        su_user.user_access.save()
 
         form = self.form
         self.assertEqual(form.id, 1)
@@ -198,29 +200,33 @@ class FormDataUpdateTestCase(TestCase):
         data = data.json()
         self.assertEqual(data, {"message": "ok"})
         # create a new user
+        role = Role.objects.filter(
+            administration_level=self.adm.level,
+            role_role_access__data_access__in=[
+                DataAccessTypes.read,
+                DataAccessTypes.submit,
+                DataAccessTypes.edit,
+            ]
+        ).first()
         payload = {
             "first_name": "User",
             "last_name": "Wayan",
             "email": "wayan@example.com",
             "administration": self.adm.id,
-            "access_forms": [
+            "forms": [1],
+            "roles": [
                 {
-                    "form_id": 1,
-                    "access_type": FormAccessTypes.read
-                },
-                {
-                    "form_id": 1,
-                    "access_type": FormAccessTypes.edit
+                    "role": role.id,
+                    "administration": self.adm.id,
                 }
-            ],
-            "role": UserRoleTypes.admin
+            ]
         }
         header = {'HTTP_AUTHORIZATION': f'Bearer {token}'}
         res = self.client.post("/api/v1/user",
                                payload,
                                content_type='application/json',
                                **header)
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 201)
         self.assertEqual(res.json(), {'message': 'User added successfully'})
         new_user = SystemUser.objects.filter(
             email="wayan@example.com").first()
@@ -241,8 +247,6 @@ class FormDataUpdateTestCase(TestCase):
                                           password_payload,
                                           content_type='application/json')
         self.assertEqual(invite_response.status_code, 200)
-
-        call_command("demo_approval_flow", "--test", True)
 
         # data entry user login
         new_user_user = {
@@ -265,7 +269,6 @@ class FormDataUpdateTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         response = response.json()
         self.assertEqual(response['email'], 'wayan@example.com')
-        self.assertEqual(response['role']['id'], UserRoleTypes.admin)
         # Get all data from form
         data = self.client.get('/api/v1/form-data/1?page=1',
                                content_type='application/json',
@@ -362,19 +365,32 @@ class FormDataUpdateTestCase(TestCase):
         data = data.json()
         self.assertEqual(data, {"message": "ok"})
         # create a new user
+        role = Role.objects.annotate(
+            role_access_count=Count('role_role_access')
+        ) \
+            .filter(
+                role_access_count=2,
+                administration_level=self.adm.level,
+            ) \
+            .exclude(
+                role_role_access__data_access__in=[
+                    DataAccessTypes.edit,
+                    DataAccessTypes.delete,
+                ]
+            ).first()
         email = "user.reader@test.com"
         payload = {
             "first_name": "User",
             "last_name": "Reader",
             "email": email,
             "administration": self.adm.id,
-            "access_forms": [
+            "forms": [1],
+            "roles": [
                 {
-                    "form_id": 1,
-                    "access_type": FormAccessTypes.read
-                },
-            ],
-            "role": UserRoleTypes.admin
+                    "role": role.id,
+                    "administration": self.adm.id,
+                }
+            ]
         }
         header = {"HTTP_AUTHORIZATION": f"Bearer {token}"}
         res = self.client.post(
@@ -383,7 +399,7 @@ class FormDataUpdateTestCase(TestCase):
             content_type="application/json",
             **header
         )
-        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.status_code, 201)
         self.assertEqual(res.json(), {"message": "User added successfully"})
         new_user = SystemUser.objects.filter(
             email=email).first()

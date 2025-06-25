@@ -22,7 +22,6 @@ class MigrateFormOptionsCommand(TestCase):
     def setUp(self):
         call_command("form_seeder", "--test")
         call_command("administration_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
         user = {"email": "admin@akvo.org", "password": "Test105*"}
         user = self.client.post(
             "/api/v1/login", user, content_type="application/json"

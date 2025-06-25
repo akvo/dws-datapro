@@ -51,6 +51,13 @@ Object {
       platform.
     </React.Fragment>,
     "addOrganisation": "Add Organization",
+    "addRole": "Add Role",
+    "addRoleDescription": <React.Fragment>
+      This page allows you to add roles to the 
+      Test App
+       
+      platform.
+    </React.Fragment>,
     "addUser": "Add User",
     "addUserDescription": <React.Fragment>
       This page allows you to add users to the 
@@ -249,6 +256,8 @@ Object {
        platform.
     </React.Fragment>,
     "editOrganisation": "Edit Organization",
+    "editProfile": "Edit Profile",
+    "editRole": "Edit Role",
     "editUser": "Edit User",
     "endOfListLabel": "End of List",
     "entitiesUploadSuccessTitle": "Entities Data has been Successfully Uploaded",
@@ -498,6 +507,22 @@ Object {
       </ul>
     </React.Fragment>,
     "manageOrganisations": "Manage Organizations",
+    "manageRoleText": <React.Fragment>
+      This is where you manage roles based on their fields. You can :
+      <ul>
+        <li>
+          Add new role
+        </li>
+        <li>
+          Modify existing role
+        </li>
+        <li>
+          Delete existing role
+        </li>
+      </ul>
+    </React.Fragment>,
+    "manageRoles": "Manage Roles",
+    "manageRolesTitle": "Manage Roles",
     "manageUserButton": "Manage Users",
     "manageUserText": <React.Fragment>
       This is where you manage users based on their roles , regions and questionnaire access . You can :
@@ -531,6 +556,23 @@ Object {
       </ul>
     </React.Fragment>,
     "mdPanelTitle": "Master Data",
+    "menuAdministrativeList": "Administrative List",
+    "menuApprovals": "Approvals",
+    "menuAttributes": "Attributes",
+    "menuControlCenter": "Control Center",
+    "menuData": "Data",
+    "menuDownloads": "Downloads",
+    "menuEntities": "Entities",
+    "menuEntityTypes": "Entity Types",
+    "menuManageData": "Manage Data",
+    "menuManageMobileUsers": "Manage Mobile Users",
+    "menuManagePlatformUsers": "Manage Platform Users",
+    "menuManageRoles": "Manage Roles",
+    "menuMasterData": "Master Data",
+    "menuOrganisations": "Organisations",
+    "menuPendingSubmissions": "Submissions",
+    "menuUsers": "Users",
+    "menuValidationTree": "Validation Tree",
     "mobileAddText": "Add Assignment",
     "mobileAdmRequired": "Administration is required: one or multiple",
     "mobileAppText": "Mobile App",
@@ -601,6 +643,7 @@ Object {
     "noFormSelectedText": "No form selected",
     "noFormText": "No data",
     "noTemplate": "No templates found",
+    "noText": "No",
     "notAssigned": "Not assigned",
     "notesFeedback": "Notes & Feedback",
     "notifyError": "An error occured",
@@ -678,7 +721,26 @@ Object {
     </React.Fragment>,
     "resetText": "Reset",
     "responseCol": "Response",
+    "roleAccess": "Role Access",
+    "roleAccessRequired": "Role access is required",
+    "roleAdmLevel": "Administration Level",
+    "roleAdmLevelPlaceholder": "Select administration level...",
+    "roleAdmLevelRequired": "Administration level is required",
+    "roleConfirmDelete": "Are you sure you want to delete {roleName}?",
+    "roleDeleteTitle": "You are about to delete the role",
+    "roleDescription": "Role Description",
+    "roleDescriptionRequired": "Role description is required",
+    "roleErrDeleteTitle": "Unable to delete the role",
+    "roleErrorAdd": "Role could not be added",
+    "roleErrorUpdate": "Role could not be updated",
     "roleLabel": "Role",
+    "roleName": "Role Name",
+    "roleNameRequired": "Role name is required",
+    "roleSuccessAdded": "Role added",
+    "roleSuccessDeleted": "Role deleted",
+    "roleSuccessUpdated": "Role updated",
+    "roleTotalUsers": "Total Users",
+    "rolesRequired": "Please select at least one role",
     "saveButton": "Save",
     "saveEditButton": "Save Edits",
     "searchEntity": "Enter name...",
@@ -691,6 +753,7 @@ Object {
     "selectFormPlaceholder": "Select Form",
     "selectLevel": "Select level...",
     "selectOne": "Select one...",
+    "selectRole": "Select role...",
     "selectText": "Select...",
     "selectType": "Select type...",
     "sendInstructions": "Send Instructions",
@@ -770,6 +833,7 @@ Object {
       </b>
        platform
     </React.Fragment>,
+    "yesText": "Yes",
   },
 }
 `;

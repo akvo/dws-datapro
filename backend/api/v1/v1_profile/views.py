@@ -21,6 +21,7 @@ from api.v1.v1_profile.models import (
     Entity,
     EntityData,
     Levels,
+    Role,
 )
 from api.v1.v1_profile.serializers import (
     AdministrationAttributeSerializer,
@@ -30,6 +31,8 @@ from api.v1.v1_profile.serializers import (
     DownloadAdministrationRequestSerializer,
     DownloadEntityDataRequestSerializer,
     ListEntityDataSerializer,
+    RoleSerializer,
+    RoleDetailSerializer,
 )
 from api.v1.v1_profile.job import create_download_job
 from api.v1.v1_users.models import SystemUser
@@ -48,6 +51,7 @@ from rest_framework.permissions import IsAuthenticated
 from utils.email_helper import send_email, EmailTypes
 from utils.custom_serializer_fields import validate_serializers_message
 from utils.custom_generator import administration_csv_delete
+from utils.custom_permissions import IsSuperAdmin
 
 
 @extend_schema(
@@ -486,3 +490,55 @@ def export_pre_entities_data_template(request: Request, version):
         )
         response["Content-Disposition"] = f'attachment; filename="{filename}"'
         return response
+
+
+@extend_schema(tags=["Roles"])
+class RoleViewSet(ModelViewSet):
+    serializer_class = RoleSerializer
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
+    pagination_class = Pagination
+
+    def get_queryset(self):
+        queryset = Role.objects.order_by("administration_level__level")
+        search = self.request.query_params.get("search")
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+        return queryset
+
+    def get_serializer_class(self):
+        if self.request and self.action in [
+            "list",
+            "retrieve"
+        ]:
+            return RoleDetailSerializer
+        return super().get_serializer_class()
+
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(
+                name="search",
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        try:
+            instance.delete()
+        except ProtectedError:
+            _, _, _, protected = get_deleted_objects(
+                [instance], cast(WSGIRequest, request), site
+            )
+            error = (
+                f'Cannot delete "Role: {instance}" because it is '
+                "referenced by other data"
+            )
+            return Response(
+                {"error": error, "referenced_by": protected},
+                status=status.HTTP_409_CONFLICT,
+            )
+        return Response(status=status.HTTP_204_NO_CONTENT)

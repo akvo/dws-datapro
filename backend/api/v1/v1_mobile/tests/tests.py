@@ -1,7 +1,6 @@
 from django.test import TestCase
 from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.models import Administration, Access
-from api.v1.v1_profile.constants import UserRoleTypes
+from api.v1.v1_profile.models import Administration
 from django.core.management import call_command
 
 
@@ -18,10 +17,6 @@ class MobileAssignmentManagerTest(TestCase):
         self.administration = Administration.objects.filter(
             parent__isnull=True
         ).first()
-        role = UserRoleTypes.admin
-        self.user_access = Access.objects.create(
-            user=self.user, role=role, administration=self.administration
-        )
 
     def test_create_mobile_assignment_without_passcode(self):
         from api.v1.v1_mobile.models import MobileAssignment

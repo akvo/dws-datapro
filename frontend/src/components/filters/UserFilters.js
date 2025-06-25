@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./style.scss";
 import { Row, Col, Space, Input, Select, Checkbox } from "antd";
 const { Search } = Input;
@@ -10,17 +10,26 @@ import RemoveFiltersButton from "./RemoveFiltersButton";
 const { Option } = Select;
 
 const UserFilters = ({ fetchData, pending, setPending, loading, button }) => {
-  const { user: authUser, filters } = store.useState((state) => state);
+  const { filters } = store.useState((state) => state);
   const { trained, role, organisation, query } = filters;
 
   const { trainedStatus } = config;
-  // show role > logged in user if logged in user not super admin
-  // show all role for super admin
-  const allowedRole = config.roles.filter((r) =>
-    authUser.role.id >= 2 ? r.id > authUser.role.id : r.id >= authUser.role.id
-  );
 
   const [organisations, setOrganisations] = useState([]);
+  const [roles, setRoles] = useState([]);
+
+  const fetchRoles = useCallback(async () => {
+    try {
+      const { data: apiData } = await api.get("/user/roles");
+      setRoles(apiData);
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchRoles();
+  }, [fetchRoles]);
 
   useEffect(() => {
     api.get("organisations").then((res) => {
@@ -96,15 +105,15 @@ const UserFilters = ({ fetchData, pending, setPending, loading, button }) => {
                   s.filters.role = e;
                 });
               }}
-              allowClear
+              options={roles}
+              optionFilterProp="label"
+              filterOption={(input, option) =>
+                option.label.toLowerCase().includes(input.toLowerCase())
+              }
               className="custom-select"
-            >
-              {allowedRole.map((r, ri) => (
-                <Option key={ri} value={r.id}>
-                  {r.name}
-                </Option>
-              ))}
-            </Select>
+              allowClear
+              showSearch
+            />
           </Space>
         </Col>
         <Col>{button}</Col>

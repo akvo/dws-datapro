@@ -27,13 +27,12 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
-
-from api.v1.v1_forms.models import (
-    FormApprovalAssignment,
+from api.v1.v1_profile.constants import OrganisationTypes
+from api.v1.v1_profile.models import (
+    Administration,
+    Levels,
+    Role,
 )
-from api.v1.v1_data.models import PendingDataApproval
-from api.v1.v1_profile.constants import UserRoleTypes, OrganisationTypes
-from api.v1.v1_profile.models import Access, Administration, Levels
 from api.v1.v1_users.models import (
     SystemUser,
     Organisation,
@@ -42,7 +41,6 @@ from api.v1.v1_users.models import (
 from api.v1.v1_users.serializers import (
     LoginSerializer,
     UserSerializer,
-    UserRoleSerializer,
     VerifyInviteSerializer,
     SetUserPasswordSerializer,
     ListAdministrationSerializer,
@@ -55,17 +53,11 @@ from api.v1.v1_users.serializers import (
     OrganisationListSerializer,
     AddEditOrganisationSerializer,
     OrganisationAttributeChildrenSerializer,
+    RoleOptionSerializer,
+    UpdateProfileSerializer,
 )
-
-from api.v1.v1_users.functions import (
-    check_form_approval_assigned,
-    assign_form_approval,
-)
-
-from api.v1.v1_forms.models import Forms
-from api.v1.v1_forms.constants import FormAccessTypes
 from mis.settings import REST_FRAMEWORK, WEBDOMAIN
-from utils.custom_permissions import IsSuperAdmin, IsAdmin
+from utils.custom_permissions import IsSuperAdmin
 from utils.custom_serializer_fields import validate_serializers_message
 from utils.default_serializers import DefaultResponseSerializer
 from utils.email_helper import send_email
@@ -74,21 +66,32 @@ from utils.email_helper import ListEmailTypeRequestSerializer, EmailTypes
 
 def send_email_to_user(type, user, request):
     url = f"{WEBDOMAIN}/login/{signing.dumps(user.pk)}"
-    user = Access.objects.filter(user=user.pk).first()
-    admin = Access.objects.filter(user=request.user.pk).first()
-    user_forms = Forms.objects.filter(pk__in=request.data.get("forms")).all()
+    user = SystemUser.objects.get(pk=user.pk)
+    user_forms = [
+        uf.form for uf in user.user_form.all()
+    ]
     listing = [
-        {"name": "Role", "value": user.role_name},
-        {"name": "Region", "value": user.administration.full_name},
+        info
+        for role in user.user_user_role.all()
+        for info in (
+            {
+                "name": "Role",
+                "value": role.role.name if role.role else "N/A",
+            },
+            {
+                "name": "Region",
+                "value": role.administration.name,
+            },
+        )
     ]
     if user_forms:
         user_forms = ", ".join([form.name for form in user_forms])
         listing.append({"name": "Questionnaire", "value": user_forms})
-
+    # TODO Add Administration
     data = {
-        "send_to": [user.user.email],
+        "send_to": [user.email],
         "listing": listing,
-        "admin": f"""{admin.user.name}, {admin.administration.full_name}.""",
+        "admin": f"""{user.name}""",
     }
     if type == EmailTypes.user_invite:
         data["button_url"] = url
@@ -157,18 +160,11 @@ def login(request, version):
         )
     # Add temp user for development purpose
     if not SystemUser.objects.all().count():
-        super_admin = SystemUser.objects.create_superuser(
+        SystemUser.objects.create_superuser(
             email="admin@akvo.org",
             password="Test105*",
             first_name="Admin",
             last_name="MIS",
-        )
-        Access.objects.create(
-            user=super_admin,
-            role=UserRoleTypes.super_admin,
-            administration=Administration.objects.filter(
-                parent__isnull=True
-            ).first(),
         )
 
     user = authenticate(
@@ -355,67 +351,48 @@ def list_levels(request, version):
     summary="To add user",
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsSuperAdmin | IsAdmin])
+@permission_classes([IsAuthenticated, IsSuperAdmin])
 def add_user(request, version):
-    if request.data.get("role") == UserRoleTypes.super_admin:
-        request.data.update(
-            {
-                "administration": Administration.objects.filter(level__level=0)
-                .first()
-                .id
-            }
-        )
-
     serializer = AddEditUserSerializer(
         data=request.data, context={"user": request.user}
     )
-    if not serializer.is_valid():
+    try:
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "message": validate_serializers_message(serializer.errors),
+                    "details": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+    except Exception as e:
+        # Handle unexpected validation errors
+        error_message = str(e)
+        if hasattr(e, 'detail'):
+            return Response(
+                {
+                    "message": validate_serializers_message(e.detail),
+                    "details": e.detail,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         return Response(
-            {"message": validate_serializers_message(serializer.errors)},
+            {
+                "message": error_message,
+                "details": {"error": error_message}
+            },
             status=status.HTTP_400_BAD_REQUEST,
-        )
-
-    # Check if form approval is already assigned
-    is_approver_assigned = check_form_approval_assigned(
-        role=serializer.validated_data.get("role"),
-        administration=serializer.validated_data.get("administration"),
-        access_forms=serializer.validated_data.get("access_forms"),
-    )
-    if is_approver_assigned:
-        return Response(
-            {"message": is_approver_assigned}, status=status.HTTP_403_FORBIDDEN
         )
 
     user = serializer.save()
 
-    # For compatibility with existing assign_form_approval function
-    # Only pass forms with approver access type to the function
-    approver_forms = [
-        item["form_id"]
-        for item in serializer.validated_data.get("access_forms", [])
-        if item["access_type"] == FormAccessTypes.approve
-    ]
-
-    # when add new user as approver or admin with approver forms
-    if approver_forms:
-        assign_form_approval(
-            role=serializer.validated_data.get("role"),
-            forms=approver_forms,
-            administration=serializer.validated_data.get("administration"),
-            user=user,
-            access_forms=serializer.validated_data.get("access_forms"),
-        )
-
     if serializer.validated_data.get("inform_user"):
-        request.data["forms"] = [
-            item["form_id"].id
-            for item in serializer.validated_data.get("access_forms", [])
-        ]
         send_email_to_user(
             type=EmailTypes.user_invite, user=user, request=request
         )
     return Response(
-        {"message": "User added successfully"}, status=status.HTTP_200_OK
+        {"message": "User added successfully"},
+        status=status.HTTP_201_CREATED,
     )
 
 
@@ -487,7 +464,7 @@ def add_user(request, version):
     ],
 )
 @api_view(["GET"])
-@permission_classes([IsAuthenticated, IsSuperAdmin | IsAdmin])
+@permission_classes([IsAuthenticated, IsSuperAdmin])
 def list_users(request, version):
     serializer = ListUserRequestSerializer(data=request.GET)
     if not serializer.is_valid():
@@ -496,46 +473,29 @@ def list_users(request, version):
             status=status.HTTP_400_BAD_REQUEST,
         )
 
-    user_allowed = request.user.user_access.administration
-
-    if user_allowed.path:
-        allowed_path = f"{user_allowed.path}{user_allowed.id}."
-    else:
-        allowed_path = f"{user_allowed.id}."
-    allowed_descendants = list(
-        Administration.objects.filter(
-            path__startswith=allowed_path
-        ).values_list("id", flat=True)
-    )
-    allowed_descendants.append(user_allowed.id)
-    filter_data = {"user_access__administration_id__in": allowed_descendants}
+    filter_data = {}
     exclude_data = {"password__exact": ""}
 
     if serializer.validated_data.get("administration"):
-        filter_administration = serializer.validated_data.get("administration")
-        if not serializer.validated_data.get("descendants"):
-            filter_descendants = list(
+        filter_adm = serializer.validated_data.get("administration")
+        filter_descendants = list(
                 Administration.objects.filter(
-                    parent=filter_administration
+                    parent=filter_adm
                 ).values_list("id", flat=True)
             )
-        else:
-            if filter_administration.path:
-                filter_path = "{0}{1}.".format(
-                    filter_administration.path, filter_administration.id
-                )
-            else:
-                filter_path = f"{filter_administration.id}."
+        if serializer.validated_data.get("descendants"):
+            filter_path = "{0}{1}.".format(
+                filter_adm.path, filter_adm.id
+            ) if filter_adm.path else f"{filter_adm.id}."
             filter_descendants = list(
                 Administration.objects.filter(
                     path__startswith=filter_path
                 ).values_list("id", flat=True)
             )
-            filter_descendants.append(filter_administration.id)
+            filter_descendants.append(filter_adm.id)
 
-        set1 = set(filter_descendants)
-        final_set = set1.intersection(allowed_descendants)
-        filter_data["user_access__administration_id__in"] = list(final_set)
+        final_set = set(filter_descendants)
+        filter_data["user_user_role__administration_id__in"] = list(final_set)
     if serializer.validated_data.get("trained") is not None:
         trained = (
             True
@@ -544,9 +504,9 @@ def list_users(request, version):
         )
         filter_data["trained"] = trained
     if serializer.validated_data.get("role"):
-        filter_data["user_access__role"] = serializer.validated_data.get(
-            "role"
-        )
+        role = serializer.validated_data.get("role")
+        # Use direct filter on role object instead of role_id
+        filter_data["user_user_role__role"] = role
     if serializer.validated_data.get("organisation"):
         filter_data["organisation_id"] = serializer.validated_data.get(
             "organisation"
@@ -559,11 +519,6 @@ def list_users(request, version):
     the_past = timezone.now() - datetime.timedelta(days=10 * 365)
     # also filter soft deletes
     queryset = SystemUser.objects.filter(deleted_at=None, **filter_data)
-    # if not super admin, don't include logged in user role to list
-    if request.user.user_access.role != UserRoleTypes.super_admin:
-        queryset = queryset.filter(
-            user_access__role__gt=request.user.user_access.role
-        )
     # filter by email or fullname
     if serializer.validated_data.get("search"):
         search = serializer.validated_data.get("search")
@@ -573,8 +528,15 @@ def list_users(request, version):
         queryset = queryset.filter(
             Q(email__icontains=search) | Q(fullname__icontains=search)
         )
+    # First get unique IDs to avoid duplicates from joins
+    # But make sure to include current user's ID
+    user_ids = list(queryset.exclude(**exclude_data)
+                    .values_list('id', flat=True)
+                    .distinct())
+
+    # Then query again with the distinct IDs
     queryset = (
-        queryset.exclude(**exclude_data)
+        SystemUser.objects.filter(id__in=user_ids)
         .annotate(last_updated=Coalesce("updated", Value(the_past)))
         .order_by("-last_updated", "-date_joined")
     )
@@ -590,25 +552,23 @@ def list_users(request, version):
 
 
 @extend_schema(
-    responses={200: UserRoleSerializer(many=True)},
+    responses={200: RoleOptionSerializer(many=True)},
     tags=["User"],
     summary="Get list of roles",
 )
 @api_view(["GET"])
 def get_user_roles(request, version):
-    data = []
-    for k, v in UserRoleTypes.FieldStr.items():
-        data.append(
-            {
-                "id": k,
-                "value": v,
-            }
-        )
+    roles = Role.objects.order_by("administration_level__level").all()
+    data = RoleOptionSerializer(
+        instance=roles,
+        many=True,
+        context={"request": request},
+    ).data
     return Response(data, status=status.HTTP_200_OK)
 
 
 class UserEditDeleteView(APIView):
-    permission_classes = [IsAuthenticated, IsSuperAdmin | IsAdmin]
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     @extend_schema(
         responses={200: UserDetailSerializer, 204: DefaultResponseSerializer},
@@ -638,8 +598,6 @@ class UserEditDeleteView(APIView):
                 {"message": "Could not do self deletion"},
                 status=status.HTTP_409_CONFLICT,
             )
-        FormApprovalAssignment.objects.filter(user=instance).delete()
-        PendingDataApproval.objects.filter(user=instance).delete()
         instance.soft_delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -651,19 +609,6 @@ class UserEditDeleteView(APIView):
         summary="To update user",
     )
     def put(self, request, user_id, version):
-        if request.data.get("role") == UserRoleTypes.super_admin:
-            FormApprovalAssignment.objects.filter(user_id=user_id).delete()
-            PendingDataApproval.objects.filter(user_id=user_id).delete()
-            request.data.update(
-                {
-                    "administration": Administration.objects.filter(
-                        level__level=0
-                    )
-                    .first()
-                    .id
-                }
-            )
-
         instance = get_object_or_404(SystemUser, pk=user_id, deleted_at=None)
         serializer = AddEditUserSerializer(
             data=request.data,
@@ -676,42 +621,10 @@ class UserEditDeleteView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # when add new user as approver or admin
-        is_approver_assigned = check_form_approval_assigned(
-            role=serializer.validated_data.get("role"),
-            administration=serializer.validated_data.get("administration"),
-            user=instance,
-            access_forms=serializer.validated_data.get("access_forms"),
-        )
-        if is_approver_assigned:
-            return Response(
-                {"message": is_approver_assigned},
-                status=status.HTTP_403_FORBIDDEN,
-            )
         user = serializer.save()
-
-        # For compatibility with existing assign_form_approval function
-        # Only pass forms with approver access type to the function
-        approver_forms = [
-            item["form_id"]
-            for item in serializer.validated_data.get("access_forms")
-            if item["access_type"] == FormAccessTypes.approve
-        ]
-        if approver_forms:
-            assign_form_approval(
-                role=serializer.validated_data.get("role"),
-                forms=approver_forms,
-                administration=serializer.validated_data.get("administration"),
-                user=user,
-                access_forms=serializer.validated_data.get("access_forms"),
-            )
 
         # inform user by inform_user payload
         if serializer.validated_data.get("inform_user"):
-            request.data["forms"] = [
-                item["form_id"].id
-                for item in serializer.validated_data.get("access_forms", [])
-            ]
             send_email_to_user(
                 type=EmailTypes.user_update, user=user, request=request
             )
@@ -805,7 +718,7 @@ def list_organisations(request, version):
     summary="To add new organisation",
 )
 @api_view(["POST"])
-@permission_classes([IsAuthenticated, IsSuperAdmin | IsAdmin])
+@permission_classes([IsAuthenticated, IsSuperAdmin])
 def add_organisation(request, version):
     serializer = AddEditOrganisationSerializer(
         data=request.data,
@@ -824,7 +737,7 @@ def add_organisation(request, version):
 
 
 class OrganisationEditDeleteView(APIView):
-    permission_classes = [IsAuthenticated, IsSuperAdmin | IsAdmin]
+    permission_classes = [IsAuthenticated, IsSuperAdmin]
 
     @extend_schema(
         responses={200: OrganisationListSerializer},
@@ -919,4 +832,28 @@ def list_organisation_options(request, version, selected_id=None):
     return Response(
         OrganisationAttributeChildrenSerializer(instance=instance).data,
         status=status.HTTP_200_OK,
+    )
+
+
+@extend_schema(
+    request=UpdateProfileSerializer,
+    responses={200: UserSerializer},
+    tags=["User"],
+    summary="To update user profile",
+)
+@api_view(["PUT"])
+@permission_classes([IsAuthenticated])
+def update_profile(request, version):
+    serializer = UpdateProfileSerializer(
+        data=request.data, instance=request.user
+    )
+    if not serializer.is_valid():
+        return Response(
+            {"message": validate_serializers_message(serializer.errors)},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    user = serializer.save()
+    return Response(
+        UserSerializer(instance=user).data,
+        status=status.HTTP_200_OK
     )

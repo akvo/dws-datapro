@@ -17,7 +17,15 @@ import {
   LoadingOutlined,
   HistoryOutlined,
 } from "@ant-design/icons";
-import { api, store, config, uiText, QUESTION_TYPES } from "../../lib";
+import {
+  api,
+  store,
+  config,
+  uiText,
+  QUESTION_TYPES,
+  APPROVAL_STATUS_APPROVED,
+  APPROVAL_STATUS_REJECTED,
+} from "../../lib";
 import { EditableCell } from "../../components";
 import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
@@ -114,6 +122,7 @@ const ApprovalDetail = ({
   const [loading, setLoading] = useState(true);
   const [dataLoading, setDataLoading] = useState(null);
   const [saving, setSaving] = useState(null);
+  const [approving, setApproving] = useState(null);
   const [selectedTab, setSelectedTab] = useState("data-summary");
   const [expandedRowKeys, setExpandedRowKeys] = useState([]);
   const [comments, setComments] = useState([]);
@@ -130,6 +139,10 @@ const ApprovalDetail = ({
   const text = useMemo(() => {
     return uiText[activeLang];
   }, [activeLang]);
+
+  const allowApprove = useMemo(() => {
+    return record?.approver?.some((a) => a?.allow_approve);
+  }, [record?.approver]);
 
   //for checking the null value
   const approveButtonEnable = useMemo(() => {
@@ -188,9 +201,11 @@ const ApprovalDetail = ({
       });
   };
 
-  const handleApprove = (id, status) => {
+  const handleApprove = (batch, status) => {
+    setApproving(status);
+    const approval = batch?.approver?.find((a) => a?.allow_approve);
     let payload = {
-      batch: id,
+      approval: approval?.id,
       status: status,
     };
     if (!comment.length) {
@@ -208,9 +223,13 @@ const ApprovalDetail = ({
         setExpandedParentKeys(
           expandedParentKeys.filter((e) => e !== record.id)
         );
-        setReload(id);
+        setReload(batch?.id);
+        setApproving(null);
       })
-      .catch((e) => console.error(e));
+      .catch((e) => {
+        console.error(e);
+        setApproving(null);
+      });
   };
 
   useEffect(() => {
@@ -661,17 +680,19 @@ const ApprovalDetail = ({
           <Space style={{ marginTop: "20px", float: "right" }}>
             <Button
               type="danger"
-              onClick={() => handleApprove(record.id, 3)}
-              disabled={!approve}
+              onClick={() => handleApprove(record, APPROVAL_STATUS_REJECTED)}
+              disabled={!allowApprove || approveButtonEnable}
               shape="round"
+              loading={approving === APPROVAL_STATUS_REJECTED}
             >
               Reject
             </Button>
             <Button
               type="primary"
-              onClick={() => handleApprove(record.id, 2)}
-              disabled={!approve || approveButtonEnable}
+              onClick={() => handleApprove(record, APPROVAL_STATUS_APPROVED)}
+              disabled={!allowApprove || approveButtonEnable}
               shape="round"
+              loading={approving === APPROVAL_STATUS_APPROVED}
             >
               {approvalsLiteral({ isButton: true })}
             </Button>

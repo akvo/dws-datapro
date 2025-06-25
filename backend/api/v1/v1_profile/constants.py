@@ -1,16 +1,6 @@
 from mis.settings import COUNTRY_NAME
 
 
-class UserRoleTypes:
-    super_admin = 1
-    admin = 2
-
-    FieldStr = {
-        super_admin: "Super Admin",
-        admin: "Admin",
-    }
-
-
 class OrganisationTypes:
     member = 1
     partnership = 2
@@ -36,11 +26,11 @@ class EntityTypes:
 
 
 class DataAccessTypes:
-    read = "read"
-    approve = "approve"
-    submit = "submit"
-    edit = "edit"
-    delete = "delete"
+    read = 1
+    approve = 2
+    submit = 3
+    edit = 4
+    delete = 5
 
     FieldStr = {
         read: "Read",
@@ -53,7 +43,10 @@ class DataAccessTypes:
 
 ADMINISTRATION_CSV_FILE = f"{COUNTRY_NAME}-administration.csv"
 
-DEFAULT_SOURCE_FILE = f"./source/{ADMINISTRATION_CSV_FILE}"
+# This is the default administration data used for testing
+# and seeding the database.
+# It contains a list of dictionaries, each representing an administrative unit
+# with its corresponding codes and names at various levels.
 
 DEFAULT_ADMINISTRATION_DATA = [
     {

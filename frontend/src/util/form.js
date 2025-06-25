@@ -1,4 +1,4 @@
-import { store, config } from "../lib";
+import { store } from "../lib";
 
 export const sortArray = (x, y) => {
   const nameOne = x.name.toLowerCase();
@@ -16,17 +16,9 @@ const filterFormByAssigment = (profile = {}) => {
   if (!Object.keys(profile).length) {
     return window.forms;
   }
-  const role_details = config.roles.find((r) => r.id === profile.role.id);
-  // filter form by config
-  let filterForm = role_details.filter_form
-    ? window.forms.filter((x) => x.type === role_details.filter_form)
+  return profile.forms.length
+    ? window.forms.filter((x) => profile.forms.map((f) => f.id).includes(x.id))
     : window.forms;
-  // if not super admin filter by assignment form
-  filterForm =
-    role_details.id !== 1
-      ? filterForm.filter((x) => profile.forms.map((f) => f.id).includes(x.id))
-      : filterForm;
-  return filterForm;
 };
 
 export const reloadData = (profile = {}, dataset = []) => {

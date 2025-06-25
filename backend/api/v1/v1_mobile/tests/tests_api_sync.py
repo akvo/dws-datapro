@@ -1,37 +1,47 @@
 from django.test import TestCase
 from api.v1.v1_mobile.tests.mixins import AssignmentTokenTestHelperMixin
-from api.v1.v1_users.models import SystemUser
-from api.v1.v1_profile.models import Administration, Access
-from api.v1.v1_profile.constants import UserRoleTypes
+from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
+from api.v1.v1_profile.models import (
+    Administration,
+    Levels,
+)
 from django.core.management import call_command
 from api.v1.v1_mobile.models import MobileAssignment
-from api.v1.v1_forms.models import Forms, UserForms
+from api.v1.v1_forms.models import Forms
 from api.v1.v1_data.models import FormData, Answers
 from rest_framework import status
 
 
-class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
+class MobileAssignmentApiSyncTest(
+    TestCase, AssignmentTokenTestHelperMixin, ProfileTestHelperMixin
+):
     def setUp(self):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
+        call_command("default_roles_seeder", "--test", 1)
 
-        self.user = SystemUser.objects.create_user(
-            email="test@test.org",
-            password="test1234",
-            first_name="test",
-            last_name="testing",
-        )
+        adm_level = Levels.objects.filter(level__gt=0).order_by("?").first()
         self.administration = Administration.objects.filter(
-            administration_data_approval__isnull=False,
-        ).last()
+            level=adm_level
+        ).order_by("?").last()
+
         self.form = Forms.objects.filter(parent__isnull=True).first()
 
-        role = UserRoleTypes.admin
-        self.user_access = Access.objects.create(
-            user=self.user, role=role, administration=self.administration
+        # Create approver user
+        self.create_user(
+            email="approver.123@test.com",
+            administration=self.administration,
+            role_level=self.IS_APPROVER,
+            form=self.form,
         )
-        UserForms.objects.create(user=self.user, form=self.form)
+
+        # Create admnin user
+        self.user = self.create_user(
+            email="test@test.org",
+            administration=self.administration,
+            role_level=self.IS_ADMIN,
+            form=self.form,
+        )
 
         self.passcode = "passcode1234"
         MobileAssignment.objects.create_assignment(
@@ -96,7 +106,7 @@ class MobileAssignmentApiSyncTest(TestCase, AssignmentTokenTestHelperMixin):
             elif question["type"] == "photo":
                 answers[question["id"]] = "https://picsum.photos/200/300"
             elif question["type"] == "cascade":
-                answers[question["id"]] = Administration.objects.last().id
+                answers[question["id"]] = self.administration.id
             else:
                 answers[question["id"]] = "testing"
 

@@ -10,7 +10,7 @@ const PanelApprovals = () => {
   const [approvalsPending, setApprovalsPending] = useState([]);
   const [approvalTab, setApprovalTab] = useState("my-pending");
   const [loading, setLoading] = useState(true);
-  const { user: authUser } = store.useState((s) => s);
+  const { user: authUser, levels } = store.useState((s) => s);
 
   const { approvalsLiteral } = config;
 
@@ -34,7 +34,7 @@ const PanelApprovals = () => {
         label: text.approvalsTab2,
       },
     ];
-    if (authUser.role_detail.name === "Super Admin") {
+    if (authUser.is_superuser) {
       return items.filter((item) => item.key !== "subordinate");
     }
     return items;
@@ -81,7 +81,7 @@ const PanelApprovals = () => {
       <Table
         dataSource={approvalsPending}
         loading={loading}
-        columns={columnsApproval}
+        columns={columnsApproval(levels)}
         pagination={{ position: ["none", "none"] }}
         scroll={{ y: 270 }}
       />

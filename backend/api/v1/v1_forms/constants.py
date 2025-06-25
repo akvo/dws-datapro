@@ -44,18 +44,6 @@ class AttributeTypes:
     }
 
 
-class FormAccessTypes:
-    read = 1
-    edit = 2
-    approve = 3
-
-    FieldStr = {
-        read: "Read",
-        edit: "Edit",
-        approve: "Approve",
-    }
-
-
 class FormTypes:
     registration = 1
     monitoring = 2

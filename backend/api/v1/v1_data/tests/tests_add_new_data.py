@@ -5,7 +5,7 @@ from django.test import TestCase
 from django.test.utils import override_settings
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from api.v1.v1_forms.models import Forms, FormApprovalAssignment
+from api.v1.v1_forms.models import Forms
 from api.v1.v1_profile.models import Administration
 from api.v1.v1_data.models import FormData, Answers
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
@@ -17,7 +17,7 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         super().setUp()
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
+        call_command("default_roles_seeder", "--test", 1)
         self.form = Forms.objects.get(pk=1)
 
     def test_add_new_data_by_super_admin(self):
@@ -100,10 +100,19 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
             adm_name,
             random.randint(1, 10)
         )
+        # Create approver user
+        self.create_user(
+            email=f"{adm_name}.approver@test.com",
+            role_level=self.IS_APPROVER,
+            administration=adm,
+            form=self.form,
+        )
+        # Create admin user
         user = self.create_user(
             email=email,
             role_level=self.IS_ADMIN,
             administration=adm,
+            form=self.form,
         )
         # login
         auth_res = self.client.post(
@@ -164,16 +173,11 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         national_adm = Administration.objects.filter(
             level__level=0
         ).first()
-        super_approver = self.create_user(
+        self.create_user(
             email="supeer.approver@test.com",
             role_level=self.IS_APPROVER,
             administration=national_adm,
             form=form,
-        )
-        FormApprovalAssignment.objects.create(
-            form=form,
-            administration=national_adm,
-            user=super_approver
         )
 
         self.assertEqual(form.id, 2)
@@ -232,6 +236,14 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
             adm_name,
             random.randint(1, 10)
         )
+        # Create approver user
+        self.create_user(
+            email=f"{adm_name}.approver@test.com",
+            role_level=self.IS_APPROVER,
+            administration=adm,
+            form=self.form,
+        )
+        # Create data entry user
         user = self.create_user(
             email=email,
             role_level=self.IS_ADMIN,

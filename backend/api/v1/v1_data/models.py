@@ -1,15 +1,16 @@
-from django.db import models
-
-# Create your models here.
-from api.v1.v1_data.constants import DataApprovalStatus
-from api.v1.v1_forms.constants import QuestionTypes
-from api.v1.v1_forms.models import Forms, Questions
-from api.v1.v1_profile.models import Administration, Levels
-from api.v1.v1_users.models import SystemUser
-from utils.soft_deletes_model import SoftDeletes
 import os
 import uuid
 import json
+from django.db import models
+from api.v1.v1_forms.constants import QuestionTypes
+from api.v1.v1_forms.models import Forms, Questions
+from api.v1.v1_profile.models import (
+    Administration,
+    UserRole,
+    DataAccessTypes,
+)
+from api.v1.v1_users.models import SystemUser
+from utils.soft_deletes_model import SoftDeletes
 from utils import storage
 
 
@@ -46,14 +47,6 @@ class FormData(SoftDeletes):
     )
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(default=None, null=True)
-    # Added fields from PendingFormData
-    batch = models.ForeignKey(
-        to="PendingDataBatch",
-        on_delete=models.SET_NULL,
-        default=None,
-        null=True,
-        related_name="batch_form_data",
-    )
     duration = models.IntegerField(default=0)
     submitter = models.CharField(max_length=255, default=None, null=True)
     is_pending = models.BooleanField(default=False)
@@ -128,85 +121,27 @@ class FormData(SoftDeletes):
     def loc(self):
         return self.administration.name
 
+    @property
+    def has_approval(self):
+        administrations = [self.administration]
+        if self.administration.parent:
+            ancestors = self.administration.ancestors.all()
+            administrations = list(ancestors) + [self.administration]
+        # Check if there are any user roles with approve access
+        # for this form and administration
+        forms = [self.form]
+        # if the form has a parent, add the parent form
+        if self.form.parent:
+            forms.append(self.form.parent)
+        approvers = UserRole.objects.filter(
+            administration__in=administrations,
+            user__user_form__form__in=forms,
+            role__role_role_access__data_access=DataAccessTypes.approve,
+        ).exists()
+        return approvers
+
     class Meta:
         db_table = "data"
-
-
-class PendingDataBatch(models.Model):
-    form = models.ForeignKey(
-        to=Forms, on_delete=models.CASCADE, related_name="form_batch_data"
-    )
-    administration = models.ForeignKey(
-        to=Administration,
-        on_delete=models.PROTECT,
-        related_name="administration_pending_data_batch",
-    )
-    user = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.CASCADE,
-        related_name="user_pending_data_batch",
-    )
-    name = models.TextField()
-    uuid = models.UUIDField(default=None, null=True)
-    file = models.URLField(default=None, null=True)
-    approved = models.BooleanField(default=False)
-    created = models.DateTimeField(auto_now_add=True)
-    updated = models.DateTimeField(default=None, null=True)
-
-    def __str__(self):
-        return self.name
-
-    class Meta:
-        db_table = "batch"
-
-
-class PendingDataBatchComments(models.Model):
-    batch = models.ForeignKey(
-        to=PendingDataBatch,
-        on_delete=models.CASCADE,
-        related_name="batch_batch_comment",
-    )
-    user = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.CASCADE,
-        related_name="user_batch_comment",
-    )
-    comment = models.TextField()
-    created = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.comment
-
-    class Meta:
-        db_table = "batch_comment"
-
-
-class PendingDataApproval(models.Model):
-    batch = models.ForeignKey(
-        to=PendingDataBatch,
-        on_delete=models.CASCADE,
-        related_name="batch_approval",
-    )
-    user = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.CASCADE,
-        related_name="user_assigned_pending_data",
-    )
-    level = models.ForeignKey(
-        to=Levels,
-        on_delete=models.CASCADE,
-        related_name="level_assigned_pending_data",
-    )
-    status = models.IntegerField(
-        choices=DataApprovalStatus.FieldStr.items(),
-        default=DataApprovalStatus.pending,
-    )
-
-    def __str__(self):
-        return self.user.email
-
-    class Meta:
-        db_table = "pending_data_approval"
 
 
 class Answers(models.Model):
@@ -314,31 +249,3 @@ class AnswerHistory(models.Model):
 
     class Meta:
         db_table = "answer_history"
-
-
-class ViewPendingDataApproval(models.Model):
-    id = models.BigIntegerField(primary_key=True)
-    status = models.IntegerField(
-        choices=DataApprovalStatus.FieldStr.items(),
-        default=DataApprovalStatus.pending,
-    )
-    user = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.DO_NOTHING,
-        related_name="user_view_pending_data",
-    )
-    level = models.ForeignKey(
-        to=Levels,
-        on_delete=models.DO_NOTHING,
-        related_name="level_view_pending_data",
-    )
-    batch = models.ForeignKey(
-        to=PendingDataBatch,
-        on_delete=models.DO_NOTHING,
-        related_name="batch_view_pending_data",
-    )
-    pending_level = models.IntegerField()
-
-    class Meta:
-        managed = False
-        db_table = "view_pending_approval"

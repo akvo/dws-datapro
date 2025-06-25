@@ -43,3 +43,6 @@ export { default as UploadAdministrationData } from "./upload-administration-dat
 export { default as UploadEntitiesData } from "./upload-administration-data/UploadEntitiesData";
 export { default as DownloadAdministrationData } from "./upload-administration-data/DownloadAdministrationData";
 export { default as DownloadEntitiesData } from "./upload-administration-data/DownloadEntitiesData";
+export { default as Roles } from "./roles/Roles";
+export { default as AddRole } from "./add-role/AddRole";
+export { default as EditProfile } from "./profile/EditProfile";

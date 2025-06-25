@@ -15,7 +15,6 @@ class AddNewDataTestCase(TestCase, ProfileTestHelperMixin):
         super().setUp()
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
         self.form = Forms.objects.get(pk=4)
         adm = (
             Administration.objects

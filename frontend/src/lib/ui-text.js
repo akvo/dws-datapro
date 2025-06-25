@@ -2,6 +2,25 @@ import React, { Fragment } from "react";
 
 const uiText = {
   en: {
+    // Sidebar Menu Labels
+    menuUsers: "Users",
+    menuControlCenter: "Control Center",
+    menuManagePlatformUsers: "Manage Platform Users",
+    menuValidationTree: "Validation Tree",
+    menuManageMobileUsers: "Manage Mobile Users",
+    menuManageRoles: "Manage Roles",
+    menuMasterData: "Master Data",
+    menuAdministrativeList: "Administrative List",
+    menuAttributes: "Attributes",
+    menuEntities: "Entities",
+    menuEntityTypes: "Entity Types",
+    menuOrganisations: "Organisations",
+    menuData: "Data",
+    menuManageData: "Manage Data",
+    menuPendingSubmissions: "Submissions",
+    menuApprovals: "Approvals",
+    menuDownloads: "Downloads",
+
     // Login
     loginLoadingTex: (
       <Fragment>
@@ -809,6 +828,49 @@ const uiText = {
     userCol: "User",
     mobileAppText: "Mobile App",
     webformText: "Webform",
+    manageRoles: "Manage Roles",
+    manageRoleText: (
+      <Fragment>
+        This is where you manage roles based on their fields. You can :
+        <ul>
+          <li>Add new role</li>
+          <li>Modify existing role</li>
+          <li>Delete existing role</li>
+        </ul>
+      </Fragment>
+    ),
+    manageRolesTitle: "Manage Roles",
+    addRole: "Add Role",
+    editRole: "Edit Role",
+    roleName: "Role Name",
+    roleNameRequired: "Role name is required",
+    roleDescription: "Role Description",
+    roleDescriptionRequired: "Role description is required",
+    roleAdmLevel: "Administration Level",
+    roleAdmLevelRequired: "Administration level is required",
+    roleAdmLevelPlaceholder: "Select administration level...",
+    roleAccess: "Role Access",
+    roleAccessRequired: "Role access is required",
+    roleTotalUsers: "Total Users",
+    roleSuccessAdded: "Role added",
+    roleSuccessUpdated: "Role updated",
+    roleSuccessDeleted: "Role deleted",
+    roleErrorAdd: "Role could not be added",
+    roleErrorUpdate: "Role could not be updated",
+    roleErrDeleteTitle: "Unable to delete the role",
+    roleDeleteTitle: "You are about to delete the role",
+    roleConfirmDelete: "Are you sure you want to delete {roleName}?",
+    addRoleDescription: (
+      <Fragment>
+        This page allows you to add roles to the {window.appConfig.name}{" "}
+        platform.
+      </Fragment>
+    ),
+    selectRole: "Select role...",
+    rolesRequired: "Please select at least one role",
+    yesText: "Yes",
+    noText: "No",
+    editProfile: "Edit Profile",
   },
 
   de: {},

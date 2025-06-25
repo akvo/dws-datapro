@@ -4,6 +4,8 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.7.0",
+    "@casl/ability": "^6.7.3",
+    "@casl/react": "^5.0.0",
     "@turf/turf": "^6.5.0",
     "akvo-react-form": "^2.6.6",
     "antd": "^4.24.15",

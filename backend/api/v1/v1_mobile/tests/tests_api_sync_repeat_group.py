@@ -3,24 +3,47 @@ from api.v1.v1_profile.models import Levels
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_data.models import FormData, Answers
 from api.v1.v1_users.models import SystemUser
+from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
 from django.core.management import call_command
 from rest_framework import status
 from utils.custom_helper import CustomPasscode
 
 
-class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
+class MobileAssignmentApiSyncRepeatGroupTest(TestCase, ProfileTestHelperMixin):
     def setUp(self):
         call_command("administration_seeder", "--test")
         call_command("form_seeder", "--test")
-        call_command("demo_approval_flow", "--test", True)
+        call_command("default_roles_seeder", "--test", 1)
+        call_command("fake_user_seeder", "--repeat", 5, "--test", 1)
 
-        ward_level = Levels.objects.order_by("-level")[1:2].first()
+        adm_level = Levels.objects.order_by("-level")[1:2].first()
         self.form = Forms.objects.get(pk=4)
         user = SystemUser.objects.filter(
-            user_access__administration__level=ward_level,
-            mobile_assignments__forms=self.form,
+            user_user_role__administration__level=adm_level,
         ).first()
-        self.mobile_user = user.mobile_assignments.first()
+
+        # Create approver based on the user's administration
+        user_adm = user.user_user_role.order_by("?").first().administration
+        self.create_user(
+            email="approver.123@test.com",
+            role_level=self.IS_APPROVER,
+            administration=user_adm,
+            form=self.form,
+        )
+
+        # Create a mobile assignment for the user
+        mobile_user = user.mobile_assignments.create(
+            name="Test mobile",
+            passcode=CustomPasscode().encode("123456"),
+        )
+        # Assign administration to the mobile assignment
+        mobile_user.administrations.add(
+            user_adm
+        )
+        # Assign form to the mobile assignment
+        mobile_user.forms.add(self.form)
+
+        self.mobile_user = mobile_user
         self.code = CustomPasscode().decode(
             encoded_passcode=self.mobile_user.passcode
         )
@@ -59,13 +82,6 @@ class MobileAssignmentApiSyncRepeatGroupTest(TestCase):
             **{"HTTP_AUTHORIZATION": f"Bearer {self.token}"},
         )
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-
-        form_data = FormData.objects.filter(
-            form=self.form,
-            name=payload["name"],
-            is_pending=False
-        ).first()
-        self.assertIsNone(form_data)
 
         pending_form_data = FormData.objects.filter(
             form=self.form,
