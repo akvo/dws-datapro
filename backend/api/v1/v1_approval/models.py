@@ -99,6 +99,11 @@ class DataBatchComments(models.Model):
         related_name="user_batch_comment",
     )
     comment = models.TextField()
+    file_path = models.CharField(
+        max_length=255,
+        null=True,
+        default=None,
+    )
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -114,12 +119,7 @@ class DataBatchAttachments(models.Model):
         on_delete=models.CASCADE,
         related_name="batch_batch_attachment",
     )
-    user = models.ForeignKey(
-        to=SystemUser,
-        on_delete=models.CASCADE,
-        related_name="user_batch_attachment",
-    )
-    file = models.CharField(max_length=255)
+    file_path = models.CharField(max_length=255)
     created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
