@@ -6,7 +6,7 @@ import "./style.scss";
 
 const chartDefaultConfig = {
   horizontal: false,
-  title: "Loading",
+  title: "",
   xAxisLabel: "",
   yAxisLabel: "",
   legend: {
