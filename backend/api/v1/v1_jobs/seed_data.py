@@ -389,10 +389,10 @@ def seed_excel_data(job: Jobs, test: bool = False):
         if not test:
             os.remove(file)
         return None
-    if batch and batch.approvers:
+    if batch and len(batch.approvers()):
         # Send email to all approvers
         emails = [
-            approver.user.email for approver in batch.approvers
+            approver.user.email for approver in batch.approvers()
         ]
         number_of_records = batch.batch_data_list.count()
         data = {

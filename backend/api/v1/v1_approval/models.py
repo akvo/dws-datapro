@@ -36,29 +36,39 @@ class DataBatch(models.Model):
     def __str__(self):
         return self.name
 
-    @property
     # Get all the approvers for this batch
     def approvers(self, adm_level: int = None):
         administrations = [self.administration]
         if self.administration.ancestors.count():
             # merge adm with ancestors
             ancestors = self.administration.ancestors.all()
-            administrations = list(ancestors) + self.administration
+            administrations = list(ancestors) + [self.administration]
         # Get all user roles for this administration which have approve access
         # Get form from data_batch_list
         data_batch = self.batch_data_list.first()
+        form = data_batch.data.form
+        # Build base queryset with common filters
         user_roles = UserRole.objects.filter(
             administration__in=administrations,
-            user_user_form__form=data_batch.data.form,
             role__role_role_access__data_access=DataAccessTypes.approve,
         ).select_related("user", "role")
+        # Apply form access filter
+        # Get parent form if exists
+        parent_forms = Forms.objects.filter(children=form)
+        form_filter = [form]
+        if parent_forms.exists():
+            form_filter.extend(parent_forms)
+
+        user_roles = user_roles.filter(
+            user__user_form__form__in=form_filter
+        )
+
         if adm_level is not None or adm_level == 0:
             # Filter user roles by administration level
             user_roles = user_roles.filter(
                 administration__level__level=adm_level,
-                user_user_form__form=data_batch.data.form,
-                role__role_role_access__data_access=DataAccessTypes.approve,
             )
+
         # Show user and their administration order by administration level
         user_roles = user_roles.order_by(
             "user__email", "administration__level__level"
@@ -68,10 +78,6 @@ class DataBatch(models.Model):
                 "user": user_role.user,
                 "role": user_role.role,
                 "administration": user_role.administration,
-                # "approval": self.batch_approval.filter(
-                #     user=user_role.user,
-                #     administration=user_role.administration,
-                # ).first()
             }
             for user_role in user_roles
         ]
