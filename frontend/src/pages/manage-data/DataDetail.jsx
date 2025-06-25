@@ -41,7 +41,9 @@ const DataDetail = ({
   const isEditor = ability.can("edit", "data");
 
   const questionGroups = useMemo(() => {
-    return allForms.find((f) => f.id === record?.form)?.content?.question_group;
+    const formList = window?.forms || allForms || [];
+    return formList?.find((f) => f.id === record?.form)?.content
+      ?.question_group;
   }, [record?.form, allForms]);
 
   const updateCell = (key, parentId, value) => {
@@ -168,7 +170,7 @@ const DataDetail = ({
           const transformedData = [];
 
           // Process each question group
-          questionGroups.forEach((qg) => {
+          questionGroups?.forEach((qg) => {
             if (qg?.repeatable) {
               // For repeatable groups, we need to find how many instances of each question exist
               // Group the response data by question ID

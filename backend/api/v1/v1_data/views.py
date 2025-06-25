@@ -134,6 +134,7 @@ class FormDataAddListView(APIView):
             # Only get the children data
             queryset = form.form_form_data.filter(
                 uuid=parent,
+                is_pending=False
             )
             queryset = queryset.order_by("-created")
             instance = paginator.paginate_queryset(queryset, request)

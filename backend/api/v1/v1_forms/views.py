@@ -157,19 +157,16 @@ def form_approver(request, version):
 @permission_classes([IsAuthenticated])
 def check_form_approver(request, form_id, version):
     form = get_object_or_404(Forms, pk=form_id)
-    # Get all administration's path from user role
-    adms = request.user.user_user_role.values_list(
-        'administration', flat=True
-    ).distinct()
-    adms = list(adms)
-    adm_q = Q()
-    for adm in adms:
-        # adm = Administration.objects.filter(pk=adm_id).first()
-        path = adm.path \
-            if adm.path else f"{adm.id}."
-        adm_q |= Q(administration__path__startswith=path)
+    # Check if the user has any roles that allow them to approve the form
+    # This will include checking the user's administration and its ancestors
+    by_ancestors = Q()
+    for ur in request.user.user_user_role.all():
+        adm = ur.administration
+        if adm.ancestors:
+            ancestors = list(adm.ancestors.all()) + [adm]
+            by_ancestors |= Q(administration__in=ancestors)
     approver = UserRole.objects.filter(
-        adm_q,
+        by_ancestors,
         user__user_form__form=form,
         role__role_role_access__data_access=DataAccessTypes.approve,
     ).count()

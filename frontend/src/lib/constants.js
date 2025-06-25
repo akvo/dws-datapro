@@ -47,3 +47,7 @@ export const ACCESS_LEVELS_LIST = Object.entries(ACCESS_LEVELS).map(
     value,
   })
 );
+
+export const APPROVAL_STATUS_PENDING = 1;
+export const APPROVAL_STATUS_APPROVED = 2;
+export const APPROVAL_STATUS_REJECTED = 3;

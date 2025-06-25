@@ -87,7 +87,7 @@ class Command(BaseCommand):
                 batch.data_batch_list.set(items)
 
                 # Add DataApproval
-                for approver in batch.approvers:
+                for approver in batch.approvers():
                     DataApproval.objects.create(
                         batch=batch,
                         administration=approver["administration"],

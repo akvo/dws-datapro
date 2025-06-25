@@ -80,7 +80,7 @@ const ApproversTree = () => {
             adminClone = adminClone.map((admin) => ({
               ...admin,
               children:
-                admin.children?.map((child) => {
+                admin?.children?.map((child) => {
                   // Find matching child in res.data
                   const resChild = res.data.find(
                     (rc) => rc.administration.id === child.administration.id

@@ -32,8 +32,9 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         test = options.get("test")
         repeat = options.get("repeat")
-        FormData.objects.all().delete(hard=True)
         if test:
+            # Clear existing data
+            FormData.objects.all().delete(hard=True)
             # Seed users
             call_command("fake_user_seeder", "--repeat", repeat, "--test", 1)
 
@@ -52,9 +53,9 @@ class Command(BaseCommand):
                 user_user_role__role__role_role_access__data_access=(
                     DataAccessTypes.submit
                 ),
-                user_form__gt=0
+                user_form__isnull=False  # Check that user has forms assigned
             )
-        ).all()[:repeat]
+        ).distinct().all()[:repeat]
         for user in users:
             forms = Forms.objects.filter(
                 parent__isnull=True
@@ -62,10 +63,12 @@ class Command(BaseCommand):
             administration = Administration.objects \
                 .order_by("?").first()
             if not user.is_superuser:
-                user_role = user.user_user_role.order_by("?").first()
+                user_role = user.user_user_role.filter(
+                    role__role_role_access__data_access=DataAccessTypes.submit
+                ).first()
                 administration = user_role.administration
                 forms = [
-                    form for form in user.user_form.all()
+                    uf.form for uf in user.user_form.all()
                 ]
             for i, form in enumerate(forms):
                 # Check if the administration has a approver

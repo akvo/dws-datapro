@@ -234,7 +234,7 @@ const Sidebar = () => {
             >
               {text.menuAttributes}
             </Menu.Item>
-            <Menu.Item
+            {/* <Menu.Item
               key="menu-entities"
               data-url="/control-center/master-data/entities"
             >
@@ -245,7 +245,7 @@ const Sidebar = () => {
               data-url="/control-center/master-data/entity-types"
             >
               {text.menuEntityTypes}
-            </Menu.Item>
+            </Menu.Item> */}
             <Menu.Item
               key="menu-organisations"
               data-url="/control-center/master-data/organisations"
