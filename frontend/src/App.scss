@@ -349,6 +349,13 @@
   margin: 2.5px !important;
 }
 
+div[role="figure"] {
+  width: 100%;
+  height: 500px;
+  display: flex;
+  justify-content: center;
+}
+
 // button.light {
 //   background-color: #b2b3b7;
 //   color: #fffe;

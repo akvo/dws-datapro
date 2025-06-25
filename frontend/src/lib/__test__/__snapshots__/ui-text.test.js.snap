@@ -459,6 +459,7 @@ Object {
     "manageDataButton": "Manage Data",
     "manageDataTab1": "Registration Data",
     "manageDataTab2": "Monitoring Data",
+    "manageDataTab3": "Monitoring Overview",
     "manageDataText": <React.Fragment>
       This is where you :
       <ul>
@@ -751,6 +752,7 @@ Object {
     "selectEntity": "Select entity...",
     "selectForm": "Please select a form",
     "selectFormPlaceholder": "Select Form",
+    "selectIndicatorPlaceholder": "Select Indicator",
     "selectLevel": "Select level...",
     "selectOne": "Select one...",
     "selectRole": "Select role...",
