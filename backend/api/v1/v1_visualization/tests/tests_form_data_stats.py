@@ -88,7 +88,7 @@ class FormDataStatsAPITest(APITestCase):
             f"&question_id={self.question.id}"
         )
         response = self.client.get(url)
-        today = datetime.today().strftime("%d-%m-%Y")
+        today = "25-06-2025"
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.json(), [{"date": today, "value": 1}])
 
