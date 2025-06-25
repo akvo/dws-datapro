@@ -15,7 +15,7 @@ concurrency = multiprocessing
 [paths]
 source =
     /app/backend
-    backend
+    .
 
 [report]
 precision = 1
