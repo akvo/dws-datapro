@@ -29,6 +29,7 @@ const AddAssignment = () => {
   const [loading, setLoading] = useState(false);
   const [preload, setPreload] = useState(true);
   const [level, setLevel] = useState(userAdmLevel);
+  const [admLevel, setAdmLevel] = useState(null);
   const [selectedAdministrations, setSelectedAdministrations] = useState([]);
   const [formErrors, setFormErrors] = useState([]);
   const [formFeedback, setFormFeedback] = useState(null);
@@ -134,7 +135,12 @@ const AddAssignment = () => {
   };
 
   const onSelectLevel = async (val) => {
+    // reset administrations
+    form.setFieldsValue({ administrations: [] });
+    setSelectedAdministrations([]);
     setLevel(val);
+    const findLevel = levels?.find((l) => l.id === val);
+    setAdmLevel(findLevel);
   };
 
   const onFinish = async (values) => {
@@ -266,6 +272,9 @@ const AddAssignment = () => {
             form={form}
             labelCol={{ span: 6 }}
             wrapperCol={{ span: 18 }}
+            initialValues={{
+              level_id: userAdmLevel,
+            }}
             onFinish={onFinish}
           >
             <Row className="form-row">
@@ -307,8 +316,9 @@ const AddAssignment = () => {
                 </Form.Item>
               </div>
             )}
-            {level !== NATIONAL_LEVEL &&
-              selectedAdm?.[0]?.children?.length > 0 && (
+            {admLevel !== null &&
+              level !== NATIONAL_LEVEL &&
+              selectedAdm?.[0]?.level !== admLevel?.level && (
                 <div className="form-row">
                   <Form.Item
                     name="administrations"

@@ -3,7 +3,10 @@
 #root {
   #approversTree {
     .filters-wrapper {
-      padding: 16px 0;
+      padding: 16px 24px;
+      background-color: white;
+      border-bottom: solid #d7dbec 1px;
+      border-top: solid #d7dbec 1px;
     }
     .approvers-tree-wrapper {
       background-color: white;

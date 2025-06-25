@@ -495,7 +495,12 @@ def list_users(request, version):
             filter_descendants.append(filter_adm.id)
 
         final_set = set(filter_descendants)
-        filter_data["user_user_role__administration_id__in"] = list(final_set)
+        # If the administration is not national level
+        # then filter by final_set administration IDs
+        if filter_adm.level.level:
+            filter_data["user_user_role__administration_id__in"] = list(
+                final_set
+            )
     if serializer.validated_data.get("trained") is not None:
         trained = (
             True
