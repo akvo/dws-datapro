@@ -170,13 +170,12 @@
           .ant-input {
             &:focus,
             &:hover {
-              border-right-width: 16px !important;
+              border-color: $blue;
             }
           }
 
           textarea {
             margin: 0px 0px 15px;
-            border: solid $color-semi-light 16px;
           }
         }
 
