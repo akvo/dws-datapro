@@ -262,13 +262,15 @@ LOGGING = {
     "disable_existing_loggers": False,
     "handlers": {
         "file": {
-            "level": "INFO",
+            "level": "WARNING",
             "class": "logging.FileHandler",
             "filename": f"{BASE_DIR}/logs/logfile.log",
         },
     },
-    "root": {
-        "handlers": ["file"],
-        "level": "INFO",
+    "loggers": {
+        "your_app_name": {
+            "handlers": ["file"],
+            "level": "WARNING",
+        },
     },
 }
