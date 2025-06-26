@@ -332,15 +332,7 @@ class ListFormDataSerializer(serializers.ModelSerializer):
         pending_data = instance.children.filter(
             is_pending=True,
         ).first()
-        has_pending_batch = False
-        if pending_data and pending_data.data_batch_list.exists():
-            has_pending_batch = (
-                not pending_data.data_batch_list.batch.approved
-            )
-        if pending_data and (
-            not hasattr(pending_data, 'data_batch_list') or
-            has_pending_batch
-        ):
+        if pending_data:
             return {
                 "id": pending_data.id,
                 "created_by": pending_data.created_by.get_full_name(),
