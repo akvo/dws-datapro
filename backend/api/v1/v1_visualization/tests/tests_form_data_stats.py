@@ -1,3 +1,4 @@
+from django.test.utils import override_settings
 from rest_framework.test import APITestCase
 from rest_framework import status
 from api.v1.v1_data.models import FormData, Answers
@@ -10,6 +11,7 @@ from datetime import datetime
 from django.utils.timezone import make_aware
 
 
+@override_settings(USE_TZ=False, TEST_ENV=True)
 class FormDataStatsAPITest(APITestCase):
     def setUp(self):
         call_command("administration_seeder", "--test")
@@ -42,11 +44,16 @@ class FormDataStatsAPITest(APITestCase):
 
         self.monitoring_data = FormData.objects.create(
             parent=self.reg_data,
-            created=make_aware(datetime(2023, 8, 1)),
             administration=self.administration,
             created_by=self.user,
-            form=self.registration,
+            form=self.monitoring,
         )
+        # Manually update the created field after creation to bypass
+        # auto_now_add
+        FormData.objects.filter(id=self.monitoring_data.id).update(
+            created=make_aware(datetime(2023, 8, 1))
+        )
+        self.monitoring_data.refresh_from_db()
 
         self.question_group = QuestionGroup.objects.create(
             form=self.monitoring, name="qg_1"
@@ -88,9 +95,12 @@ class FormDataStatsAPITest(APITestCase):
             f"&question_id={self.question.id}"
         )
         response = self.client.get(url)
-        today = "25-06-2025"
+        # The API uses formdata.created date, set to 2023-08-01 in setUp
+        expected_date = "01-08-2023"
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.json(), [{"date": today, "value": 1}])
+        self.assertEqual(
+            response.json(), [{"date": expected_date, "value": 1}]
+        )
 
     def test_stats_with_question_date(self):
         url = (
