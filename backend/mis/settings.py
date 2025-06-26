@@ -51,8 +51,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = environ["DJANGO_SECRET"]
 
 # SECURITY WARNING: don't run with debug turned on in production!
-# DEBUG = True if "DEBUG" in environ else False
-DEBUG = True
+DEBUG = True if "DEBUG" in environ else False
 PROD = True if "PROD" in environ else False
 
 
