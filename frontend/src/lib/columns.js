@@ -8,20 +8,6 @@ import {
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
 
-export const columnsSelected = [
-  {
-    title: "Dataset",
-    dataIndex: "name",
-    key: "name",
-  },
-  {
-    title: "Date Uploaded",
-    dataIndex: "created",
-    key: "created",
-    align: "right",
-  },
-];
-
 export const columnsBatch = [
   {
     title: "",

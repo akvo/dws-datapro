@@ -873,6 +873,11 @@ const uiText = {
     yesText: "Yes",
     noText: "No",
     editProfile: "Edit Profile",
+    fileTypeError: "Invalid file type. Please upload a valid file.",
+    batchFileTypeError:
+      "Invalid attachment file type. Please upload a valid file.",
+    batchFilesHint:
+      "Please upload a file with one of the following extensions: .xlsx, .xls, .csv, .ods, .pdf, .docx, .doc",
   },
 
   de: {},

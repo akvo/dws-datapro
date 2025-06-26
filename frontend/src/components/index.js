@@ -32,3 +32,4 @@ export { default as EntityFilters } from "./filters/EntityFilters";
 export { default as EntityDataFilters } from "./filters/EntityDataFilters";
 export { default as AttributeFilters } from "./filters/AttributeFilters";
 export { default as ApproverDetailTable } from "./ApproverDetailTable";
+export { default as CreateBatchModal } from "./CreateBatchModal";

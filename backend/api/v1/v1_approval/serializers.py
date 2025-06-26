@@ -1,5 +1,7 @@
 from django.db.models import Sum, Count, Q, F
+from django.db import transaction
 from django.utils import timezone
+from django.core.files.storage import FileSystemStorage
 from django_q.tasks import async_task
 
 from drf_spectacular.types import OpenApiTypes
@@ -30,11 +32,13 @@ from utils.custom_serializer_fields import (
     CustomCharField,
     CustomChoiceField,
     CustomBooleanField,
+    CustomFileField,
 )
 from utils.default_serializers import CommonDataSerializer
 from utils.email_helper import send_email, EmailTypes
 from utils.functions import update_date_time_format
 from mis.settings import APP_NAME
+from utils import storage
 
 
 class ListFormDataSerializer(serializers.ModelSerializer):
@@ -652,6 +656,9 @@ class CreateBatchSerializer(serializers.Serializer):
         child=CustomPrimaryKeyRelatedField(
             queryset=FormData.objects.none()
         ),
+    )
+    files = CustomListField(
+        child=CustomFileField(),
         required=False,
     )
 
@@ -687,6 +694,17 @@ class CreateBatchSerializer(serializers.Serializer):
                 )
         return data
 
+    def validate_files(self, files):
+        allowed_formats = ["csv", "xls", "xlsx", "docx", "doc", "pdf"]
+        for file in files:
+            file_extension = file.name.split(".")[-1].lower()
+            if file_extension not in allowed_formats:
+                raise ValidationError(
+                    f"Invalid file format for {file.name}."
+                    f"Allowed formats are: {', '.join(allowed_formats)}"
+                )
+        return files
+
     def validate(self, attrs):
         if len(attrs.get("data")) == 0:
             raise ValidationError(
@@ -719,48 +737,122 @@ class CreateBatchSerializer(serializers.Serializer):
         user_role = user.user_user_role.filter(
             role__role_role_access__data_access=DataAccessTypes.submit
         ).first()
-        obj = DataBatch.objects.create(
-            form_id=form_id,
-            administration=user_role.administration,
-            user=user,
-            name=validated_data.get("name"),
-        )
-        for data in validated_data.get("data"):
-            DataBatchList.objects.create(batch=obj, data=data)
-        # Send email to approvers
-        emails = [
-            approver["user"].email for approver in obj.approvers()
-        ]
-        if len(emails):
-            number_of_records = obj.batch_data_list.count()
-            data = {
-                "send_to": emails,
-                "listing": [
-                    {"name": "Batch Name", "value": obj.name},
-                    {"name": "Questionnaire", "value": obj.form.name},
-                    {
-                        "name": "Number of Records",
-                        "value": number_of_records,
-                    },
-                    {
-                        "name": "Submitter",
-                        "value": f"""{obj.user.name}""",
-                    },
-                ],
-            }
-            send_email(context=data, type=EmailTypes.pending_approval)
-            # Create DataApproval for each approver
-            for approver in obj.approvers():
-                DataApproval.objects.create(
-                    batch=obj,
-                    administration=approver["administration"],
-                    role=approver["role"],
-                    user=approver["user"],
-                    status=DataApprovalStatus.pending,
+        if not user_role:
+            raise ValidationError({
+                "detail": (
+                    "User does not have permission to create a batch."
                 )
-
-        if validated_data.get("comment"):
-            DataBatchComments.objects.create(
-                user=user, batch=obj, comment=validated_data.get("comment")
+            })
+        # try:
+        with transaction.atomic():
+            obj = DataBatch.objects.create(
+                form_id=form_id,
+                administration=user_role.administration,
+                user=user,
+                name=validated_data.get("name"),
             )
+            # Create batch data list entries
+            try:
+                for data in validated_data.get("data"):
+                    DataBatchList.objects.create(batch=obj, data=data)
+            except Exception as e:
+                raise ValidationError({
+                    "detail": f"Failed to create batch data list: {str(e)}"
+                })
+            # Send email to approvers
+            try:
+                emails = [
+                    approver["user"].email for approver in obj.approvers()
+                ]
+                if len(emails):
+                    number_of_records = obj.batch_data_list.count()
+                    data = {
+                        "send_to": emails,
+                        "listing": [
+                            {"name": "Batch Name", "value": obj.name},
+                            {
+                                "name": "Questionnaire",
+                                "value": obj.form.name
+                            },
+                            {
+                                "name": "Number of Records",
+                                "value": number_of_records,
+                            },
+                            {
+                                "name": "Submitter",
+                                "value": f"""{obj.user.name}""",
+                            },
+                        ],
+                    }
+                    send_email(
+                        context=data,
+                        type=EmailTypes.pending_approval
+                    )
+                    # Create DataApproval for each approver
+                    for approver in obj.approvers():
+                        DataApproval.objects.create(
+                            batch=obj,
+                            administration=approver["administration"],
+                            role=approver["role"],
+                            user=approver["user"],
+                            status=DataApprovalStatus.pending,
+                        )
+            except Exception as e:
+                raise ValidationError({
+                    "detail": (
+                        f"Failed to send email to approvers: {str(e)}"
+                    )
+                })
+
+            # Add comment if provided
+            if validated_data.get("comment"):
+                try:
+                    DataBatchComments.objects.create(
+                        user=user,
+                        batch=obj,
+                        comment=validated_data.get("comment")
+                    )
+                except Exception as e:
+                    raise ValidationError({
+                        "detail": (
+                            f"Failed to add comment: {str(e)}"
+                        )
+                    })
+            # Handle file uploads
+            if validated_data.get("files"):
+                fs = FileSystemStorage()
+                for f in validated_data.get("files"):
+                    try:
+                        file = fs.save(
+                            f"./tmp/{f.name}",
+                            f,
+                        )
+                        file_path = fs.path(file)
+                        # Save the file to storage
+                        file_path = storage.upload(
+                            file=file_path,
+                            filename=f.name,
+                            folder="batch_attachments"
+                        )
+                        obj.batch_batch_attachment.create(
+                            file_path=file_path
+                        )
+                        DataBatchComments.objects.create(
+                            batch=obj,
+                            user=self.context['user'],
+                            comment=f"File uploaded: {f.name}",
+                            file_path=file_path,
+                        )
+                    except Exception as e:
+                        raise ValidationError({
+                            "detail": (
+                                f"Failed to upload file {f.name}: {str(e)}"
+                            )
+                        })
         return obj
+        # except ValidationError as ve:
+        #     # Let validation errors pass through with their messages
+        #     raise ve
+        # except Exception as e:
+        #     # Catch any other unexpected errors
+        #     raise ValidationError(f"Failed to create batch: {str(e)}")
