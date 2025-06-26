@@ -1,131 +1,21 @@
 import React, { useMemo, useState, useEffect } from "react";
-import {
-  Table,
-  Input,
-  Tabs,
-  Row,
-  Button,
-  Col,
-  Checkbox,
-  Modal,
-  Tag,
-  Popover,
-} from "antd";
+import { Table, Tabs, Row, Button, Col } from "antd";
 import {
   LeftCircleOutlined,
   DownCircleOutlined,
   FileTextFilled,
-  ClockCircleOutlined,
-  CloseCircleOutlined,
-  CheckCircleOutlined,
-  ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { ApproverDetailTable, DataFilters } from "../../../components";
-import { api, store, uiText } from "../../../lib";
+import {
+  ApproverDetailTable,
+  CreateBatchModal,
+  DataFilters,
+} from "../../../components";
+import { api, columnsBatch, store, uiText } from "../../../lib";
 import { Link } from "react-router-dom";
 import { useNotification } from "../../../util/hooks";
 import { isEmpty, without, union, xor } from "lodash";
 
 const { TabPane } = Tabs;
-const { TextArea } = Input;
-
-const columnsSelected = [
-  {
-    title: "Dataset",
-    dataIndex: "name",
-    key: "name",
-  },
-  {
-    title: "Date Uploaded",
-    dataIndex: "created",
-    key: "created",
-    align: "right",
-  },
-];
-
-const columnsBatch = [
-  {
-    title: "Batch Name",
-    dataIndex: "name",
-    key: "name",
-    render: (name, row) => (
-      <Row align="middle">
-        <Col style={{ marginRight: 20 }}>
-          <FileTextFilled style={{ color: "#666666", fontSize: 28 }} />
-        </Col>
-        <Col>
-          <div>{name}</div>
-          <div>{row.created}</div>
-        </Col>
-      </Row>
-    ),
-  },
-  {
-    title: "Form",
-    dataIndex: "form",
-    key: "form",
-    render: (form) => form.name || "",
-  },
-  {
-    title: "Administration",
-    dataIndex: "administration",
-    key: "administration",
-    render: (administration) => administration.name || "",
-  },
-  {
-    title: "Status",
-    dataIndex: "approvers",
-    key: "approvers",
-    align: "center",
-    render: (approvers) => {
-      if (approvers?.length) {
-        const status_text = approvers[approvers.length - 1].status_text;
-        return (
-          <span>
-            <Tag
-              icon={
-                status_text === "Pending" ? (
-                  <ClockCircleOutlined />
-                ) : status_text === "Rejected" ? (
-                  <CloseCircleOutlined />
-                ) : (
-                  <CheckCircleOutlined />
-                )
-              }
-              color={
-                status_text === "Pending"
-                  ? "default"
-                  : status_text === "Rejected"
-                  ? "error"
-                  : "success"
-              }
-            >
-              {status_text}
-            </Tag>
-          </span>
-        );
-      }
-      return (
-        <span>
-          <Popover
-            content="There is no approvers for this data, please contact admin"
-            title="No Approver"
-          >
-            <Tag color="warning" icon={<ExclamationCircleOutlined />}>
-              No Approver
-            </Tag>
-          </Popover>
-        </span>
-      );
-    },
-  },
-  {
-    title: "Total Data",
-    dataIndex: "total_data",
-    key: "total_data",
-    align: "center",
-  },
-];
 
 const columnsPending = [
   {
@@ -177,11 +67,9 @@ const PanelSubmissions = () => {
   const [selectedRows, setSelectedRows] = useState([]);
   const [selectedRowKeys, setSelectedRowKeys] = useState([]);
   const [selectedTab, setSelectedTab] = useState("pending-data");
-  const [batchName, setBatchName] = useState("");
   const [modalButton, setModalButton] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [comment, setComment] = useState("");
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
   const text = useMemo(() => {
@@ -253,29 +141,6 @@ const PanelSubmissions = () => {
     setCurrentPage(e.current);
   };
 
-  const sendBatch = () => {
-    setLoading(true);
-    const payload = { name: batchName, data: selectedRows.map((x) => x.id) };
-    api
-      .post(
-        "batch",
-        comment.length ? { ...payload, comment: comment } : payload
-      )
-      .then(() => {
-        setSelectedRows([]);
-        setSelectedRowKeys([]);
-        setBatchName("");
-        setComment("");
-        setModalVisible(false);
-        setLoading(false);
-        setSelectedTab("pending-batch");
-      })
-      .catch(() => {
-        setLoading(false);
-        setModalVisible(false);
-      });
-  };
-
   const hasSelected = !isEmpty(selectedRowKeys);
   const onSelectTableRow = (val) => {
     const { id } = val;
@@ -300,8 +165,6 @@ const PanelSubmissions = () => {
   const btnBatchSelected = useMemo(() => {
     const handleOnClickBatchSelectedDataset = () => {
       // check only for data entry role
-      setBatchName("");
-      setComment("");
       if (!user.is_superuser) {
         api.get(`form/check-approver/${selectedForm}`).then((res) => {
           if (!res.data.count) {
@@ -427,69 +290,19 @@ const PanelSubmissions = () => {
           </Button>
         </Link>
       </div>
-      <Modal
-        open={modalVisible}
+      <CreateBatchModal
+        selectedRows={selectedRows}
+        isOpen={modalVisible}
         onCancel={() => {
           setModalVisible(false);
         }}
-        footer={
-          <Row align="middle">
-            <Col xs={24} align="left">
-              <div className="batch-name-field">
-                <label>{text.batchName}</label>
-                <Input
-                  onChange={(e) => setBatchName(e.target.value)}
-                  allowClear
-                  value={batchName}
-                />
-              </div>
-              <label>{text.submissionComment}</label>
-              <TextArea
-                rows={4}
-                onChange={(e) => setComment(e.target.value)}
-                value={comment}
-              />
-            </Col>
-            <Col xs={12} align="left">
-              <Checkbox checked={true} disabled={true} className="dev">
-                {text.sendNewRequest}
-              </Checkbox>
-            </Col>
-            <Col xs={12}>
-              <Button
-                className="light"
-                onClick={() => {
-                  setModalVisible(false);
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                type="primary"
-                onClick={sendBatch}
-                disabled={!batchName.length}
-              >
-                {text.createNewBatch}
-              </Button>
-            </Col>
-          </Row>
-        }
-      >
-        <p>{text.batchHintText}</p>
-        <p>
-          <FileTextFilled style={{ color: "#666666", fontSize: 64 }} />
-        </p>
-        <p>{text.batchHintDesc}</p>
-        <Table
-          bordered
-          size="small"
-          dataSource={selectedRows}
-          columns={columnsSelected}
-          pagination={false}
-          scroll={{ y: 270 }}
-          rowKey="id"
-        />
-      </Modal>
+        onSuccess={() => {
+          setSelectedRows([]);
+          setSelectedRowKeys([]);
+          setSelectedTab("pending-batch");
+          setModalVisible(false);
+        }}
+      />
     </>
   );
 };
