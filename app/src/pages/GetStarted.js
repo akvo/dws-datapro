@@ -1,15 +1,15 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Asset } from 'expo-asset';
+import { Image } from 'react-native';
 import { Text, Button, Input } from '@rneui/themed';
 import { useSQLiteContext } from 'expo-sqlite';
-import { CenterLayout, Image } from '../components';
+import { CenterLayout } from '../components';
 import { BuildParamsState, UIState } from '../store';
 import { api, i18n } from '../lib';
 import { crudConfig } from '../database/crud';
+import appIcon from '../assets/icon.png';
 
 const GetStarted = ({ navigation }) => {
   // eslint-disable-next-line global-require
-  const logo = Asset.fromModule(require('../assets/icon.png')).uri;
   const [currentConfig, setCurrentConfig] = useState({});
   const [IPAddr, setIPAddr] = useState(null);
   const serverURLState = BuildParamsState.useState((s) => s.serverURL);
@@ -55,7 +55,7 @@ const GetStarted = ({ navigation }) => {
   const titles = [trans.getStartedTitle1, trans.getStartedTitle2, trans.getStartedTitle3];
   return (
     <CenterLayout title={titles}>
-      <Image src={logo || null} />
+      <Image source={appIcon} style={{ width: 110, height:110, borderRadius: 4 }} />
       <CenterLayout.Titles items={titles} />
       <Text>{trans.getStartedSubTitle}</Text>
       {!isServerURLDefined && (
