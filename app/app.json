@@ -3,7 +3,7 @@
     "newArchEnabled": true,
     "name": "DWS DataPro",
     "slug": "dws-datapro-mobile",
-    "version": "4.1.5",
+    "version": "4.1.7",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -22,7 +22,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.akvo.dws_datapro",
-      "versionCode": 415
+      "versionCode": 417
     },
     "web": {
       "favicon": "./assets/favicon.png"

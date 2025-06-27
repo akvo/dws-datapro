@@ -329,13 +329,10 @@ class ListFormDataSerializer(serializers.ModelSerializer):
         )
     )
     def get_pending_data(self, instance: FormData):
-        pending_data = FormData.objects.select_related(
-            "created_by"
-        ).filter(uuid=instance.uuid, is_pending=True).first()
-        if pending_data and (
-            not hasattr(pending_data, 'data_batch_list') or
-            not pending_data.data_batch_list.approved
-        ):
+        pending_data = instance.children.filter(
+            is_pending=True,
+        ).first()
+        if pending_data:
             return {
                 "id": pending_data.id,
                 "created_by": pending_data.created_by.get_full_name(),

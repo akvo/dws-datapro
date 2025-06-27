@@ -103,19 +103,22 @@ const MonitoringDetail = () => {
   const { questionGroups } = store.useState((state) => state);
 
   const overviewQuestions = useMemo(() => {
-    return questionGroups
-      .map(
-        (qg) =>
-          qg.question.filter((q) => questionOverviewTypes.includes(q.type)) ||
-          []
-      )
+    const forms =
+      window?.forms?.filter((f) => f?.content?.parent === parseInt(form, 10)) ||
+      [];
+    return forms
+      .map((f) => f.content.question_group)
       .flat()
+      .filter((qg) => qg.question)
+      .map((qg) => qg.question)
+      .flat()
+      .filter((q) => questionOverviewTypes.includes(q.type))
       .map((q) => ({
         id: q.id,
         name: q.label,
         type: q.type,
       }));
-  }, [questionGroups]);
+  }, [form]);
 
   const columns = [
     {
@@ -282,10 +285,7 @@ const MonitoringDetail = () => {
               className="manage-data-tab"
               activeKey={dataTab}
               onChange={(activeKey) => {
-                if (
-                  activeKey === "monitoring-data" ||
-                  activeKey === "monitoring-overview"
-                ) {
+                if (activeKey === "monitoring-data") {
                   setUpdateRecord(true);
                 }
                 setDataTab(activeKey);

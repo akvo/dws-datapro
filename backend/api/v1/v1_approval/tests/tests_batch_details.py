@@ -39,7 +39,7 @@ class DataBatchDetailsTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(response.status_code, 201)
 
         self.data.refresh_from_db()
-        self.batch = self.data.data_batch_list
+        self.batch = self.data.data_batch_list.batch
 
     def test_success_get_batch_comments(self):
         response = self.client.get(
