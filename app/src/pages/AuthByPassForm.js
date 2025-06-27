@@ -1,19 +1,16 @@
 /* eslint-disable no-console */
 import React from 'react';
-import { Asset } from 'expo-asset';
 import { View, StyleSheet, Platform, ToastAndroid } from 'react-native';
 import { Input, Button, Text } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 
-import { CenterLayout, Image } from '../components';
+import { CenterLayout, LogoImage } from '../components';
 import { api, cascades, i18n } from '../lib';
 import { AuthState, UserState, UIState } from '../store';
 import { crudSessions, crudForms, crudUsers } from '../database/crud';
 
 const AuthByPassForm = ({ navigation }) => {
-  // eslint-disable-next-line global-require
-  const logo = Asset.fromModule(require('../assets/icon.png')).uri;
   const { online: isNetworkAvailable, lang: activeLang } = UIState.useState((s) => s);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
@@ -93,7 +90,7 @@ const AuthByPassForm = ({ navigation }) => {
 
   return (
     <CenterLayout>
-      <Image src={logo || null} />
+      <LogoImage />
       {loading ? (
         <View>
           <Text style={styles.dialogLoadingText}>{trans.fetchingData}</Text>

@@ -24,7 +24,7 @@ Copy `env.example` to create a `.env` file. Here’s what it should look like:
 APP_NAME="Akvo MIS"
 APP_SHORT_NAME="akvo-mis"
 APK_NAME="MIS Mobile"
-APK_SHORT_NAME="mis"
+APK_SHORT_NAME="mis-mobile"
 DB_HOST=db
 DB_PASSWORD=password
 DB_SCHEMA=mis
