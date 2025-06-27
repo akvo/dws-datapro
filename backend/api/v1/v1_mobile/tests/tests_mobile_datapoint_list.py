@@ -8,6 +8,7 @@ from api.v1.v1_profile.models import (
 from api.v1.v1_forms.models import Forms
 from api.v1.v1_data.models import FormData
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
+from api.v1.v1_data.functions import add_fake_answers
 from rest_framework import status
 
 
@@ -177,3 +178,37 @@ class MobileDataPointDownloadListTestCase(TestCase, ProfileTestHelperMixin):
         data = response.json()
         # No data points for last level administration
         self.assertEqual(data["total"], 0)
+
+    def test_get_datapoints_list_exclude_pending_data(self):
+        # Create a pending form data
+        pending_form_data = FormData.objects.create(
+            name="Pending Data",
+            geo=None,
+            form=self.forms[0],
+            administration=self.adm_children.first(),
+            created_by=self.user,
+            uuid="pending-uuid-1234",
+            is_pending=True,  # Mark as pending
+        )
+        add_fake_answers(pending_form_data)
+
+        code = {"code": self.passcode}
+        response = self.client.post(
+            "/api/v1/device/auth",
+            code,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token = response.data["syncToken"]
+        url = "/api/v1/device/datapoint-list/"
+        response = self.client.get(
+            url,
+            follow=True,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        # Ensure that the pending data is not included in the list
+        self.assertEqual(data["total"], 1)
+        self.assertNotIn(pending_form_data.id, [d["id"] for d in data["data"]])
