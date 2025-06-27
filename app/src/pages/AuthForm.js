@@ -1,13 +1,11 @@
-/* eslint-disable no-console */
 import React from 'react';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { Asset } from 'expo-asset';
 import { View, StyleSheet, Platform, ToastAndroid } from 'react-native';
 import { Input, Button, Text } from '@rneui/themed';
 import * as Sentry from '@sentry/react-native';
 import { useSQLiteContext } from 'expo-sqlite';
 
-import { CenterLayout, Image } from '../components';
+import { CenterLayout, LogoImage } from '../components';
 import { api, cascades, i18n } from '../lib';
 import { AuthState, UserState, UIState, BuildParamsState } from '../store';
 import { crudForms, crudUsers, crudConfig } from '../database/crud';
@@ -22,8 +20,6 @@ const ToggleEye = ({ hidden, onPress }) => {
 };
 
 const AuthForm = ({ navigation }) => {
-  // eslint-disable-next-line global-require
-  const logo = Asset.fromModule(require('../assets/icon.png')).uri;
   const { online: isNetworkAvailable, lang: activeLang } = UIState.useState((s) => s);
   const { appVersion, serverURL } = BuildParamsState.useState((s) => s);
   const [passcode, setPasscode] = React.useState(null);
@@ -141,7 +137,7 @@ const AuthForm = ({ navigation }) => {
   const titles = [trans.authTitle1, trans.authTitle2, trans.authTitle3];
   return (
     <CenterLayout>
-      <Image src={logo || null} />
+      <LogoImage />
       <CenterLayout.Titles items={titles} />
       <View style={styles.container}>
         <Input

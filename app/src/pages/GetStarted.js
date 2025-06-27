@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { Image } from 'react-native';
 import { Text, Button, Input } from '@rneui/themed';
 import { useSQLiteContext } from 'expo-sqlite';
-import { CenterLayout } from '../components';
+import { CenterLayout, LogoImage } from '../components';
 import { BuildParamsState, UIState } from '../store';
 import { api, i18n } from '../lib';
 import { crudConfig } from '../database/crud';
-import appIcon from '../assets/icon.png';
 
 const GetStarted = ({ navigation }) => {
   // eslint-disable-next-line global-require
@@ -55,7 +53,7 @@ const GetStarted = ({ navigation }) => {
   const titles = [trans.getStartedTitle1, trans.getStartedTitle2, trans.getStartedTitle3];
   return (
     <CenterLayout title={titles}>
-      <Image source={appIcon} style={{ width: 110, height:110, borderRadius: 4 }} />
+      <LogoImage />
       <CenterLayout.Titles items={titles} />
       <Text>{trans.getStartedSubTitle}</Text>
       {!isServerURLDefined && (
