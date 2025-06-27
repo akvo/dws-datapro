@@ -13,6 +13,7 @@ const AboutHome = () => {
   const [visible, setVisible] = useState(false);
   const [checking, setChecking] = useState(false);
   const [updateInfo, setUpdateInfo] = useState({ status: null, text: '' });
+  const appName = process.env.EXPO_PUBLIC_APK_NAME || process.env.APK_NAME || apkName;
 
   const handleCheckAppVersion = () => {
     setChecking(true);
@@ -56,7 +57,7 @@ const AboutHome = () => {
           {/* About App Info */}
           <View style={styles.listItem}>
             <View style={styles.listItemContent}>
-              <Text style={styles.listItemTitle}>{`${trans.about} ${apkName}`}</Text>
+              <Text style={styles.listItemTitle}>{`${trans.about} ${appName}`}</Text>
               <Text style={styles.listItemSubtitle}>{trans.aboutAppDescription}</Text>
             </View>
           </View>
