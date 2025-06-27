@@ -8,7 +8,6 @@ echo "SENTRY_ENV=${SENTRY_ENV}" >>.env
 echo "SENTRY_DSN=${SENTRY_DSN}" >>.env
 echo "SENTRY_AUTH_TOKEN=${SENTRY_AUTH_TOKEN}" >>.env
 echo "APK_NAME=${APK_NAME}" >>.env
-echo "APK_SHORT_NAME=${APK_SHORT_NAME}" >>.env
 
 sed -i "s|\"name\": \".*\"|\"name\": \"${APK_NAME}\"|" app.json
 sed -i "s|\"slug\": \".*\"|\"slug\": \"${APK_SHORT_NAME}-mobile\"|" app.json
@@ -16,6 +15,8 @@ sed -i "s|\"slug\": \".*\"|\"slug\": \"${APK_SHORT_NAME}-mobile\"|" app.json
 ANDROID_PACKAGE=$(echo ${APK_SHORT_NAME} | sed 's/-/_/g')
 sed -i "s|\"package\": \"com\.akvo\..*\"|\"package\": \"com.akvo.${ANDROID_PACKAGE}\"|" app.json
 sed -i "s|\"name\": \".*\"|\"name\": \"${APK_SHORT_NAME}-mobile\"|" package.json
+# set APK_NAME into "apkName" in src/build.json
+sed -i "s|\"apkName\": \".*\"|\"apkName\": \"${APK_NAME}\"|" src/build.json
 
 yarn install
 yarn start
