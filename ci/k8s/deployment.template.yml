@@ -146,6 +146,11 @@ spec:
                 secretKeyRef:
                   name: ${APP_SHORT_NAME}
                   key: app-short-name
+            - name: APK_SHORT_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: ${APP_SHORT_NAME}
+                  key: apk-short-name
             - name: SENTRY_DSN
               valueFrom:
                 secretKeyRef:
