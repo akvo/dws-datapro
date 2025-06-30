@@ -577,7 +577,7 @@ class ListBatchCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DataBatchComments
-        fields = ["user", "comment", "created"]
+        fields = ["user", "comment", "file_path", "created"]
 
 
 class BatchListRequestSerializer(serializers.Serializer):
@@ -771,11 +771,12 @@ class CreateBatchSerializer(serializers.Serializer):
                         )
                         file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
                         obj.batch_batch_attachment.create(
+                            name=f.name,
                             file_path=file_path
                         )
                         obj.batch_batch_comment.create(
                             user=self.context['user'],
-                            comment=f"File uploaded: {f.name}",
+                            comment=f"Attachment uploaded: {f.name}",
                             file_path=file_path,
                         )
                     except Exception as e:
@@ -788,8 +789,7 @@ class CreateBatchSerializer(serializers.Serializer):
 
 
 class BatchAttachmentsSerializer(serializers.ModelSerializer):
-    file = serializers.SerializerMethodField()
-    file_attachment = CustomFileField(
+    file = CustomFileField(
         label="Attachment File",
         help_text="The file to be attached to the batch.",
         write_only=True,
@@ -802,11 +802,7 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
         required=False,
     )
 
-    @extend_schema_field(OpenApiTypes.STR)
-    def get_file(self, instance: DataBatchAttachments):
-        return instance.file_path
-
-    def validate_file_attachment(self, value):
+    def validate_file(self, value):
         if not value:
             raise ValidationError("File is required.")
         allowed_formats = ["csv", "xls", "xlsx", "docx", "doc", "pdf"]
@@ -822,7 +818,7 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
         user: SystemUser = self.context.get("user")
         batch = self.context.get("batch")
 
-        file = validated_data.get("file_attachment")
+        file = validated_data.get("file")
         ext = file.name.split(".")[-1]
         batch_name = re.sub(r'\W+', '-', batch.name.lower())
         filename = f"{batch_name}_{uuid4()}.{ext}"
@@ -835,11 +831,12 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
 
         attachment = DataBatchAttachments.objects.create(
             batch=batch,
+            name=file.name,
             file_path=file_path
         )
         comment = validated_data.get("comment", None)
         if not comment or comment.strip() == "":
-            comment = f"File uploaded: {file.name}"
+            comment = f"Attachment uploaded: {file.name}"
 
         # Create a comment for the attachment
         DataBatchComments.objects.create(
@@ -852,7 +849,7 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):
         batch = self.context.get("batch")
-        file = validated_data.get("file_attachment")
+        file = validated_data.get("file")
         ext = file.name.split(".")[-1]
         batch_name = re.sub(r'\W+', '-', batch.name.lower())
         filename = f"{batch_name}_{uuid4()}.{ext}"
@@ -863,12 +860,13 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
         )
         file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
 
+        instance.name = file.name
         instance.file_path = file_path
         instance.save()
 
         comment = validated_data.get("comment", None)
         if not comment or comment.strip() == "":
-            comment = f"Attachment updated: {instance.file_path}"
+            comment = f"Attachment updated: {instance.name}"
 
         # Add a comment for the update
         user: SystemUser = self.context.get("user")
@@ -883,9 +881,10 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
         model = DataBatchAttachments
         fields = [
             "id",
+            "name",
+            "file_path",
             "file",
-            "file_attachment",
             "comment",
             "created",
         ]
-        read_only_fields = ["id", "file", "created"]
+        read_only_fields = ["id", "name", "file_path", "created"]

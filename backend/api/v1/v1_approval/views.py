@@ -432,7 +432,7 @@ def delete_batch_attachment(request, version, attachment_id):
     batch = attachment.batch
     batch.batch_batch_comment.create(
         user=request.user,
-        comment=f"Attachment {attachment.file_path} deleted",
+        comment=f"Attachment deleted: {attachment.name}",
         file_path=attachment.file_path
     )
     attachment.delete()
