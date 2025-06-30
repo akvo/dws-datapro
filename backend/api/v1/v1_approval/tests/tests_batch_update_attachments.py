@@ -66,7 +66,7 @@ class BatchUpdateAttachmentTestCase(TestCase, ProfileTestHelperMixin):
             content_type="application/pdf"
         )
         data = {
-            "file_attachment": new_pdf,
+            "file": new_pdf,
             "comment": "Updated attachment with new file",
         }
         old_attachment = self.batch.batch_batch_attachment.first()
@@ -92,7 +92,7 @@ class BatchUpdateAttachmentTestCase(TestCase, ProfileTestHelperMixin):
             response.json(),
         ))[0]
         self.assertNotEqual(
-            updated_attachment["file"],
+            updated_attachment["file_path"],
             old_attachment.file_path,
         )
 

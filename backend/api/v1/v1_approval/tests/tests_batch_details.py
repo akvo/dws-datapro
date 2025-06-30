@@ -53,6 +53,7 @@ class DataBatchDetailsTestCase(TestCase, ProfileTestHelperMixin):
         self.assertIn("user", response_json[0])
         self.assertIn("comment", response_json[0])
         self.assertIn("created", response_json[0])
+        self.assertIn("file_path", response_json[0])
 
         self.assertEqual(
             list(response_json[0]["user"]),

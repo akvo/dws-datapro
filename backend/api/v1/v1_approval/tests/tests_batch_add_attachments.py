@@ -66,7 +66,7 @@ class BatchAddAttachmentTestCase(TestCase, ProfileTestHelperMixin):
             content_type="application/pdf"
         )
         data = {
-            "file_attachment": new_pdf,
+            "file": new_pdf,
         }
 
         response = self.client.post(

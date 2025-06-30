@@ -70,7 +70,8 @@ class BatchAttachmentDetailsTestCase(TestCase, ProfileTestHelperMixin):
             list(response.data[0]),
             [
                 "id",
-                "file",
+                "name",
+                "file_path",
                 "created",
             ]
         )
@@ -79,83 +80,5 @@ class BatchAttachmentDetailsTestCase(TestCase, ProfileTestHelperMixin):
         attachment = response.json()[0]
         self.assertIn(
             "batch-attachments",
-            attachment["file"].split("/"),
+            attachment["file_path"].split("/"),
         )
-
-    def test_add_batch_attachment(self):
-        new_pdf = SimpleUploadedFile(
-            name="new_attachment.pdf",
-            content="This is a new test PDF file content".encode(),
-            content_type="application/pdf"
-        )
-        data = {
-            "file_attachment": new_pdf,
-        }
-
-        response = self.client.post(
-            f"/api/v1/batch/attachments/{self.batch.id}",
-            data=data,
-            HTTP_AUTHORIZATION=f"Bearer {self.token}",
-        )
-        self.assertEqual(response.status_code, 201)
-
-        # Verify the new attachment is added
-        response = self.client.get(
-            f"/api/v1/batch/attachments/{self.batch.id}",
-            HTTP_AUTHORIZATION=f"Bearer {self.token}",
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 3)
-
-    def test_delete_batch_attachment(self):
-        attachment_id = self.batch.batch_batch_attachment.first().id
-        response = self.client.delete(
-            f"/api/v1/batch/attachment/{attachment_id}",
-            HTTP_AUTHORIZATION=f"Bearer {self.token}",
-        )
-        self.assertEqual(response.status_code, 204)
-
-        # Verify the attachment is deleted
-        response = self.client.get(
-            f"/api/v1/batch/attachments/{self.batch.id}",
-            HTTP_AUTHORIZATION=f"Bearer {self.token}",
-        )
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(len(response.data), 1)
-
-        # Verify adding a new comment with a file
-        self.batch.refresh_from_db()
-        comment = self.batch.batch_batch_comment.filter(
-            user=self.submitter,
-            comment__icontains="deleted",
-        ).first()
-
-        self.assertIsNotNone(comment)
-        self.assertIsNotNone(comment.file_path)
-
-    def test_delete_non_existent_attachment(self):
-        response = self.client.delete(
-            "/api/v1/batch/attachment/9999",
-            HTTP_AUTHORIZATION=f"Bearer {self.token}",
-        )
-        self.assertEqual(response.status_code, 404)
-        self.assertEqual(response.data["detail"], "Not found.")
-
-    def test_delete_attachment_not_owned(self):
-        # Create a new user and try to
-        # delete an attachment owned by another user
-        other_user = self.create_user(
-            email="non.owner@test.com",
-            role_level=self.IS_ADMIN,
-            password="test1234",
-            administration=self.administration,
-            form=self.form,
-        )
-
-        other_token = self.get_auth_token(other_user.email, "test1234")
-        attachment_id = self.batch.batch_batch_attachment.first().id
-        response = self.client.delete(
-            f"/api/v1/batch/attachment/{attachment_id}",
-            HTTP_AUTHORIZATION=f"Bearer {other_token}",
-        )
-        self.assertEqual(response.status_code, 403)

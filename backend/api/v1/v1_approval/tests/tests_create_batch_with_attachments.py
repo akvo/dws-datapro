@@ -71,7 +71,7 @@ class CreateDataBatchWithAttachmentsTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(manual_comment.user, self.submitter)
         # Check the file upload comment
         file_comment = comments.filter(
-            comment__startswith="File uploaded:"
+            comment__startswith="Attachment uploaded:"
         ).first()
         self.assertIsNotNone(file_comment)
         self.assertTrue(
