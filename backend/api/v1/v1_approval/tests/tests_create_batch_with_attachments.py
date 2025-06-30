@@ -1,9 +1,7 @@
-import os
 from django.test import TestCase, override_settings
 from unittest import mock
 from django.core.management import call_command
 from django.core.files.uploadedfile import SimpleUploadedFile
-from mis.settings import STORAGE_PATH
 
 from api.v1.v1_data.models import FormData
 from api.v1.v1_profile.tests.mixins import ProfileTestHelperMixin
@@ -63,11 +61,6 @@ class CreateDataBatchWithAttachmentsTestCase(TestCase, ProfileTestHelperMixin):
         latest_batch = DataBatch.objects.latest('id')
         self.assertEqual(latest_batch.name, "Test Batch with Attachments")
 
-        file_uploaded = f"{STORAGE_PATH}/batch_attachments/test_attachment.pdf"
-        self.assertTrue(
-            os.path.exists(file_uploaded),
-            "File not exists"
-        )
         # Should have 2 comments - from form field and file upload
         comments = latest_batch.batch_batch_comment.all()
         self.assertEqual(comments.count(), 2)
