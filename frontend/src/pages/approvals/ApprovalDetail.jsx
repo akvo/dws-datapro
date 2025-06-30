@@ -16,6 +16,7 @@ import {
   DownCircleOutlined,
   LoadingOutlined,
   HistoryOutlined,
+  PaperClipOutlined,
 } from "@ant-design/icons";
 import {
   api,
@@ -490,7 +491,7 @@ const ApprovalDetail = ({
                               />
                             }
                           />
-                          <span>Loading..</span>
+                          <span>{text.loadingText}</span>
                         </Space>
                       ) : (
                         <div className={`pending-data-outer`}>
@@ -650,13 +651,13 @@ const ApprovalDetail = ({
                 <List.Item
                   actions={[
                     <a
-                      href={item.file}
+                      href={item.file_path}
                       target="_blank"
                       rel="noopener noreferrer"
-                      download={item.file}
-                      key={`${item.id}-download`}
+                      download={item.file_path}
+                      key={`${item.id}-view`}
                     >
-                      {text.download}
+                      {text.viewText}
                     </a>,
                   ]}
                 >
@@ -671,7 +672,7 @@ const ApprovalDetail = ({
                         </span>
                       </div>
                     }
-                    description={item.file}
+                    description={item.name}
                   />
                 </List.Item>
               )}
@@ -688,8 +689,29 @@ const ApprovalDetail = ({
             itemLayout="horizontal"
             dataSource={comments}
             renderItem={(item) => (
-              <List.Item>
-                {/* TODO: Change Avatar */}
+              <List.Item
+                actions={
+                  item.file_path
+                    ? [
+                        <a
+                          href={item.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={item.file_path}
+                          key={`${item.id}-view`}
+                        >
+                          <Button
+                            type="link"
+                            icon={<PaperClipOutlined />}
+                            style={{ padding: 0 }}
+                          >
+                            {text.viewAttachment}
+                          </Button>
+                        </a>,
+                      ]
+                    : []
+                }
+              >
                 <List.Item.Meta
                   title={
                     <div style={{ fontSize: "12px" }}>
