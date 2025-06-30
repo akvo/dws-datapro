@@ -889,6 +889,9 @@ const uiText = {
     deleteAttachmentDesc: "Are you sure you want to delete this attachment?",
     deleteAttachmentSuccess: "Attachment deleted successfully",
     deleteAttachmentError: "Unable to delete attachment",
+    viewAttachment: "View Attachment",
+    viewText: "View",
+    addAttachment: "Add Attachment",
   },
 
   de: {},

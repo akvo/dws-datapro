@@ -19,6 +19,7 @@ Object {
        platform.
     </React.Fragment>,
     "addAdministration": "Add Administration",
+    "addAttachment": "Add Attachment",
     "addAttributeDesc": <React.Fragment>
       This page allows you to add attribute to the 
       Test App
@@ -841,6 +842,8 @@ Object {
     "valOrganization": "Please select an Organization",
     "valPhone": "Phone number is required",
     "valRole": "Please select a Role",
+    "viewAttachment": "View Attachment",
+    "viewText": "View",
     "webformText": "Webform",
     "welcomeShort": <React.Fragment>
       Welcome to the 
