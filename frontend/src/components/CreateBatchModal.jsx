@@ -7,16 +7,15 @@ import {
   Row,
   Col,
   Input,
-  Upload,
   Divider,
   Space,
 } from "antd";
 import { FileTextFilled } from "@ant-design/icons";
-import { api, config, store, uiText } from "../lib";
+import { api, store, uiText } from "../lib";
 import { useNotification } from "../util/hooks";
+import DocumentUploader from "./DocumentUploader";
 
 const { TextArea } = Input;
-const { Dragger } = Upload;
 
 const CreateBatchModal = ({
   onCancel,
@@ -169,43 +168,12 @@ const CreateBatchModal = ({
             onChange={(e) => setComment(e.target.value)}
             value={comment}
           />
-          <Dragger
-            name="files"
-            multiple={true}
-            accept={config.batchAttachment.allowed.join(",")}
-            beforeUpload={(file) => {
-              const fileMB = file.size / (1024 * 1024);
-              const isAllowed =
-                config.batchAttachment.allowed.includes(file.type) &&
-                fileMB <= config.batchAttachment.maxSize;
-              if (!isAllowed) {
-                notify({
-                  type: "error",
-                  message: text.batchFileTypeError,
-                });
-              }
-              return isAllowed || Upload.LIST_IGNORE;
-            }}
-            onChange={(info) => {
-              if (info.fileList.length > 0) {
-                setFileList(info.fileList);
-              }
-            }}
-            onRemove={(file) => {
-              setFileList((prevFileList) =>
-                prevFileList.filter((f) => f.uid !== file.uid)
-              );
-            }}
+          <DocumentUploader
+            setFileList={setFileList}
             fileList={fileList}
-            customRequest={({ onSuccess }) => {
-              onSuccess("ok");
-            }}
-          >
-            <p className="ant-upload-drag-icon">
-              <FileTextFilled style={{ color: "#666666", fontSize: 64 }} />
-            </p>
-            <p style={{ fontSize: 14 }}>{text.batchFilesHint}</p>
-          </Dragger>
+            multiple={true} // Allow multiple files
+            name="files"
+          />
         </Col>
       </Row>
     </Modal>
