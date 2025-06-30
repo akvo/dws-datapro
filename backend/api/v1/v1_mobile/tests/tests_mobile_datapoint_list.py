@@ -212,3 +212,39 @@ class MobileDataPointDownloadListTestCase(TestCase, ProfileTestHelperMixin):
         # Ensure that the pending data is not included in the list
         self.assertEqual(data["total"], 1)
         self.assertNotIn(pending_form_data.id, [d["id"] for d in data["data"]])
+
+    def test_get_datapoint_list_from_last_synced_at(self):
+        # Create a new form data after the last synced time
+        self.mobile_assignment.last_synced_at = self.form_data.created
+        self.mobile_assignment.save()
+
+        new_form_data = FormData.objects.create(
+            name="New Data",
+            geo=None,
+            form=self.forms[0],
+            administration=self.adm_children.first(),
+            created_by=self.user,
+            uuid="new-uuid-1234",
+        )
+        add_fake_answers(new_form_data)
+
+        code = {"code": self.passcode}
+        response = self.client.post(
+            "/api/v1/device/auth",
+            code,
+            content_type="application/json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        token = response.data["syncToken"]
+        url = "/api/v1/device/datapoint-list/"
+        response = self.client.get(
+            url,
+            follow=True,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        # Ensure that the new data is included in the list
+        self.assertEqual(data["total"], 2)
+        self.assertIn(new_form_data.id, [d["id"] for d in data["data"]])
