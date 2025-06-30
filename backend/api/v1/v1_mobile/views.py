@@ -501,12 +501,13 @@ def get_datapoint_download_list(request, version):
     queryset = FormData.objects.filter(
         admin_id_query | (path_query & Q(form_id__in=forms))
     )
-    # if assignment.last_synced_at:
-    #     queryset = queryset.filter(
-    #         Q(created__gte=assignment.last_synced_at)
-    #         | Q(updated__gte=assignment.last_synced_at)
-    #     )
+    if assignment.last_synced_at:
+        queryset = queryset.filter(
+            Q(created__gte=assignment.last_synced_at)
+            | Q(updated__gte=assignment.last_synced_at)
+        )
 
+    queryset = queryset.filter(is_pending=False)
     queryset = queryset.values(
         "uuid",
         "id",

@@ -517,13 +517,6 @@ class PendingFormDataView(APIView):
     )
     def get(self, request, form_id, version):
         form = get_object_or_404(Forms, pk=form_id)
-        serializer = ListFormDataRequestSerializer(data=request.GET)
-        if not serializer.is_valid():
-            return Response(
-                {"message": validate_serializers_message(serializer.errors)},
-                status=status.HTTP_400_BAD_REQUEST,
-            )
-
         page_size = REST_FRAMEWORK.get("PAGE_SIZE")
 
         # Get all child form IDs including the parent form
@@ -636,12 +629,19 @@ class PendingFormDataView(APIView):
         pending_data.updated = timezone.now()
         pending_data.updated_by = user
         pending_data.save()
-        if pending_data.data_batch_list.exists():
+        if hasattr(pending_data, "data_batch_list") and \
+                not pending_data.data_batch_list.batch.approved:
             # If this pending data is part of a batch,
             # update the batch approval status as pending
-            approvals = pending_data.data_batch_list.batch_approval.all()
+            approvals = pending_data.data_batch_list.batch.batch_approval.all()
             for approval in approvals:
-                approval.status = DataApprovalStatus.pending
+                # Reset the approval status to pending if it was rejected
+                if approval.status == DataApprovalStatus.rejected:
+                    approval.status = DataApprovalStatus.pending
+                # If the approval is by the user, set it to approved
+                if approval.user == request.user:
+                    approval.status = DataApprovalStatus.approved
+                # Update the approval timestamp
                 approval.updated = timezone.now()
                 approval.save()
         return Response(

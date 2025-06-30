@@ -112,6 +112,11 @@ def list_pending_batch(request, version):
         batch_approval__status=approval_status,
     ).order_by("-id")
 
+    # Get my administration levels
+    my_levels = role_approver.values_list(
+        'administration__level__level', flat=True
+    ).distinct()
+
     if role_approver.exists() and not approved and not subordinate:
         # For higher level administrators, implement level checking
         # Get all batch IDs that should be visible
@@ -121,10 +126,6 @@ def list_pending_batch(request, version):
             batch_levels = batch.batch_approval.values_list(
                 'administration__level__level', flat=True
             ).distinct().order_by('administration__level__level')
-            # Get my administration levels
-            my_levels = role_approver.values_list(
-                'administration__level__level', flat=True
-            ).distinct()
             # Check if this batch should be visible
             is_valid = True
             for my_level in my_levels:
@@ -143,26 +144,26 @@ def list_pending_batch(request, version):
                     break
             if is_valid:
                 valid_batch_ids.append(batch.id)
+        # Set unique valid batch IDs
+        valid_batch_ids = set(valid_batch_ids)
         # Filter queryset to only include valid batches
         queryset = queryset.filter(id__in=valid_batch_ids)
     if subordinate:
-        user_levels = user.user_user_role.filter(
-            role__role_role_access__data_access=DataAccessTypes.approve
-        ).values_list(
-            "administration__level__level", flat=True
-        )
         adm_level = Q()
-        for level in user_levels:
+        for level in my_levels:
             adm_level |= Q(
                 batch_approval__administration__level__level=level + 1,
                 batch_approval__status=DataApprovalStatus.pending,
             )
-        batch_ids = queryset.values_list("id", flat=True)
+        batch_ids = DataBatch.objects.filter(
+            batch_approval__user=user,
+        ).values_list("id", flat=True)
         queryset = DataBatch.objects.filter(
             adm_level,
             id__in=batch_ids,
             approved=approved,
-        ).distinct().order_by("-id")
+        )
+    queryset = queryset.distinct().order_by("-id")
     paginator = PageNumberPagination()
     paginator.paginate_queryset(queryset, request)
     total = queryset.count()

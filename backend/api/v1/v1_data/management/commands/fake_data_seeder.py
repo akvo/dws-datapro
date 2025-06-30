@@ -1,21 +1,18 @@
 import pandas as pd
-from django.core.management import call_command
 from datetime import datetime, timedelta, time
-from django.core.management import BaseCommand
+
+from django.core.management import call_command, BaseCommand
 from django.utils.timezone import make_aware
 from django.db.models import Q
-
 from faker import Faker
 
 from mis.settings import COUNTRY_NAME
 from api.v1.v1_data.models import FormData
-from api.v1.v1_forms.models import Forms
-from api.v1.v1_profile.models import (
-    Administration,
-    DataAccessTypes
-)
-from api.v1.v1_users.models import SystemUser
 from api.v1.v1_data.functions import add_fake_answers
+from api.v1.v1_approval.functions import create_batch_with_approvals
+from api.v1.v1_forms.models import Forms
+from api.v1.v1_profile.models import Administration, DataAccessTypes
+from api.v1.v1_users.models import SystemUser
 
 fake = Faker()
 
@@ -28,10 +25,19 @@ class Command(BaseCommand):
         parser.add_argument(
             "-t", "--test", nargs="?", const=False, default=False, type=bool
         )
+        parser.add_argument(
+            "-a",
+            "--approved",
+            nargs="?",
+            const=False,
+            default=False,
+            type=bool,
+        )
 
     def handle(self, *args, **options):
         test = options.get("test")
         repeat = options.get("repeat")
+        approved = options.get("approved")
         if test:
             # Clear existing data
             FormData.objects.all().delete(hard=True)
@@ -70,6 +76,7 @@ class Command(BaseCommand):
                 forms = [
                     uf.form for uf in user.user_form.all()
                 ]
+            pending = []
             for i, form in enumerate(forms):
                 # Check if the administration has a approver
                 geo = fake_geo.iloc[i].to_dict()
@@ -87,5 +94,15 @@ class Command(BaseCommand):
                 if data.has_approval:
                     data.is_pending = True
                     data.save()
+                    pending.append(data)
                 else:
                     data.save_to_file
+            # Create batches for pending data using unified function
+            if pending and approved:
+                create_batch_with_approvals(
+                    data_items=pending,
+                    user=user,
+                    administration=administration,
+                    approved_flag=approved,
+                    batch_size=5
+                )
