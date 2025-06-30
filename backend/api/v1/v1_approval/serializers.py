@@ -114,13 +114,9 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
         user: SystemUser = self.context.get("user")
         approved: bool = self.context.get("approved")
         subordinate: bool = self.context.get("subordinate", False)
-        approval_status = DataApprovalStatus.pending
-        if approved:
-            approval_status = DataApprovalStatus.approved
         # Get my approval
         my_approval = instance.batch_approval.filter(
             user=user,
-            status=approval_status,
         ).first()
         next_level = my_approval.administration.level.level + 1
         approvers = instance.batch_approval.filter(
@@ -130,7 +126,7 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
             "administration__level__level"
         ).all()
         # Get all approvers grouped by administration level
-        if approval_status == DataApprovalStatus.pending:
+        if not approved:
             # For pending status, check if all approvers at a level are pending
             # Get levels where all approvers are pending
             adm_levels_with_all_pending = instance.batch_approval.values(
@@ -157,7 +153,11 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
                 administration__level__level=next_level,
                 status=DataApprovalStatus.pending,
             ).all()
-        if approvers.count() == 0 and not approved:
+        if (
+            approvers.count() == 0 and
+            not approved and
+            my_approval.status != DataApprovalStatus.rejected
+        ):
             approvers = [my_approval]
         return PendingBatchApproverSerializer(
             approvers,
@@ -245,6 +245,8 @@ class ApproveDataRequestSerializer(serializers.Serializer):
         approval.status = status
         approval.save()
 
+        adm_level = approval.administration.level.level
+
         # Add comment if provided
         if comment:
             DataBatchComments.objects.create(
@@ -326,11 +328,18 @@ class ApproveDataRequestSerializer(serializers.Serializer):
             )
             send_email(context=data, type=EmailTypes.batch_rejection)
             # Send to lower level approvers
-            adm_level = approval.administration.level.level
             lower_approvers = batch.batch_approval.filter(
                 administration__level__level__gt=adm_level,
             )
             if lower_approvers.exists():
+                for approver in lower_approvers:
+                    if (
+                        approver.status == DataApprovalStatus.approved and
+                        approver.administration.level.level == adm_level + 1
+                    ):
+                        approver.status = DataApprovalStatus.pending
+                        approver.save()
+                # Inform lower level approvers
                 lower_emails = [
                     approver.user.email for approver in lower_approvers
                 ]
