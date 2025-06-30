@@ -113,11 +113,6 @@
             margin-bottom: 0;
           }
 
-          .comments {
-            border: 1px solid #d9dcdd;
-            padding: 12px 16px;
-          }
-
           .ant-tabs {
             margin: 20px 0 10px;
 
@@ -261,6 +256,19 @@
   #upload-detail {
     .blue {
       color: $blue;
+    }
+    .detail-list-header {
+      padding: 12px 16px;
+      background: #eaeaed;
+      font-size: 14px;
+      font-weight: $font-weight-bold;
+      margin-bottom: 0;
+      margin-top: 36px;
+    }
+    .detail-list {
+      border: 1px solid #d9dcdd;
+      padding: 12px 16px;
+      margin-bottom: 36px;
     }
   }
 }

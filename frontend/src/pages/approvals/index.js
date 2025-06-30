@@ -5,7 +5,7 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 
-export const columnsApproval = (levels) => [
+export const columnsApproval = () => [
   {
     title: "Submission",
     dataIndex: "name",

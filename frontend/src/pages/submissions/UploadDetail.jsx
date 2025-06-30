@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Table, Tabs, Button, Space, List, Spin } from "antd";
 import {
   LeftCircleOutlined,
@@ -99,6 +99,7 @@ const UploadDetail = ({ record, setReload }) => {
   const [comments, setComments] = useState([]);
   const [questionGroups, setQuestionGroups] = useState([]);
   const [resetButton, setresetButton] = useState({});
+  const [attachments, setAttachments] = useState([]);
   const { notify } = useNotification();
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
@@ -152,6 +153,19 @@ const UploadDetail = ({ record, setReload }) => {
         setSaving(null);
       });
   };
+
+  const fetchAttachments = useCallback(async () => {
+    try {
+      const response = await api.get(`/batch/attachments/${record.id}`);
+      setAttachments(response.data);
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+    }
+  }, [record.id]);
+
+  useEffect(() => {
+    fetchAttachments();
+  }, [fetchAttachments]);
 
   useEffect(() => {
     setSelectedTab("data-summary");
@@ -355,7 +369,6 @@ const UploadDetail = ({ record, setReload }) => {
   const isEditable =
     (record.approvers || []).filter((a) => a.status_text === "Rejected")
       .length > 0;
-  // && user?.role?.id === 4; // TODO remove hardcoded role id
 
   return (
     <div id="upload-detail">
@@ -541,9 +554,53 @@ const UploadDetail = ({ record, setReload }) => {
         }}
         expandRowByClick
       />
-      <h3>{text.notesFeedback}</h3>
+      {attachments.length > 0 && (
+        <div className="attachments">
+          <div className="detail-list-header">
+            <h3>{text.batchAttachments}</h3>
+          </div>
+          <div className="detail-list">
+            <List
+              itemLayout="horizontal"
+              dataSource={attachments}
+              renderItem={(item) => (
+                <List.Item
+                  actions={[
+                    <a
+                      href={item.file}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={item.file}
+                      key={`${item.id}-download`}
+                    >
+                      {text.download}
+                    </a>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <div style={{ fontSize: "12px" }}>
+                        <span style={{ color: "#ACAAAA", marginLeft: "6px" }}>
+                          {getTimeDifferenceText(
+                            item.created,
+                            "YYYY-MM-DD hh:mm a"
+                          )}
+                        </span>
+                      </div>
+                    }
+                    description={item.file}
+                  />
+                </List.Item>
+              )}
+            />
+          </div>
+        </div>
+      )}
+      <div className="detail-list-header">
+        <h3>{text.notesFeedback}</h3>
+      </div>
       {!!comments.length && (
-        <div className="comments">
+        <div className="detail-list">
           <List
             itemLayout="horizontal"
             dataSource={comments}
