@@ -5,6 +5,7 @@ from api.v1.v1_approval.views import (
     list_pending_batch,
     list_data_batch,
     delete_batch_attachment,
+    update_batch_attachments,
     BatchView,
     BatchSummaryView,
     BatchCommentView,
@@ -25,6 +26,10 @@ urlpatterns = [
     re_path(
         r"^(?P<version>(v1))/batch/attachment/(?P<attachment_id>[0-9]+)$",
         delete_batch_attachment,
+    ),
+    re_path(
+        r"^(?P<version>(v1))/batch/attachment/(?P<attachment_id>[0-9]+)/edit$",
+        update_batch_attachments,
     ),
     re_path(
         r"^(?P<version>(v1))/batch/comment/(?P<batch_id>[0-9]+)",

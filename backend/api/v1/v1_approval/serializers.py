@@ -795,6 +795,12 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
         write_only=True,
         required=True,
     )
+    comment = CustomCharField(
+        label="Comment",
+        help_text="Optional comment for the attachment.",
+        write_only=True,
+        required=False,
+    )
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_file(self, instance: DataBatchAttachments):
@@ -831,12 +837,15 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
             batch=batch,
             file_path=file_path
         )
+        comment = validated_data.get("comment", None)
+        if not comment or comment.strip() == "":
+            comment = f"File uploaded: {file.name}"
 
         # Create a comment for the attachment
         DataBatchComments.objects.create(
             user=user,
             batch=batch,
-            comment=f"Attachment added: {attachment.file_path}",
+            comment=comment,
             file_path=file_path
         )
         return attachment
@@ -844,7 +853,6 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         batch = self.context.get("batch")
         file = validated_data.get("file_attachment")
-        print("file", file)
         ext = file.name.split(".")[-1]
         batch_name = re.sub(r'\W+', '-', batch.name.lower())
         filename = f"{batch_name}_{uuid4()}.{ext}"
@@ -858,16 +866,26 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
         instance.file_path = file_path
         instance.save()
 
+        comment = validated_data.get("comment", None)
+        if not comment or comment.strip() == "":
+            comment = f"Attachment updated: {instance.file_path}"
+
         # Add a comment for the update
         user: SystemUser = self.context.get("user")
         batch.batch_batch_comment.create(
             user=user,
-            comment=f"Attachment updated: {instance.file_path}",
+            comment=comment,
             file_path=instance.file_path
         )
         return instance
 
     class Meta:
         model = DataBatchAttachments
-        fields = ["id", "file", "file_attachment", "created"]
+        fields = [
+            "id",
+            "file",
+            "file_attachment",
+            "comment",
+            "created",
+        ]
         read_only_fields = ["id", "file", "created"]

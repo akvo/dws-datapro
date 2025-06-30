@@ -437,3 +437,40 @@ def delete_batch_attachment(request, version, attachment_id):
     )
     attachment.delete()
     return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(
+    request=BatchAttachmentsSerializer(),
+    responses={200: BatchAttachmentsSerializer},
+    tags=["Batch Attachments"],
+    summary="To update batch attachments",
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def update_batch_attachments(request, version, attachment_id):
+    attachment = get_object_or_404(DataBatchAttachments, pk=attachment_id)
+    if attachment.batch.user != request.user:
+        return Response(
+            {
+                "message": (
+                    "You do not have permission to update this attachment"
+                ),
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    batch = attachment.batch
+    serializer = BatchAttachmentsSerializer(
+        instance=attachment,
+        data=request.data,
+        context={"user": request.user, "batch": batch}
+    )
+    if not serializer.is_valid():
+        return Response(
+            {"detail": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    serializer.save(user=request.user, batch=batch)
+    return Response(
+        data=serializer.data,
+        status=status.HTTP_200_OK
+    )
