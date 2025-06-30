@@ -203,7 +203,7 @@ class CreateDataBatchWithAttachmentsTestCase(TestCase, ProfileTestHelperMixin):
         batch_count_after = DataBatch.objects.count()
         self.assertEqual(batch_count_before, batch_count_after)
 
-    @mock.patch('api.v1.v1_approval.serializers.storage.upload')
+    @mock.patch('utils.storage.upload')
     def test_transaction_rollback_on_file_upload_error(self, mock_upload):
         # Mock the storage.upload function to raise an exception
         mock_upload.side_effect = Exception("File upload failed")
