@@ -879,6 +879,16 @@ const uiText = {
     batchFilesHint:
       "Please upload a file with one of the following extensions: .xlsx, .xls, .csv, .ods, .pdf, .docx, .doc",
     batchAttachments: "Attachments",
+    editText: "Edit",
+    uploadText: "Upload",
+    uploadAttachments: "Upload Attachments",
+    uploadAttachmentsSuccess: "Attachments uploaded successfully",
+    uploadAttachmentsError: "Unable to upload attachments",
+    uploadAttachmentsComment: "Add a comment for the attachment",
+    deleteAttachmentTitle: "Delete Attachment",
+    deleteAttachmentDesc: "Are you sure you want to delete this attachment?",
+    deleteAttachmentSuccess: "Attachment deleted successfully",
+    deleteAttachmentError: "Unable to delete attachment",
   },
 
   de: {},
