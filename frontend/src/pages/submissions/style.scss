@@ -269,6 +269,12 @@
       border: 1px solid #d9dcdd;
       padding: 12px 16px;
       margin-bottom: 36px;
+      .ant-btn-dangerous.ant-btn-link {
+        color: $red;
+        &:hover {
+          color: $red;
+        }
+      }
     }
   }
 }

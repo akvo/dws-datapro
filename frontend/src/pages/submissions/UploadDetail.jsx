@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
-import { Table, Tabs, Button, Space, List, Spin } from "antd";
+import { Table, Tabs, Button, Space, List, Spin, Row, Col, Modal } from "antd";
 import {
   LeftCircleOutlined,
   DownCircleOutlined,
   LoadingOutlined,
   HistoryOutlined,
+  PaperClipOutlined,
 } from "@ant-design/icons";
 import { api, QUESTION_TYPES, store, uiText } from "../../lib";
 import { ApproverDetailTable, EditableCell } from "../../components";
@@ -13,6 +14,7 @@ import { useNotification } from "../../util/hooks";
 import { HistoryTable } from "../../components";
 import { getTimeDifferenceText } from "../../util/date";
 import { SubmissionTypeIcon } from "../../components/Icons";
+import UploadAttachmentModal from "./UploadAttachmentModal";
 const { TabPane } = Tabs;
 
 const columnsRawData = [
@@ -100,6 +102,9 @@ const UploadDetail = ({ record, setReload }) => {
   const [questionGroups, setQuestionGroups] = useState([]);
   const [resetButton, setresetButton] = useState({});
   const [attachments, setAttachments] = useState([]);
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const [editAttachment, setEditAttachment] = useState(null);
+
   const { notify } = useNotification();
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
@@ -226,6 +231,36 @@ const UploadDetail = ({ record, setReload }) => {
         });
     }
   }, [selectedTab, record]);
+
+  const onDeleteAttachment = (attachmentId) => {
+    Modal.confirm({
+      title: text.deleteAttachmentTitle,
+      content: text.deleteAttachmentDesc,
+      okText: text.deleteText,
+      okType: "danger",
+      cancelText: text.cancelButton,
+      onOk: () => {
+        api
+          .delete(`/batch/attachment/${attachmentId}`)
+          .then(() => {
+            notify({
+              type: "success",
+              message: text.deleteAttachmentSuccess,
+            });
+            setAttachments((prevAttachments) =>
+              prevAttachments.filter((att) => att.id !== attachmentId)
+            );
+          })
+          .catch((error) => {
+            console.error("Error deleting attachment:", error);
+            notify({
+              type: "error",
+              message: text.deleteAttachmentError,
+            });
+          });
+      },
+    });
+  };
 
   const updateCell = (key, parentId, value) => {
     setresetButton({ ...resetButton, [key]: true });
@@ -557,7 +592,23 @@ const UploadDetail = ({ record, setReload }) => {
       {attachments.length > 0 && (
         <div className="attachments">
           <div className="detail-list-header">
-            <h3>{text.batchAttachments}</h3>
+            <Row align="middle" justify="space-between">
+              <Col span={8}>
+                <h3>{text.batchAttachments}</h3>
+              </Col>
+              <Col span={4} style={{ textAlign: "right" }}>
+                <Button
+                  type="link"
+                  icon={<PaperClipOutlined />}
+                  onClick={() => {
+                    setAttachmentModalOpen(true);
+                  }}
+                  size="small"
+                >
+                  Add Attachment
+                </Button>
+              </Col>
+            </Row>
           </div>
           <div className="detail-list">
             <List
@@ -566,6 +617,25 @@ const UploadDetail = ({ record, setReload }) => {
               renderItem={(item) => (
                 <List.Item
                   actions={[
+                    <Button
+                      type="link"
+                      key={`${item.id}-delete`}
+                      onClick={() => onDeleteAttachment(item.id)}
+                      danger
+                    >
+                      {text.deleteText}
+                    </Button>,
+                    <Button
+                      type="link"
+                      key={`${item.id}-edit`}
+                      disabled={!item.id}
+                      onClick={() => {
+                        setEditAttachment(item);
+                        setAttachmentModalOpen(true);
+                      }}
+                    >
+                      {text.editText}
+                    </Button>,
                     <a
                       href={item.file}
                       target="_blank"
@@ -596,6 +666,18 @@ const UploadDetail = ({ record, setReload }) => {
           </div>
         </div>
       )}
+      <UploadAttachmentModal
+        isOpen={attachmentModalOpen}
+        onCancel={() => {
+          setAttachmentModalOpen(false);
+        }}
+        onSuccess={() => {
+          setAttachmentModalOpen(false);
+          fetchAttachments();
+        }}
+        editData={editAttachment}
+        batch={record}
+      />
       <div className="detail-list-header">
         <h3>{text.notesFeedback}</h3>
       </div>
@@ -606,7 +688,6 @@ const UploadDetail = ({ record, setReload }) => {
             dataSource={comments}
             renderItem={(item) => (
               <List.Item>
-                {/* TODO: Change Avatar */}
                 <List.Item.Meta
                   title={
                     <div style={{ fontSize: "12px" }}>
