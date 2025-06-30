@@ -878,6 +878,7 @@ const uiText = {
       "Invalid attachment file type. Please upload a valid file.",
     batchFilesHint:
       "Please upload a file with one of the following extensions: .xlsx, .xls, .csv, .ods, .pdf, .docx, .doc",
+    batchAttachments: "Attachments",
   },
 
   de: {},

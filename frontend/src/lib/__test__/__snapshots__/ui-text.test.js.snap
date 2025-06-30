@@ -120,6 +120,7 @@ Object {
     "backManageData": "Back to Manage Data",
     "backToAdmLabel": "Back to Administrative List",
     "backToCenterLabel": "Back to Control Center",
+    "batchAttachments": "Attachments",
     "batchDatasets": "Batch Datasets",
     "batchFileTypeError": "Invalid attachment file type. Please upload a valid file.",
     "batchFilesHint": "Please upload a file with one of the following extensions: .xlsx, .xls, .csv, .ods, .pdf, .docx, .doc",
