@@ -1,7 +1,8 @@
+import re
+from uuid import uuid4
 from django.db.models import Sum, Count, Q, F
 from django.db import transaction
 from django.utils import timezone
-from django.core.files.storage import FileSystemStorage
 from django_q.tasks import async_task
 
 from drf_spectacular.types import OpenApiTypes
@@ -9,12 +10,14 @@ from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
+from mis.settings import WEBDOMAIN
 from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.models import (
     DataApproval,
     DataBatch,
     DataBatchList,
     DataBatchComments,
+    DataBatchAttachments,
 )
 from api.v1.v1_data.models import FormData
 from api.v1.v1_data.models import Answers, AnswerHistory
@@ -38,7 +41,7 @@ from utils.default_serializers import CommonDataSerializer
 from utils.email_helper import send_email, EmailTypes
 from utils.functions import update_date_time_format
 from mis.settings import APP_NAME
-from utils import storage
+from api.v1.v1_files.functions import upload_file
 
 
 class BatchDataFilterSerializer(serializers.Serializer):
@@ -756,25 +759,21 @@ class CreateBatchSerializer(serializers.Serializer):
                     })
             # Handle file uploads
             if validated_data.get("files"):
-                fs = FileSystemStorage()
                 for f in validated_data.get("files"):
                     try:
-                        file = fs.save(
-                            f"./tmp/{f.name}",
-                            f,
+                        ext = f.name.split(".")[-1]
+                        batch_name = re.sub(r'\W+', '-', obj.name.lower())
+                        filename = f"{batch_name}_{uuid4()}.{ext}"
+                        upload_file(
+                            file=f,
+                            filename=filename,
+                            folder="batch_attachments",
                         )
-                        file_path = fs.path(file)
-                        # Save the file to storage
-                        file_path = storage.upload(
-                            file=file_path,
-                            filename=f.name,
-                            folder="batch_attachments"
-                        )
+                        file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
                         obj.batch_batch_attachment.create(
                             file_path=file_path
                         )
-                        DataBatchComments.objects.create(
-                            batch=obj,
+                        obj.batch_batch_comment.create(
                             user=self.context['user'],
                             comment=f"File uploaded: {f.name}",
                             file_path=file_path,
@@ -786,9 +785,89 @@ class CreateBatchSerializer(serializers.Serializer):
                             )
                         })
         return obj
-        # except ValidationError as ve:
-        #     # Let validation errors pass through with their messages
-        #     raise ve
-        # except Exception as e:
-        #     # Catch any other unexpected errors
-        #     raise ValidationError(f"Failed to create batch: {str(e)}")
+
+
+class BatchAttachmentsSerializer(serializers.ModelSerializer):
+    file = serializers.SerializerMethodField()
+    file_attachment = CustomFileField(
+        label="Attachment File",
+        help_text="The file to be attached to the batch.",
+        write_only=True,
+        required=True,
+    )
+
+    @extend_schema_field(OpenApiTypes.STR)
+    def get_file(self, instance: DataBatchAttachments):
+        return instance.file_path
+
+    def validate_file_attachment(self, value):
+        if not value:
+            raise ValidationError("File is required.")
+        allowed_formats = ["csv", "xls", "xlsx", "docx", "doc", "pdf"]
+        file_extension = value.name.split(".")[-1].lower()
+        if file_extension not in allowed_formats:
+            raise ValidationError(
+                f"Invalid file format for {value.name}."
+                f"Allowed formats are: {', '.join(allowed_formats)}"
+            )
+        return value
+
+    def create(self, validated_data):
+        user: SystemUser = self.context.get("user")
+        batch = self.context.get("batch")
+
+        file = validated_data.get("file_attachment")
+        ext = file.name.split(".")[-1]
+        batch_name = re.sub(r'\W+', '-', batch.name.lower())
+        filename = f"{batch_name}_{uuid4()}.{ext}"
+        upload_file(
+            file=file,
+            filename=filename,
+            folder="batch_attachments",
+        )
+        file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
+
+        attachment = DataBatchAttachments.objects.create(
+            batch=batch,
+            file_path=file_path
+        )
+
+        # Create a comment for the attachment
+        DataBatchComments.objects.create(
+            user=user,
+            batch=batch,
+            comment=f"Attachment added: {attachment.file_path}",
+            file_path=file_path
+        )
+        return attachment
+
+    def update(self, instance, validated_data):
+        batch = self.context.get("batch")
+        file = validated_data.get("file_attachment")
+        print("file", file)
+        ext = file.name.split(".")[-1]
+        batch_name = re.sub(r'\W+', '-', batch.name.lower())
+        filename = f"{batch_name}_{uuid4()}.{ext}"
+        upload_file(
+            file=file,
+            filename=filename,
+            folder="batch_attachments",
+        )
+        file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
+
+        instance.file_path = file_path
+        instance.save()
+
+        # Add a comment for the update
+        user: SystemUser = self.context.get("user")
+        batch.batch_batch_comment.create(
+            user=user,
+            comment=f"Attachment updated: {instance.file_path}",
+            file_path=instance.file_path
+        )
+        return instance
+
+    class Meta:
+        model = DataBatchAttachments
+        fields = ["id", "file", "file_attachment", "created"]
+        read_only_fields = ["id", "file", "created"]
