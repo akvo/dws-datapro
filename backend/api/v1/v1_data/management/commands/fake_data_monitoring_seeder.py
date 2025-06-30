@@ -1,14 +1,10 @@
 # import pandas as pd
-from django.core.management import BaseCommand
-from django.core.management import call_command
+from django.core.management import BaseCommand, call_command
 from faker import Faker
+
 from api.v1.v1_data.models import FormData
-from api.v1.v1_approval.models import (
-    DataBatch,
-    DataApproval,
-    DataApprovalStatus,
-)
 from api.v1.v1_data.functions import add_fake_answers
+from api.v1.v1_approval.functions import create_batch_with_approvals
 
 fake = Faker()
 
@@ -26,7 +22,7 @@ class Command(BaseCommand):
             "--approved",
             nargs="?",
             const=False,
-            default=True,
+            default=False,
             type=bool,
         )
 
@@ -34,13 +30,15 @@ class Command(BaseCommand):
         test = options.get("test")
         repeat = options.get("repeat")
         approved = options.get("approved")
+        is_pending = not approved
 
         if test:
             # Call fake_data_seeder with test=True
             call_command(
                 "fake_data_seeder",
-                test=True,
                 repeat=repeat,
+                test=True,
+                approved=True,
             )
 
         data = FormData.objects.filter(
@@ -50,7 +48,7 @@ class Command(BaseCommand):
 
         for d in data:
             items = []
-            for f in d.form.children():
+            for f in d.form.children.all():
                 # random date
                 created = fake.date_time_this_decade()
                 # format Y-m-d H:M:S
@@ -63,6 +61,7 @@ class Command(BaseCommand):
                     administration=d.administration,
                     geo=d.geo,
                     uuid=d.uuid,
+                    is_pending=is_pending,
                 )
                 add_fake_answers(monitoring_data)
                 items.append(monitoring_data)
@@ -75,27 +74,12 @@ class Command(BaseCommand):
                     i.is_pending = True
                     i.save()
 
-            if d.has_approval and approved:
-                # Create Batch for approved data
-                batch = DataBatch.objects.create(
-                    name=f"Batch for {d.name}",
-                    form=d.form,
-                    created_by=d.created_by,
-                    approved=True,
+            if d.has_approval and items and not is_pending:
+                # Create batch with approvals for monitoring data
+                create_batch_with_approvals(
+                    data_items=items,
+                    user=d.created_by,
+                    administration=d.administration,
+                    approved_flag=approved,
+                    batch_size=len(items)
                 )
-                # Add items to DataBatchList
-                batch.data_batch_list.set(items)
-
-                # Add DataApproval
-                for approver in batch.approvers():
-                    DataApproval.objects.create(
-                        batch=batch,
-                        administration=approver["administration"],
-                        role=approver["role"],
-                        user=approver["user"],
-                        status=DataApprovalStatus.approved
-                    )
-                    batch.batch_batch_comments.create(
-                        user=approver["user"],
-                        comment=f"Data approved by {approver['user'].email}",
-                    )
