@@ -19,7 +19,7 @@
           "label": "Phone Number",
           "short_label": "Phone Number",
           "meta": true,
-          "type": "number",
+          "type": "text",
           "attributes": ["chart"],
           "required": true
         },
