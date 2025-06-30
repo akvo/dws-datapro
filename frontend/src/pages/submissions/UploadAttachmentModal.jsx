@@ -38,7 +38,7 @@ const UploadAttachmentModal = ({
 
     const file = fileList[0]; // Assuming single file upload
     if (file) {
-      formData.append("file_attachment", file.originFileObj);
+      formData.append("file", file.originFileObj);
     }
 
     const apiURL = editData?.id
@@ -91,7 +91,7 @@ const UploadAttachmentModal = ({
           setFileList={setFileList}
           fileList={fileList}
           multiple={false}
-          name="file_attachment"
+          name="file"
         />
         <Input.TextArea
           rows={4}

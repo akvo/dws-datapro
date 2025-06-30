@@ -172,12 +172,18 @@ const UploadDetail = ({ record, setReload }) => {
     fetchAttachments();
   }, [fetchAttachments]);
 
+  const fetchComments = useCallback(async () => {
+    try {
+      const response = await api.get(`/batch/comment/${record.id}`);
+      setComments(response.data);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
+  }, [record.id]);
+
   useEffect(() => {
-    setSelectedTab("data-summary");
-    api.get(`/batch/comment/${record.id}`).then((res) => {
-      setComments(res.data);
-    });
-  }, [record]);
+    fetchComments();
+  }, [fetchComments]);
 
   const handleTabSelect = (e) => {
     if (loading) {
@@ -250,6 +256,7 @@ const UploadDetail = ({ record, setReload }) => {
             setAttachments((prevAttachments) =>
               prevAttachments.filter((att) => att.id !== attachmentId)
             );
+            fetchComments();
           })
           .catch((error) => {
             console.error("Error deleting attachment:", error);
@@ -438,7 +445,7 @@ const UploadDetail = ({ record, setReload }) => {
                               />
                             }
                           />
-                          <span>Loading..</span>
+                          <span>{text.loadingText}</span>
                         </Space>
                       ) : (
                         <div className={`pending-data-outer`}>
@@ -605,7 +612,7 @@ const UploadDetail = ({ record, setReload }) => {
                   }}
                   size="small"
                 >
-                  Add Attachment
+                  {text.addAttachment}
                 </Button>
               </Col>
             </Row>
@@ -637,13 +644,13 @@ const UploadDetail = ({ record, setReload }) => {
                       {text.editText}
                     </Button>,
                     <a
-                      href={item.file}
+                      href={item.file_path}
                       target="_blank"
                       rel="noopener noreferrer"
-                      download={item.file}
-                      key={`${item.id}-download`}
+                      download={item.file_path}
+                      key={`${item.id}-view`}
                     >
-                      {text.download}
+                      {text.viewText}
                     </a>,
                   ]}
                 >
@@ -658,7 +665,7 @@ const UploadDetail = ({ record, setReload }) => {
                         </span>
                       </div>
                     }
-                    description={item.file}
+                    description={item.name}
                   />
                 </List.Item>
               )}
@@ -669,11 +676,18 @@ const UploadDetail = ({ record, setReload }) => {
       <UploadAttachmentModal
         isOpen={attachmentModalOpen}
         onCancel={() => {
+          if (editAttachment) {
+            setEditAttachment(null);
+          }
           setAttachmentModalOpen(false);
         }}
         onSuccess={() => {
+          if (editAttachment) {
+            setEditAttachment(null);
+          }
           setAttachmentModalOpen(false);
           fetchAttachments();
+          fetchComments();
         }}
         editData={editAttachment}
         batch={record}
@@ -687,7 +701,29 @@ const UploadDetail = ({ record, setReload }) => {
             itemLayout="horizontal"
             dataSource={comments}
             renderItem={(item) => (
-              <List.Item>
+              <List.Item
+                actions={
+                  item.file_path
+                    ? [
+                        <a
+                          href={item.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={item.file_path}
+                          key={`${item.id}-view`}
+                        >
+                          <Button
+                            type="link"
+                            icon={<PaperClipOutlined />}
+                            style={{ padding: 0 }}
+                          >
+                            {text.viewAttachment}
+                          </Button>
+                        </a>,
+                      ]
+                    : []
+                }
+              >
                 <List.Item.Meta
                   title={
                     <div style={{ fontSize: "12px" }}>
