@@ -722,6 +722,25 @@ const config = {
   },
   maxLevelApproval: 3,
   minEntityLevel: 0,
+  batchAttachment: {
+    allowed: [
+      "application/vnd.ms-excel",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "application/pdf",
+      "application/msword",
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "text/csv",
+      "application/zip",
+      "application/x-zip-compressed",
+      "application/x-rar-compressed",
+      "application/x-7z-compressed",
+      "application/x-tar",
+      "application/x-gzip",
+      "application/vnd.oasis.opendocument.text",
+      "application/vnd.oasis.opendocument.spreadsheet",
+    ],
+    maxSize: 10, // 10 MB
+  },
 };
 
 export default config;

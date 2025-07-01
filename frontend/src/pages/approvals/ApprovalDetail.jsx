@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import {
   Row,
   Col,
@@ -16,6 +16,7 @@ import {
   DownCircleOutlined,
   LoadingOutlined,
   HistoryOutlined,
+  PaperClipOutlined,
 } from "@ant-design/icons";
 import {
   api,
@@ -133,6 +134,7 @@ const ApprovalDetail = ({
     new Array(record.form?.approval_instructions?.action.length).fill(false)
   );
   const [resetButton, setresetButton] = useState({});
+  const [attachments, setAttachments] = useState([]);
   const { language } = store.useState((s) => s);
   const { approvalsLiteral } = config;
   const { active: activeLang } = language;
@@ -442,6 +444,19 @@ const ApprovalDetail = ({
     setCheckedState(updatedCheckedState);
   };
 
+  const fetchAttachments = useCallback(async () => {
+    try {
+      const response = await api.get(`/batch/attachments/${record.id}`);
+      setAttachments(response.data);
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+    }
+  }, [record.id]);
+
+  useEffect(() => {
+    fetchAttachments();
+  }, [fetchAttachments]);
+
   return (
     <div>
       <Tabs centered activeKey={selectedTab} onTabClick={handleTabSelect}>
@@ -476,7 +491,7 @@ const ApprovalDetail = ({
                               />
                             }
                           />
-                          <span>Loading..</span>
+                          <span>{text.loadingText}</span>
                         </Space>
                       ) : (
                         <div className={`pending-data-outer`}>
@@ -623,15 +638,80 @@ const ApprovalDetail = ({
         }}
         expandRowByClick
       />
-      <h3 style={{ paddingTop: "1rem" }}>Notes {"&"} Feedback</h3>
+      {attachments.length > 0 && (
+        <div className="attachments">
+          <div className="pending-data-list-header">
+            <h3>{text.batchAttachments}</h3>
+          </div>
+          <div className="pending-data-list">
+            <List
+              itemLayout="horizontal"
+              dataSource={attachments}
+              renderItem={(item) => (
+                <List.Item
+                  actions={[
+                    <a
+                      href={item.file_path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={item.file_path}
+                      key={`${item.id}-view`}
+                    >
+                      {text.viewText}
+                    </a>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <div style={{ fontSize: "12px" }}>
+                        <span style={{ color: "#ACAAAA", marginLeft: "6px" }}>
+                          {getTimeDifferenceText(
+                            item.created,
+                            "YYYY-MM-DD hh:mm a"
+                          )}
+                        </span>
+                      </div>
+                    }
+                    description={item.name}
+                  />
+                </List.Item>
+              )}
+            />
+          </div>
+        </div>
+      )}
+      <div className="pending-data-list-header">
+        <h3>{text.notesFeedback}</h3>
+      </div>
       {!!comments.length && (
-        <div className="comments">
+        <div className="pending-data-list">
           <List
             itemLayout="horizontal"
             dataSource={comments}
             renderItem={(item) => (
-              <List.Item>
-                {/* TODO: Change Avatar */}
+              <List.Item
+                actions={
+                  item.file_path
+                    ? [
+                        <a
+                          href={item.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={item.file_path}
+                          key={`${item.id}-view`}
+                        >
+                          <Button
+                            type="link"
+                            icon={<PaperClipOutlined />}
+                            style={{ padding: 0 }}
+                          >
+                            {text.viewAttachment}
+                          </Button>
+                        </a>,
+                      ]
+                    : []
+                }
+              >
                 <List.Item.Meta
                   title={
                     <div style={{ fontSize: "12px" }}>
@@ -651,6 +731,7 @@ const ApprovalDetail = ({
           />
         </div>
       )}
+
       <TextArea
         rows={4}
         onChange={(e) => setComment(e.target.value)}

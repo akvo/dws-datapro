@@ -39,4 +39,14 @@ module.exports = function (app) {
       },
     })
   );
+  app.use(
+    ["/batch-attachments"],
+    createProxyMiddleware({
+      target: "http://127.0.0.1:3000",
+      changeOrigin: true,
+      pathRewrite: {
+        "^/batch-attachments": "/batch_attachments",
+      },
+    })
+  );
 };

@@ -17,6 +17,7 @@ from django.db.models import Q
 # from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.models import (
     DataBatch,
+    DataBatchAttachments,
 )
 from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.serializers import (
@@ -29,6 +30,7 @@ from api.v1.v1_approval.serializers import (
     ListBatchSummarySerializer,
     ListBatchCommentSerializer,
     BatchListRequestSerializer,
+    BatchAttachmentsSerializer,
 )
 from api.v1.v1_forms.constants import (
     QuestionTypes
@@ -366,3 +368,109 @@ class BatchCommentView(APIView):
             ListBatchCommentSerializer(instance=instance, many=True).data,
             status=status.HTTP_200_OK,
         )
+
+
+class BatchAttachmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: BatchAttachmentsSerializer(many=True)},
+        tags=["Batch Attachments"],
+        summary="To get batch attachments",
+    )
+    def get(self, request, batch_id, version):
+        batch = get_object_or_404(DataBatch, pk=batch_id)
+        instance = batch.batch_batch_attachment.all().order_by("-id")
+        return Response(
+            BatchAttachmentsSerializer(instance=instance, many=True).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        request=BatchAttachmentsSerializer(),
+        responses={201: DefaultResponseSerializer},
+        tags=["Batch Attachments"],
+        summary="To create batch attachments",
+    )
+    def post(self, request, batch_id, version):
+        batch = get_object_or_404(DataBatch, pk=batch_id)
+        serializer = BatchAttachmentsSerializer(
+            data=request.data, context={"user": request.user, "batch": batch}
+        )
+        if not serializer.is_valid():
+            return Response(
+                {"detail": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save(user=request.user, batch=batch)
+        return Response(
+            {
+                "message": "Batch attachment created successfully",
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+
+@extend_schema(
+    responses={200: DefaultResponseSerializer},
+    tags=["Batch Attachments"],
+    summary="To delete batch attachment",
+)
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_batch_attachment(request, version, attachment_id):
+    attachment = get_object_or_404(DataBatchAttachments, pk=attachment_id)
+    if attachment.batch.user != request.user:
+        return Response(
+            {
+                "message": (
+                    "You do not have permission to delete this attachment"
+                ),
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    batch = attachment.batch
+    batch.batch_batch_comment.create(
+        user=request.user,
+        comment=f"Attachment deleted: {attachment.name}",
+        file_path=attachment.file_path
+    )
+    attachment.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(
+    request=BatchAttachmentsSerializer(),
+    responses={200: BatchAttachmentsSerializer},
+    tags=["Batch Attachments"],
+    summary="To update batch attachments",
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def update_batch_attachments(request, version, attachment_id):
+    attachment = get_object_or_404(DataBatchAttachments, pk=attachment_id)
+    if attachment.batch.user != request.user:
+        return Response(
+            {
+                "message": (
+                    "You do not have permission to update this attachment"
+                ),
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    batch = attachment.batch
+    serializer = BatchAttachmentsSerializer(
+        instance=attachment,
+        data=request.data,
+        context={"user": request.user, "batch": batch}
+    )
+    if not serializer.is_valid():
+        return Response(
+            {"detail": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    serializer.save(user=request.user, batch=batch)
+    return Response(
+        data=serializer.data,
+        status=status.HTTP_200_OK
+    )
