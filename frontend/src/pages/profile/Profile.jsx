@@ -100,7 +100,6 @@ const Profile = () => {
                   <li key={rI}>
                     <Space align="center">
                       <span>{r?.role}</span>
-                      <span> - </span>
                       <span style={{ fontStyle: "italic" }}>
                         {r.administration?.full_name}
                       </span>
@@ -116,10 +115,12 @@ const Profile = () => {
               <span>{authUser?.organisation?.name}</span>
             </Space>
           </li>
-          <li>
-            <h3>{text.administrationLabel}</h3>
-            <p>{fullAdministrationName || authUser?.administration?.name}</p>
-          </li>
+          {authUser?.roles?.length === 1 && (
+            <li>
+              <h3>{text.administrationLabel}</h3>
+              <p>{fullAdministrationName || authUser?.administration?.name}</p>
+            </li>
+          )}
           <li>
             <h3>{text.questionnairesLabel}</h3>
             <Space size="large" align="center">
