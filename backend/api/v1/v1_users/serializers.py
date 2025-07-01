@@ -589,7 +589,14 @@ class ListUserRequestSerializer(serializers.Serializer):
 
 class UserRoleListSerializer(serializers.ModelSerializer):
     role = serializers.CharField(source='role.name')
-    administration = serializers.CharField(source='administration.name')
+    administration = serializers.SerializerMethodField()
+
+    def get_administration(self, instance: UserRole):
+        if instance.administration:
+            return UserAdministrationSerializer(
+                instance=instance.administration
+            ).data
+        return None
 
     class Meta:
         model = UserRole
