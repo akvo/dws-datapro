@@ -5,7 +5,7 @@ import {
   ClockCircleOutlined,
 } from "@ant-design/icons";
 
-export const columnsApproval = (levels) => [
+export const columnsApproval = () => [
   {
     title: "Submission",
     dataIndex: "name",
@@ -53,28 +53,26 @@ export const columnsApproval = (levels) => [
     align: "center",
     dataIndex: "approver",
     key: "approver",
-    render: (approvers) => {
+    render: (approvers, { approved }) => {
       if (approvers?.length === 0) {
+        if (approved) {
+          return <span>All approvers already approved</span>;
+        }
         return <span>No approver assigned</span>;
       }
+      const names = approvers.map((a) => a.name);
+      const maxNames = 3;
+      const displayedNames = names.slice(0, maxNames);
+      const remainingCount = names.length - maxNames;
+      const displayText =
+        displayedNames.length > 0
+          ? displayedNames.join(", ") +
+            (remainingCount > 0 ? ` and ${remainingCount} more` : "")
+          : "No approver assigned";
       return (
-        <div>
-          <ul style={{ paddingLeft: "20px", margin: 0 }}>
-            {approvers.map((approver, index) => {
-              const level = levels.find(
-                (l) => l.level === approver.administration_level
-              );
-              return (
-                <li key={index}>
-                  <Space>
-                    {level && <strong>({level.name})</strong>}
-                    <span>{approver.name}</span>
-                  </Space>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
+        <Space direction="vertical" style={{ width: "100%" }}>
+          <p style={{ margin: 0 }}>{displayText}</p>
+        </Space>
       );
     },
     width: 180,

@@ -17,6 +17,7 @@ from django.db.models import Q
 # from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.models import (
     DataBatch,
+    DataBatchAttachments,
 )
 from api.v1.v1_approval.constants import DataApprovalStatus
 from api.v1.v1_approval.serializers import (
@@ -29,6 +30,7 @@ from api.v1.v1_approval.serializers import (
     ListBatchSummarySerializer,
     ListBatchCommentSerializer,
     BatchListRequestSerializer,
+    BatchAttachmentsSerializer,
 )
 from api.v1.v1_forms.constants import (
     QuestionTypes
@@ -112,6 +114,11 @@ def list_pending_batch(request, version):
         batch_approval__status=approval_status,
     ).order_by("-id")
 
+    # Get my administration levels
+    my_levels = role_approver.values_list(
+        'administration__level__level', flat=True
+    ).distinct()
+
     if role_approver.exists() and not approved and not subordinate:
         # For higher level administrators, implement level checking
         # Get all batch IDs that should be visible
@@ -121,10 +128,6 @@ def list_pending_batch(request, version):
             batch_levels = batch.batch_approval.values_list(
                 'administration__level__level', flat=True
             ).distinct().order_by('administration__level__level')
-            # Get my administration levels
-            my_levels = role_approver.values_list(
-                'administration__level__level', flat=True
-            ).distinct()
             # Check if this batch should be visible
             is_valid = True
             for my_level in my_levels:
@@ -143,26 +146,26 @@ def list_pending_batch(request, version):
                     break
             if is_valid:
                 valid_batch_ids.append(batch.id)
+        # Set unique valid batch IDs
+        valid_batch_ids = set(valid_batch_ids)
         # Filter queryset to only include valid batches
         queryset = queryset.filter(id__in=valid_batch_ids)
     if subordinate:
-        user_levels = user.user_user_role.filter(
-            role__role_role_access__data_access=DataAccessTypes.approve
-        ).values_list(
-            "administration__level__level", flat=True
-        )
         adm_level = Q()
-        for level in user_levels:
+        for level in my_levels:
             adm_level |= Q(
                 batch_approval__administration__level__level=level + 1,
                 batch_approval__status=DataApprovalStatus.pending,
             )
-        batch_ids = queryset.values_list("id", flat=True)
+        batch_ids = DataBatch.objects.filter(
+            batch_approval__user=user,
+        ).values_list("id", flat=True)
         queryset = DataBatch.objects.filter(
             adm_level,
             id__in=batch_ids,
             approved=approved,
-        ).distinct().order_by("-id")
+        )
+    queryset = queryset.distinct().order_by("-id")
     paginator = PageNumberPagination()
     paginator.paginate_queryset(queryset, request)
     total = queryset.count()
@@ -365,3 +368,109 @@ class BatchCommentView(APIView):
             ListBatchCommentSerializer(instance=instance, many=True).data,
             status=status.HTTP_200_OK,
         )
+
+
+class BatchAttachmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: BatchAttachmentsSerializer(many=True)},
+        tags=["Batch Attachments"],
+        summary="To get batch attachments",
+    )
+    def get(self, request, batch_id, version):
+        batch = get_object_or_404(DataBatch, pk=batch_id)
+        instance = batch.batch_batch_attachment.all().order_by("-id")
+        return Response(
+            BatchAttachmentsSerializer(instance=instance, many=True).data,
+            status=status.HTTP_200_OK,
+        )
+
+    @extend_schema(
+        request=BatchAttachmentsSerializer(),
+        responses={201: DefaultResponseSerializer},
+        tags=["Batch Attachments"],
+        summary="To create batch attachments",
+    )
+    def post(self, request, batch_id, version):
+        batch = get_object_or_404(DataBatch, pk=batch_id)
+        serializer = BatchAttachmentsSerializer(
+            data=request.data, context={"user": request.user, "batch": batch}
+        )
+        if not serializer.is_valid():
+            return Response(
+                {"detail": serializer.errors},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        serializer.save(user=request.user, batch=batch)
+        return Response(
+            {
+                "message": "Batch attachment created successfully",
+            },
+            status=status.HTTP_201_CREATED
+        )
+
+
+@extend_schema(
+    responses={200: DefaultResponseSerializer},
+    tags=["Batch Attachments"],
+    summary="To delete batch attachment",
+)
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_batch_attachment(request, version, attachment_id):
+    attachment = get_object_or_404(DataBatchAttachments, pk=attachment_id)
+    if attachment.batch.user != request.user:
+        return Response(
+            {
+                "message": (
+                    "You do not have permission to delete this attachment"
+                ),
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    batch = attachment.batch
+    batch.batch_batch_comment.create(
+        user=request.user,
+        comment=f"Attachment deleted: {attachment.name}",
+        file_path=attachment.file_path
+    )
+    attachment.delete()
+    return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+@extend_schema(
+    request=BatchAttachmentsSerializer(),
+    responses={200: BatchAttachmentsSerializer},
+    tags=["Batch Attachments"],
+    summary="To update batch attachments",
+)
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def update_batch_attachments(request, version, attachment_id):
+    attachment = get_object_or_404(DataBatchAttachments, pk=attachment_id)
+    if attachment.batch.user != request.user:
+        return Response(
+            {
+                "message": (
+                    "You do not have permission to update this attachment"
+                ),
+            },
+            status=status.HTTP_403_FORBIDDEN,
+        )
+    batch = attachment.batch
+    serializer = BatchAttachmentsSerializer(
+        instance=attachment,
+        data=request.data,
+        context={"user": request.user, "batch": batch}
+    )
+    if not serializer.is_valid():
+        return Response(
+            {"detail": serializer.errors},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+    serializer.save(user=request.user, batch=batch)
+    return Response(
+        data=serializer.data,
+        status=status.HTTP_200_OK
+    )

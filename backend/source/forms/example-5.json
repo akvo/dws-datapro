@@ -1,0 +1,67 @@
+{
+  "id": 5,
+  "form": "Test Form 5",
+  "description": "This is a test form for entity type of questions.",
+  "version": 1,
+  "type": 1,
+  "question_groups": [
+    {
+      "id": 50,
+      "order": 1,
+      "name": "profile",
+      "label": "School profile",
+      "questions": [
+        {
+          "id": 501,
+          "order": 1,
+          "name": "school_location",
+          "label": "School Location",
+          "short_label": null,
+          "meta": false,
+          "type": "administration",
+          "required": true
+        },
+        {
+          "id": 502,
+          "order": 2,
+          "name": "school",
+          "label": "School",
+          "meta": true,
+          "type": "cascade",
+          "required": true,
+          "api": {
+            "endpoint": "/api/v1/entity-data/1/list/"
+          },
+          "extra": {
+            "type": "entity",
+            "name": "School",
+            "parentId": 501
+          }
+        },
+        {
+          "id": 503,
+          "order": 3,
+          "name": "school_geolocation",
+          "label": "School Geolocation",
+          "short_label": null,
+          "meta": false,
+          "type": "geo",
+          "required": true
+        },
+        {
+          "id": 504,
+          "order": 4,
+          "name": "school_organisation",
+          "label": "School Organisation",
+          "short_label": null,
+          "meta": false,
+          "type": "cascade",
+          "required": true,
+          "api": {
+            "endpoint": "/api/v1/organisation/"
+          }
+        }
+      ]
+    }
+  ]
+}

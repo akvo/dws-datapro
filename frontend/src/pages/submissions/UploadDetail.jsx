@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from "react";
-import { Table, Tabs, Button, Space, List, Spin } from "antd";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
+import { Table, Tabs, Button, Space, List, Spin, Row, Col, Modal } from "antd";
 import {
   LeftCircleOutlined,
   DownCircleOutlined,
   LoadingOutlined,
   HistoryOutlined,
+  PaperClipOutlined,
 } from "@ant-design/icons";
 import { api, QUESTION_TYPES, store, uiText } from "../../lib";
 import { ApproverDetailTable, EditableCell } from "../../components";
@@ -13,6 +14,7 @@ import { useNotification } from "../../util/hooks";
 import { HistoryTable } from "../../components";
 import { getTimeDifferenceText } from "../../util/date";
 import { SubmissionTypeIcon } from "../../components/Icons";
+import UploadAttachmentModal from "./UploadAttachmentModal";
 const { TabPane } = Tabs;
 
 const columnsRawData = [
@@ -99,6 +101,10 @@ const UploadDetail = ({ record, setReload }) => {
   const [comments, setComments] = useState([]);
   const [questionGroups, setQuestionGroups] = useState([]);
   const [resetButton, setresetButton] = useState({});
+  const [attachments, setAttachments] = useState([]);
+  const [attachmentModalOpen, setAttachmentModalOpen] = useState(false);
+  const [editAttachment, setEditAttachment] = useState(null);
+
   const { notify } = useNotification();
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
@@ -153,12 +159,31 @@ const UploadDetail = ({ record, setReload }) => {
       });
   };
 
+  const fetchAttachments = useCallback(async () => {
+    try {
+      const response = await api.get(`/batch/attachments/${record.id}`);
+      setAttachments(response.data);
+    } catch (error) {
+      console.error("Error fetching attachments:", error);
+    }
+  }, [record.id]);
+
   useEffect(() => {
-    setSelectedTab("data-summary");
-    api.get(`/batch/comment/${record.id}`).then((res) => {
-      setComments(res.data);
-    });
-  }, [record]);
+    fetchAttachments();
+  }, [fetchAttachments]);
+
+  const fetchComments = useCallback(async () => {
+    try {
+      const response = await api.get(`/batch/comment/${record.id}`);
+      setComments(response.data);
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+    }
+  }, [record.id]);
+
+  useEffect(() => {
+    fetchComments();
+  }, [fetchComments]);
 
   const handleTabSelect = (e) => {
     if (loading) {
@@ -212,6 +237,37 @@ const UploadDetail = ({ record, setReload }) => {
         });
     }
   }, [selectedTab, record]);
+
+  const onDeleteAttachment = (attachmentId) => {
+    Modal.confirm({
+      title: text.deleteAttachmentTitle,
+      content: text.deleteAttachmentDesc,
+      okText: text.deleteText,
+      okType: "danger",
+      cancelText: text.cancelButton,
+      onOk: () => {
+        api
+          .delete(`/batch/attachment/${attachmentId}`)
+          .then(() => {
+            notify({
+              type: "success",
+              message: text.deleteAttachmentSuccess,
+            });
+            setAttachments((prevAttachments) =>
+              prevAttachments.filter((att) => att.id !== attachmentId)
+            );
+            fetchComments();
+          })
+          .catch((error) => {
+            console.error("Error deleting attachment:", error);
+            notify({
+              type: "error",
+              message: text.deleteAttachmentError,
+            });
+          });
+      },
+    });
+  };
 
   const updateCell = (key, parentId, value) => {
     setresetButton({ ...resetButton, [key]: true });
@@ -355,7 +411,6 @@ const UploadDetail = ({ record, setReload }) => {
   const isEditable =
     (record.approvers || []).filter((a) => a.status_text === "Rejected")
       .length > 0;
-  // && user?.role?.id === 4; // TODO remove hardcoded role id
 
   return (
     <div id="upload-detail">
@@ -390,7 +445,7 @@ const UploadDetail = ({ record, setReload }) => {
                               />
                             }
                           />
-                          <span>Loading..</span>
+                          <span>{text.loadingText}</span>
                         </Space>
                       ) : (
                         <div className={`pending-data-outer`}>
@@ -541,15 +596,134 @@ const UploadDetail = ({ record, setReload }) => {
         }}
         expandRowByClick
       />
-      <h3>{text.notesFeedback}</h3>
+      {attachments.length > 0 && (
+        <div className="attachments">
+          <div className="detail-list-header">
+            <Row align="middle" justify="space-between">
+              <Col span={8}>
+                <h3>{text.batchAttachments}</h3>
+              </Col>
+              <Col span={4} style={{ textAlign: "right" }}>
+                <Button
+                  type="link"
+                  icon={<PaperClipOutlined />}
+                  onClick={() => {
+                    setAttachmentModalOpen(true);
+                  }}
+                  size="small"
+                >
+                  {text.addAttachment}
+                </Button>
+              </Col>
+            </Row>
+          </div>
+          <div className="detail-list">
+            <List
+              itemLayout="horizontal"
+              dataSource={attachments}
+              renderItem={(item) => (
+                <List.Item
+                  actions={[
+                    <Button
+                      type="link"
+                      key={`${item.id}-delete`}
+                      onClick={() => onDeleteAttachment(item.id)}
+                      danger
+                    >
+                      {text.deleteText}
+                    </Button>,
+                    <Button
+                      type="link"
+                      key={`${item.id}-edit`}
+                      disabled={!item.id}
+                      onClick={() => {
+                        setEditAttachment(item);
+                        setAttachmentModalOpen(true);
+                      }}
+                    >
+                      {text.editText}
+                    </Button>,
+                    <a
+                      href={item.file_path}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      download={item.file_path}
+                      key={`${item.id}-view`}
+                    >
+                      {text.viewText}
+                    </a>,
+                  ]}
+                >
+                  <List.Item.Meta
+                    title={
+                      <div style={{ fontSize: "12px" }}>
+                        <span style={{ color: "#ACAAAA", marginLeft: "6px" }}>
+                          {getTimeDifferenceText(
+                            item.created,
+                            "YYYY-MM-DD hh:mm a"
+                          )}
+                        </span>
+                      </div>
+                    }
+                    description={item.name}
+                  />
+                </List.Item>
+              )}
+            />
+          </div>
+        </div>
+      )}
+      <UploadAttachmentModal
+        isOpen={attachmentModalOpen}
+        onCancel={() => {
+          if (editAttachment) {
+            setEditAttachment(null);
+          }
+          setAttachmentModalOpen(false);
+        }}
+        onSuccess={() => {
+          if (editAttachment) {
+            setEditAttachment(null);
+          }
+          setAttachmentModalOpen(false);
+          fetchAttachments();
+          fetchComments();
+        }}
+        editData={editAttachment}
+        batch={record}
+      />
+      <div className="detail-list-header">
+        <h3>{text.notesFeedback}</h3>
+      </div>
       {!!comments.length && (
-        <div className="comments">
+        <div className="detail-list">
           <List
             itemLayout="horizontal"
             dataSource={comments}
             renderItem={(item) => (
-              <List.Item>
-                {/* TODO: Change Avatar */}
+              <List.Item
+                actions={
+                  item.file_path
+                    ? [
+                        <a
+                          href={item.file_path}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          download={item.file_path}
+                          key={`${item.id}-view`}
+                        >
+                          <Button
+                            type="link"
+                            icon={<PaperClipOutlined />}
+                            style={{ padding: 0 }}
+                          >
+                            {text.viewAttachment}
+                          </Button>
+                        </a>,
+                      ]
+                    : []
+                }
+              >
                 <List.Item.Meta
                   title={
                     <div style={{ fontSize: "12px" }}>

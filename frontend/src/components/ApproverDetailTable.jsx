@@ -13,11 +13,11 @@ const ApproverDetailTable = ({ data = [] }) => {
       dataIndex: "names",
       key: "names",
       render: (names) => (
-        <ul style={{ paddingLeft: "20px", margin: 0 }}>
-          {names?.map((name, index) => (
-            <li key={index}>{name}</li>
-          ))}
-        </ul>
+        <span>
+          {names.length > 1
+            ? names.slice(0, -1).join(", ") + " and " + names[names.length - 1]
+            : names[0]}
+        </span>
       ),
     },
     {

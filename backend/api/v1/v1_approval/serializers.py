@@ -1,4 +1,7 @@
+import re
+from uuid import uuid4
 from django.db.models import Sum, Count, Q, F
+from django.db import transaction
 from django.utils import timezone
 from django_q.tasks import async_task
 
@@ -7,12 +10,16 @@ from drf_spectacular.utils import extend_schema_field, inline_serializer
 from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
-from api.v1.v1_approval.constants import DataApprovalStatus
+from mis.settings import WEBDOMAIN
+from api.v1.v1_approval.constants import (
+    DataApprovalStatus, allowed_batch_attach
+)
 from api.v1.v1_approval.models import (
     DataApproval,
     DataBatch,
     DataBatchList,
     DataBatchComments,
+    DataBatchAttachments,
 )
 from api.v1.v1_data.models import FormData
 from api.v1.v1_data.models import Answers, AnswerHistory
@@ -30,11 +37,13 @@ from utils.custom_serializer_fields import (
     CustomCharField,
     CustomChoiceField,
     CustomBooleanField,
+    CustomFileField,
 )
 from utils.default_serializers import CommonDataSerializer
 from utils.email_helper import send_email, EmailTypes
 from utils.functions import update_date_time_format
 from mis.settings import APP_NAME
+from api.v1.v1_files.functions import upload_file
 
 
 class BatchDataFilterSerializer(serializers.Serializer):
@@ -114,13 +123,9 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
         user: SystemUser = self.context.get("user")
         approved: bool = self.context.get("approved")
         subordinate: bool = self.context.get("subordinate", False)
-        approval_status = DataApprovalStatus.pending
-        if approved:
-            approval_status = DataApprovalStatus.approved
         # Get my approval
         my_approval = instance.batch_approval.filter(
             user=user,
-            status=approval_status,
         ).first()
         next_level = my_approval.administration.level.level + 1
         approvers = instance.batch_approval.filter(
@@ -130,7 +135,7 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
             "administration__level__level"
         ).all()
         # Get all approvers grouped by administration level
-        if approval_status == DataApprovalStatus.pending:
+        if not approved:
             # For pending status, check if all approvers at a level are pending
             # Get levels where all approvers are pending
             adm_levels_with_all_pending = instance.batch_approval.values(
@@ -157,7 +162,11 @@ class ListDataBatchSerializer(serializers.ModelSerializer):
                 administration__level__level=next_level,
                 status=DataApprovalStatus.pending,
             ).all()
-        if approvers.count() == 0 and not approved:
+        if (
+            approvers.count() == 0 and
+            not approved and
+            my_approval.status != DataApprovalStatus.rejected
+        ):
             approvers = [my_approval]
         return PendingBatchApproverSerializer(
             approvers,
@@ -245,6 +254,8 @@ class ApproveDataRequestSerializer(serializers.Serializer):
         approval.status = status
         approval.save()
 
+        adm_level = approval.administration.level.level
+
         # Add comment if provided
         if comment:
             DataBatchComments.objects.create(
@@ -326,11 +337,18 @@ class ApproveDataRequestSerializer(serializers.Serializer):
             )
             send_email(context=data, type=EmailTypes.batch_rejection)
             # Send to lower level approvers
-            adm_level = approval.administration.level.level
             lower_approvers = batch.batch_approval.filter(
                 administration__level__level__gt=adm_level,
             )
             if lower_approvers.exists():
+                for approver in lower_approvers:
+                    if (
+                        approver.status == DataApprovalStatus.approved and
+                        approver.administration.level.level == adm_level + 1
+                    ):
+                        approver.status = DataApprovalStatus.pending
+                        approver.save()
+                # Inform lower level approvers
                 lower_emails = [
                     approver.user.email for approver in lower_approvers
                 ]
@@ -561,7 +579,7 @@ class ListBatchCommentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = DataBatchComments
-        fields = ["user", "comment", "created"]
+        fields = ["user", "comment", "file_path", "created"]
 
 
 class BatchListRequestSerializer(serializers.Serializer):
@@ -579,6 +597,9 @@ class CreateBatchSerializer(serializers.Serializer):
         child=CustomPrimaryKeyRelatedField(
             queryset=FormData.objects.none()
         ),
+    )
+    files = CustomListField(
+        child=CustomFileField(),
         required=False,
     )
 
@@ -614,6 +635,16 @@ class CreateBatchSerializer(serializers.Serializer):
                 )
         return data
 
+    def validate_files(self, files):
+        for file in files:
+            file_extension = file.name.split(".")[-1].lower()
+            if file_extension not in allowed_batch_attach:
+                raise ValidationError(
+                    f"Invalid file format for {file.name}."
+                    f"Allowed formats are: {', '.join(allowed_batch_attach)}"
+                )
+        return files
+
     def validate(self, attrs):
         if len(attrs.get("data")) == 0:
             raise ValidationError(
@@ -646,48 +677,222 @@ class CreateBatchSerializer(serializers.Serializer):
         user_role = user.user_user_role.filter(
             role__role_role_access__data_access=DataAccessTypes.submit
         ).first()
-        obj = DataBatch.objects.create(
-            form_id=form_id,
-            administration=user_role.administration,
-            user=user,
-            name=validated_data.get("name"),
-        )
-        for data in validated_data.get("data"):
-            DataBatchList.objects.create(batch=obj, data=data)
-        # Send email to approvers
-        emails = [
-            approver["user"].email for approver in obj.approvers()
-        ]
-        if len(emails):
-            number_of_records = obj.batch_data_list.count()
-            data = {
-                "send_to": emails,
-                "listing": [
-                    {"name": "Batch Name", "value": obj.name},
-                    {"name": "Questionnaire", "value": obj.form.name},
-                    {
-                        "name": "Number of Records",
-                        "value": number_of_records,
-                    },
-                    {
-                        "name": "Submitter",
-                        "value": f"""{obj.user.name}""",
-                    },
-                ],
-            }
-            send_email(context=data, type=EmailTypes.pending_approval)
-            # Create DataApproval for each approver
-            for approver in obj.approvers():
-                DataApproval.objects.create(
-                    batch=obj,
-                    administration=approver["administration"],
-                    role=approver["role"],
-                    user=approver["user"],
-                    status=DataApprovalStatus.pending,
+        if not user_role:
+            raise ValidationError({
+                "detail": (
+                    "User does not have permission to create a batch."
                 )
-
-        if validated_data.get("comment"):
-            DataBatchComments.objects.create(
-                user=user, batch=obj, comment=validated_data.get("comment")
+            })
+        # try:
+        with transaction.atomic():
+            obj = DataBatch.objects.create(
+                form_id=form_id,
+                administration=user_role.administration,
+                user=user,
+                name=validated_data.get("name"),
             )
+            # Create batch data list entries
+            try:
+                for data in validated_data.get("data"):
+                    DataBatchList.objects.create(batch=obj, data=data)
+            except Exception as e:
+                raise ValidationError({
+                    "detail": f"Failed to create batch data list: {str(e)}"
+                })
+            # Send email to approvers
+            try:
+                emails = [
+                    approver["user"].email for approver in obj.approvers()
+                ]
+                if len(emails):
+                    number_of_records = obj.batch_data_list.count()
+                    data = {
+                        "send_to": emails,
+                        "listing": [
+                            {"name": "Batch Name", "value": obj.name},
+                            {
+                                "name": "Questionnaire",
+                                "value": obj.form.name
+                            },
+                            {
+                                "name": "Number of Records",
+                                "value": number_of_records,
+                            },
+                            {
+                                "name": "Submitter",
+                                "value": f"""{obj.user.name}""",
+                            },
+                        ],
+                    }
+                    send_email(
+                        context=data,
+                        type=EmailTypes.pending_approval
+                    )
+                    # Create DataApproval for each approver
+                    for approver in obj.approvers():
+                        DataApproval.objects.create(
+                            batch=obj,
+                            administration=approver["administration"],
+                            role=approver["role"],
+                            user=approver["user"],
+                            status=DataApprovalStatus.pending,
+                        )
+            except Exception as e:
+                raise ValidationError({
+                    "detail": (
+                        f"Failed to send email to approvers: {str(e)}"
+                    )
+                })
+
+            # Add comment if provided
+            if validated_data.get("comment"):
+                try:
+                    DataBatchComments.objects.create(
+                        user=user,
+                        batch=obj,
+                        comment=validated_data.get("comment")
+                    )
+                except Exception as e:
+                    raise ValidationError({
+                        "detail": (
+                            f"Failed to add comment: {str(e)}"
+                        )
+                    })
+            # Handle file uploads
+            if validated_data.get("files"):
+                for f in validated_data.get("files"):
+                    try:
+                        ext = f.name.split(".")[-1]
+                        batch_name = re.sub(r'\W+', '-', obj.name.lower())
+                        filename = f"{batch_name}_{uuid4()}.{ext}"
+                        upload_file(
+                            file=f,
+                            filename=filename,
+                            folder="batch_attachments",
+                        )
+                        file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
+                        obj.batch_batch_attachment.create(
+                            name=f.name,
+                            file_path=file_path
+                        )
+                        obj.batch_batch_comment.create(
+                            user=self.context['user'],
+                            comment=f"Attachment uploaded: {f.name}",
+                            file_path=file_path,
+                        )
+                    except Exception as e:
+                        raise ValidationError({
+                            "detail": (
+                                f"Failed to upload file {f.name}: {str(e)}"
+                            )
+                        })
         return obj
+
+
+class BatchAttachmentsSerializer(serializers.ModelSerializer):
+    file = CustomFileField(
+        label="Attachment File",
+        help_text="The file to be attached to the batch.",
+        write_only=True,
+        required=True,
+    )
+    comment = CustomCharField(
+        label="Comment",
+        help_text="Optional comment for the attachment.",
+        write_only=True,
+        required=False,
+    )
+
+    def validate_file(self, value):
+        if not value:
+            raise ValidationError("File is required.")
+        file_extension = value.name.split(".")[-1].lower()
+        if file_extension not in allowed_batch_attach:
+            raise ValidationError(
+                f"Invalid file format for {value.name}."
+                f"Allowed formats are: {', '.join(allowed_batch_attach)}"
+            )
+        return value
+
+    def create(self, validated_data):
+        user: SystemUser = self.context.get("user")
+        batch = self.context.get("batch")
+
+        file = validated_data.get("file")
+        ext = file.name.split(".")[-1]
+        batch_name = re.sub(r'\W+', '-', batch.name.lower())
+        filename = f"{batch_name}_{uuid4()}.{ext}"
+        upload_file(
+            file=file,
+            filename=filename,
+            folder="batch_attachments",
+        )
+        file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
+
+        attachment = DataBatchAttachments.objects.create(
+            batch=batch,
+            name=file.name,
+            file_path=file_path
+        )
+        comment = validated_data.get("comment", None)
+        if not comment or comment.strip() == "":
+            comment = f"Attachment uploaded: {file.name}"
+
+        # Create a comment for the attachment
+        DataBatchComments.objects.create(
+            user=user,
+            batch=batch,
+            comment=comment,
+            file_path=file_path
+        )
+        return attachment
+
+    def update(self, instance, validated_data):
+        batch = self.context.get("batch")
+        file = validated_data.get("file")
+        # if previouse name is same as new file name, then skip upload
+        if instance.name == file.name:
+            return instance
+        ext = file.name.split(".")[-1]
+        batch_name = re.sub(r'\W+', '-', batch.name.lower())
+        filename = f"{batch_name}_{uuid4()}.{ext}"
+        upload_file(
+            file=file,
+            filename=filename,
+            folder="batch_attachments",
+        )
+        file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
+
+        previous_file = instance.name
+
+        instance.name = file.name
+        instance.file_path = file_path
+        instance.save()
+
+        comment = validated_data.get("comment", None)
+        if not comment or comment.strip() == "":
+            comment = (
+                f"Attachment updated: {file.name}. "
+                f"Previous file: {previous_file}"
+            )
+
+        # Add a comment for the update
+        user: SystemUser = self.context.get("user")
+        batch.batch_batch_comment.create(
+            user=user,
+            comment=comment,
+            file_path=instance.file_path
+        )
+        return instance
+
+    class Meta:
+        model = DataBatchAttachments
+        fields = [
+            "id",
+            "name",
+            "file_path",
+            "file",
+            "comment",
+            "created",
+        ]
+        read_only_fields = ["id", "name", "file_path", "created"]
