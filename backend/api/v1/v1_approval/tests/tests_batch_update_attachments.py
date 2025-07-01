@@ -96,6 +96,45 @@ class BatchUpdateAttachmentTestCase(TestCase, ProfileTestHelperMixin):
             old_attachment.file_path,
         )
 
+    def test_update_attachment_with_same_file(self):
+        # Create a new file with the same name and content as the original
+        same_file = SimpleUploadedFile(
+            name="test_attachment1.pdf",
+            content="This is a test PDF file content".encode(),
+            content_type="application/pdf"
+        )
+        # Attempt to update the attachment with the same file
+        data = {
+            # Using the same file as the existing attachment
+            "file": same_file,
+            "comment": "Updating with the same file",
+        }
+        attachment_id = self.batch.batch_batch_attachment.filter(
+            name="test_attachment1.pdf"
+        ).first().id
+
+        response = self.client.post(
+            f"/api/v1/batch/attachment/{attachment_id}/edit",
+            data=data,
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+
+        # Verify that the attachment was not changed
+        response = self.client.get(
+            f"/api/v1/batch/attachments/{self.batch.id}",
+            HTTP_AUTHORIZATION=f"Bearer {self.token}",
+        )
+        self.assertEqual(response.status_code, 200)
+        attachments = response.json()
+        self.assertEqual(len(attachments), 2)
+
+        updated_attachment = next(
+            (att for att in attachments if att["id"] == attachment_id), None
+        )
+        self.assertIsNotNone(updated_attachment)
+        self.assertEqual(updated_attachment["name"], same_file.name)
+
     def test_update_non_existent_attachment(self):
         response = self.client.post(
             "/api/v1/batch/attachment/9999/edit",
