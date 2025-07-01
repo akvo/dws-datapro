@@ -11,7 +11,9 @@ from rest_framework import serializers
 from rest_framework.exceptions import ValidationError
 
 from mis.settings import WEBDOMAIN
-from api.v1.v1_approval.constants import DataApprovalStatus
+from api.v1.v1_approval.constants import (
+    DataApprovalStatus, allowed_batch_attach
+)
 from api.v1.v1_approval.models import (
     DataApproval,
     DataBatch,
@@ -634,13 +636,12 @@ class CreateBatchSerializer(serializers.Serializer):
         return data
 
     def validate_files(self, files):
-        allowed_formats = ["csv", "xls", "xlsx", "docx", "doc", "pdf"]
         for file in files:
             file_extension = file.name.split(".")[-1].lower()
-            if file_extension not in allowed_formats:
+            if file_extension not in allowed_batch_attach:
                 raise ValidationError(
                     f"Invalid file format for {file.name}."
-                    f"Allowed formats are: {', '.join(allowed_formats)}"
+                    f"Allowed formats are: {', '.join(allowed_batch_attach)}"
                 )
         return files
 
@@ -805,12 +806,11 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
     def validate_file(self, value):
         if not value:
             raise ValidationError("File is required.")
-        allowed_formats = ["csv", "xls", "xlsx", "docx", "doc", "pdf"]
         file_extension = value.name.split(".")[-1].lower()
-        if file_extension not in allowed_formats:
+        if file_extension not in allowed_batch_attach:
             raise ValidationError(
                 f"Invalid file format for {value.name}."
-                f"Allowed formats are: {', '.join(allowed_formats)}"
+                f"Allowed formats are: {', '.join(allowed_batch_attach)}"
             )
         return value
 
@@ -850,6 +850,9 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
     def update(self, instance, validated_data):
         batch = self.context.get("batch")
         file = validated_data.get("file")
+        # if previouse name is same as new file name, then skip upload
+        if instance.name == file.name:
+            return instance
         ext = file.name.split(".")[-1]
         batch_name = re.sub(r'\W+', '-', batch.name.lower())
         filename = f"{batch_name}_{uuid4()}.{ext}"
@@ -860,13 +863,18 @@ class BatchAttachmentsSerializer(serializers.ModelSerializer):
         )
         file_path = f"{WEBDOMAIN}/batch-attachments/{filename}"
 
+        previous_file = instance.name
+
         instance.name = file.name
         instance.file_path = file_path
         instance.save()
 
         comment = validated_data.get("comment", None)
         if not comment or comment.strip() == "":
-            comment = f"Attachment updated: {instance.name}"
+            comment = (
+                f"Attachment updated: {file.name}. "
+                f"Previous file: {previous_file}"
+            )
 
         # Add a comment for the update
         user: SystemUser = self.context.get("user")
