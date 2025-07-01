@@ -20,6 +20,7 @@ Object {
     </React.Fragment>,
     "addAdministration": "Add Administration",
     "addAttachment": "Add Attachment",
+    "addAttachmentDesc": "Add a new attachment to the batch",
     "addAttributeDesc": <React.Fragment>
       This page allows you to add attribute to the 
       Test App
@@ -103,6 +104,7 @@ Object {
     "approvalsTab2": "Subordinates Approvals",
     "approvalsTab3": "Approved",
     "approvalsTitle": "Approvals",
+    "approveNoteRequired": "Please provide notes or feedback to decline or approved the submission",
     "approversDescription": <React.Fragment>
       This is where you can see the approvers for each submitted form across different administrative areas:
     </React.Fragment>,
@@ -235,6 +237,8 @@ Object {
        platform.
     </React.Fragment>,
     "editAdministration": "Edit Administration",
+    "editAttachment": "Edit Attachment",
+    "editAttachmentDesc": "Replace the existing attachment with a new one",
     "editAttributeDesc": <React.Fragment>
       This page allows you to edit attribute to the 
       Test App
@@ -808,6 +812,7 @@ Object {
     "uploadAttachments": "Upload Attachments",
     "uploadAttachmentsComment": "Add a comment for the attachment",
     "uploadAttachmentsError": "Unable to upload attachments",
+    "uploadAttachmentsRequired": "Please upload at least one attachment file",
     "uploadAttachmentsSuccess": "Attachments uploaded successfully",
     "uploadDataLabel": "Upload your data",
     "uploadMasterDataLabel": "Upload your data",

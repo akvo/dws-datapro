@@ -892,6 +892,12 @@ const uiText = {
     viewAttachment: "View Attachment",
     viewText: "View",
     addAttachment: "Add Attachment",
+    addAttachmentDesc: "Add a new attachment to the batch",
+    editAttachment: "Edit Attachment",
+    editAttachmentDesc: "Replace the existing attachment with a new one",
+    uploadAttachmentsRequired: "Please upload at least one attachment file",
+    approveNoteRequired:
+      "Please provide notes or feedback to decline or approved the submission",
   },
 
   de: {},
