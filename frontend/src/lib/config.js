@@ -738,6 +738,8 @@ const config = {
       "application/x-gzip",
       "application/vnd.oasis.opendocument.text",
       "application/vnd.oasis.opendocument.spreadsheet",
+      ".ods",
+      ".odt",
     ],
     maxSize: 10, // 10 MB
   },

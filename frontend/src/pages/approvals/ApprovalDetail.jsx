@@ -211,10 +211,10 @@ const ApprovalDetail = ({
       status: status,
     };
     if (!comment.length) {
+      setApproving(null);
       notify({
         type: "warning",
-        message:
-          "Please provide notes or feedback to decline or approved the submission",
+        message: text.approveNoteRequired,
       });
       return;
     }
