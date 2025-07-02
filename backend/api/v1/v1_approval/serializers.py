@@ -633,6 +633,12 @@ class CreateBatchSerializer(serializers.Serializer):
                 raise ValidationError(
                     "One or more data items were not submitted by the user."
                 )
+            if item.parent and item.parent.is_pending:
+                if item.parent.id not in [d.id for d in data]:
+                    raise ValidationError(
+                        "Registration data must be included in the batch "
+                        "if it is pending."
+                    )
         return data
 
     def validate_files(self, files):
@@ -650,9 +656,20 @@ class CreateBatchSerializer(serializers.Serializer):
             raise ValidationError(
                 {"data": "No form found for this batch"}
             )
-        form = attrs.get("data")[0].form
+        # Get form from the data that have form parent_id is None
+        find_form = list(
+            set(
+                data.form for data in attrs.get("data")
+                if data.form.parent is None
+            )
+        )
+        form = find_form[0] if len(find_form) > 0 \
+            else attrs.get("data")[0].form
         for pending in attrs.get("data"):
-            if pending.form_id != form.id:
+            if (
+                pending.form_id != form.id and
+                not form.children.filter(pk=pending.form_id).exists()
+            ):
                 raise ValidationError({
                     "data": (
                         "Mismatched form ID for one or more"
