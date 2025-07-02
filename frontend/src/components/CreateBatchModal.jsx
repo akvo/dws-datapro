@@ -27,6 +27,7 @@ const CreateBatchModal = ({
   const [batchName, setBatchName] = useState("");
   const [comment, setComment] = useState("");
   const [fileList, setFileList] = useState([]);
+  const [dataError, setDataError] = useState([]);
 
   const { language } = store.useState((s) => s);
   const { active: activeLang } = language;
@@ -71,11 +72,15 @@ const CreateBatchModal = ({
           onSuccess();
         }
       })
-      .catch(() => {
-        notify({
-          type: "error",
-          message: text.notifyError,
-        });
+      .catch((err) => {
+        if (err.response?.status === 400 && err.response?.data?.detail?.data) {
+          setDataError(err.response.data.detail.data);
+        } else {
+          notify({
+            type: "error",
+            message: text.notifyError,
+          });
+        }
       })
       .finally(() => {
         setLoading(false);
@@ -83,6 +88,7 @@ const CreateBatchModal = ({
   };
 
   const handleOnCancel = () => {
+    setDataError([]);
     setFileList([]);
     setBatchName("");
     setComment("");
@@ -147,7 +153,23 @@ const CreateBatchModal = ({
         pagination={false}
         scroll={{ y: 270 }}
         rowKey="id"
+        style={{
+          borderColor: dataError?.length ? "#ef7575" : "transparent",
+          borderWidth: 1,
+          borderStyle: "solid",
+        }}
       />
+      {dataError?.length > 0 && (
+        <div style={{ color: "#ef7575", marginTop: 10 }}>
+          <ul>
+            {dataError.map((error, index) => (
+              <li key={index}>
+                <i>{error}</i>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
       <Divider />
       <Row align="middle">
         <Col xs={24} align="left">
