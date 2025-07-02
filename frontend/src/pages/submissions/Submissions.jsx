@@ -1,19 +1,24 @@
 import React, { useEffect, useState, useMemo } from "react";
 import "./style.scss";
-import { Table, Tabs, Button, Modal, Row, Col } from "antd";
+import { Table, Tabs, Button, Modal } from "antd";
 import { Breadcrumbs, CreateBatchModal } from "../../components";
 import {
   LeftCircleOutlined,
   DownCircleOutlined,
   ExclamationCircleOutlined,
 } from "@ant-design/icons";
-import { api, columnsBatch, store, uiText } from "../../lib";
+import {
+  api,
+  columnsBatch,
+  store,
+  uiText,
+  columnsPending as defaultPendingCols,
+} from "../../lib";
 import { useNotification } from "../../util/hooks";
 import UploadDetail from "./UploadDetail";
 import BatchDetail from "./BatchDetail";
 import { DataFilters } from "../../components";
 import { isEmpty, union, xor } from "lodash";
-import { SubmissionTypeIcon } from "../../components/Icons";
 
 const { TabPane } = Tabs;
 const { confirm } = Modal;
@@ -56,61 +61,7 @@ const Submissions = () => {
   ];
 
   const columnsPending = [
-    {
-      title: "",
-      dataIndex: "id",
-      key: "id",
-      render: () => "",
-      width: 50,
-    },
-    {
-      title: "Name",
-      dataIndex: "name",
-      key: "name",
-      render: (name, row) => (
-        <Row align="middle" gutter={16}>
-          <Col>
-            <SubmissionTypeIcon
-              type={row.submission_type}
-              style={{ color: "#666666", fontSize: 28, paddingRight: "1rem" }}
-            />
-          </Col>
-          <Col>
-            <div>{name}</div>
-            <div>{row.created}</div>
-          </Col>
-        </Row>
-      ),
-    },
-    {
-      title: "Administration",
-      dataIndex: "administration",
-      key: "administration",
-    },
-    {
-      title: "Submitted Date",
-      dataIndex: "created",
-      key: "created",
-      render: (created) => created || "",
-      align: "center",
-      width: 200,
-    },
-    {
-      title: "Submitter Name",
-      dataIndex: "submitter",
-      key: "submitter",
-      render: (submitter, dt) => {
-        return submitter || dt.created_by;
-      },
-    },
-    {
-      title: "Duration",
-      dataIndex: "duration",
-      key: "duration",
-      render: (duration) => duration || "",
-      align: "center",
-      width: 100,
-    },
+    ...defaultPendingCols,
     {
       title: "Action",
       dataIndex: "#",

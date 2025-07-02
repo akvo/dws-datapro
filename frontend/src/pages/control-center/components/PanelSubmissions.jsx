@@ -1,63 +1,17 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Table, Tabs, Row, Button, Col } from "antd";
-import {
-  LeftCircleOutlined,
-  DownCircleOutlined,
-  FileTextFilled,
-} from "@ant-design/icons";
+import { Table, Tabs, Button } from "antd";
+import { LeftCircleOutlined, DownCircleOutlined } from "@ant-design/icons";
 import {
   ApproverDetailTable,
   CreateBatchModal,
   DataFilters,
 } from "../../../components";
-import { api, columnsBatch, store, uiText } from "../../../lib";
+import { api, columnsBatch, columnsPending, store, uiText } from "../../../lib";
 import { Link } from "react-router-dom";
 import { useNotification } from "../../../util/hooks";
 import { isEmpty, without, union, xor } from "lodash";
 
 const { TabPane } = Tabs;
-
-const columnsPending = [
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-    render: (name, row) => (
-      <Row align="middle">
-        <Col style={{ marginRight: 20 }}>
-          <FileTextFilled style={{ color: "#666666", fontSize: 28 }} />
-        </Col>
-        <Col>
-          <div>{name}</div>
-          <div>{row.created}</div>
-        </Col>
-      </Row>
-    ),
-  },
-  {
-    title: "Administration",
-    dataIndex: "administration",
-    key: "administration",
-    width: 200,
-  },
-  {
-    title: "Submitter Name",
-    dataIndex: "submitter",
-    key: "submitter",
-    render: (submitter, dt) => {
-      return submitter || dt.created_by;
-    },
-    width: 200,
-  },
-  {
-    title: "Duration",
-    dataIndex: "duration",
-    key: "duration",
-    render: (duration) => duration || "",
-    align: "center",
-    width: 100,
-  },
-];
 
 const PanelSubmissions = () => {
   const [dataset, setDataset] = useState([]);

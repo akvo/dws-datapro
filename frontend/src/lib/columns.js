@@ -1,4 +1,5 @@
 import { Row, Col, Tag, Popover } from "antd";
+import { Link } from "react-router-dom";
 import {
   FileTextFilled,
   InfoCircleOutlined,
@@ -100,5 +101,77 @@ export const columnsBatch = [
     dataIndex: "total_data",
     key: "total_data",
     align: "center",
+  },
+];
+
+export const columnsPending = [
+  {
+    title: "Submitted Date",
+    dataIndex: "created",
+    key: "created",
+    render: (created) => created || "",
+    align: "center",
+    width: 200,
+  },
+  {
+    title: "Type",
+    dataIndex: "parent",
+    key: "parent",
+    render: (parent) =>
+      parent?.id ? (
+        <Tag color="orange">Monitoring</Tag>
+      ) : (
+        <Tag color="purple">Registration</Tag>
+      ),
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    key: "name",
+    render: (name, row) => (
+      <div>
+        <div style={{ marginBottom: 8 }}>{name}</div>
+        {row?.parent?.id && (
+          <div>
+            {row.parent.is_pending ? (
+              <Tag color="purple" className="label">
+                {row?.parent?.name}
+              </Tag>
+            ) : (
+              <Link
+                to={`/control-center/data/${row.parent.form}/monitoring/${row.parent.id}`}
+              >
+                <Tag color="purple" className="label">
+                  {row?.parent?.name}
+                </Tag>
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+    ),
+  },
+  {
+    title: "Administration",
+    dataIndex: "administration",
+    key: "administration",
+    width: 200,
+  },
+  {
+    title: "Submitter Name",
+    dataIndex: "submitter",
+    key: "submitter",
+    render: (submitter, dt) => {
+      return submitter || dt.created_by;
+    },
+    width: 200,
+  },
+  {
+    title: "Duration",
+    dataIndex: "duration",
+    key: "duration",
+    render: (duration) => duration || "",
+    align: "center",
+    width: 100,
   },
 ];
