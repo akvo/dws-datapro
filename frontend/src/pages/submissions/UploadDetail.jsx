@@ -4,14 +4,12 @@ import {
   LeftCircleOutlined,
   DownCircleOutlined,
   LoadingOutlined,
-  HistoryOutlined,
   PaperClipOutlined,
 } from "@ant-design/icons";
 import { api, QUESTION_TYPES, store, uiText } from "../../lib";
-import { ApproverDetailTable, EditableCell } from "../../components";
+import { ApproverDetailTable, RawDataTable } from "../../components";
 import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
-import { HistoryTable } from "../../components";
 import { getTimeDifferenceText } from "../../util/date";
 import { SubmissionTypeIcon } from "../../components/Icons";
 import UploadAttachmentModal from "./UploadAttachmentModal";
@@ -422,6 +420,7 @@ const UploadDetail = ({ record, setReload }) => {
       <Table
         loading={loading}
         dataSource={selectedTab === "raw-data" ? rawValues : values}
+        pagination={selectedTab === "raw-data" ? { pageSize: 10 } : false}
         columns={columns}
         style={{ borderBottom: "solid 1px #ddd" }}
         rowKey="id"
@@ -452,75 +451,14 @@ const UploadDetail = ({ record, setReload }) => {
                           {expanded.data?.map((r, rI) => (
                             <div className="pending-data-wrapper" key={rI}>
                               <h3>{r.label}</h3>
-                              <Table
-                                pagination={false}
-                                dataSource={r.question}
-                                rowClassName={(row) =>
-                                  (row.newValue || row.newValue === 0) &&
-                                  !isEqual(row.newValue, row.value)
-                                    ? "row-edited"
-                                    : "row-normal"
-                                }
-                                rowKey="id"
-                                columns={[
-                                  {
-                                    title: text?.questionCol,
-                                    dataIndex: null,
-                                    width: "50%",
-                                    render: (_, row) =>
-                                      row.short_label
-                                        ? row.short_label
-                                        : row.label,
-                                  },
-                                  {
-                                    title: text?.responseCol,
-                                    render: (row) => (
-                                      <EditableCell
-                                        record={row}
-                                        parentId={expanded.id}
-                                        updateCell={updateCell}
-                                        resetCell={resetCell}
-                                        disabled={!!dataLoading}
-                                        readonly={!isEditable}
-                                        resetButton={resetButton}
-                                      />
-                                    ),
-                                    width: "25%",
-                                  },
-                                  Table.EXPAND_COLUMN,
-                                  {
-                                    title: text?.lastResponseCol,
-                                    render: (row) => (
-                                      <EditableCell
-                                        record={row}
-                                        lastValue={true}
-                                        parentId={expanded.id}
-                                        updateCell={updateCell}
-                                        resetCell={resetCell}
-                                        disabled={true}
-                                        readonly={true}
-                                      />
-                                    ),
-                                    width: "25%",
-                                  },
-                                ]}
-                                expandable={{
-                                  expandIcon: ({ onExpand, record }) => {
-                                    if (!record?.history) {
-                                      return "";
-                                    }
-                                    return (
-                                      <HistoryOutlined
-                                        className="expand-icon"
-                                        onClick={(e) => onExpand(record, e)}
-                                      />
-                                    );
-                                  },
-                                  expandedRowRender: (record) => (
-                                    <HistoryTable record={record} />
-                                  ),
-                                  rowExpandable: (record) => record?.history,
-                                }}
+                              <RawDataTable
+                                updateCell={updateCell}
+                                resetCell={resetCell}
+                                dataLoading={dataLoading}
+                                isEditable={isEditable}
+                                resetButton={resetButton}
+                                expanded={expanded}
+                                questions={r.question}
                               />
                             </div>
                           ))}
