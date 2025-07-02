@@ -64,6 +64,7 @@ class PendingDataListTestCase(TestCase, ProfileTestHelperMixin):
                 "created_by",
                 "created",
                 "answer_history",
+                "parent",
             ]
         )
         self.assertEqual(

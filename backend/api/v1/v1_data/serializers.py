@@ -426,11 +426,23 @@ class ListPendingDataAnswerSerializer(serializers.ModelSerializer):
         fields = ["history", "question", "value", "last_value", "index"]
 
 
+class ParentFormDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FormData
+        fields = [
+            "id",
+            "name",
+            "form",
+            "is_pending",
+        ]
+
+
 class ListPendingFormDataSerializer(serializers.ModelSerializer):
     created_by = serializers.SerializerMethodField()
     created = serializers.SerializerMethodField()
     administration = serializers.ReadOnlyField(source="administration.name")
     answer_history = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField()
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_created_by(self, instance: FormData):
@@ -448,6 +460,12 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
         ).count()
         return True if history > 0 else False
 
+    @extend_schema_field(ParentFormDataSerializer)
+    def get_parent(self, instance: FormData):
+        if instance.parent:
+            return ParentFormDataSerializer(instance=instance.parent).data
+        return None
+
     class Meta:
         model = FormData
         fields = [
@@ -462,6 +480,7 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
             "created_by",
             "created",
             "answer_history",
+            "parent",
         ]
 
 
@@ -484,7 +503,8 @@ class SubmitPendingFormSerializer(serializers.Serializer):
         direct_to_data = is_super_admin
 
         obj_data = self.fields.get("data").create(data)
-        if data.get("uuid"):
+        # If the form is a child form, it should have a parent
+        if data.get("uuid") and obj_data.form.parent:
             obj_data.uuid = data["uuid"]
             # find parent data by uuid and parent form
             parent_data = FormData.objects.filter(
@@ -494,6 +514,8 @@ class SubmitPendingFormSerializer(serializers.Serializer):
             if parent_data:
                 # if parent data exists, link the child data
                 obj_data.parent = parent_data
+                obj_data.geo = parent_data.geo
+                obj_data.administration = parent_data.administration
             obj_data.save()
 
         if not direct_to_data and obj_data.has_approval:
