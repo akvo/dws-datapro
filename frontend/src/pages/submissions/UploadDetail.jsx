@@ -6,57 +6,20 @@ import {
   LoadingOutlined,
   PaperClipOutlined,
 } from "@ant-design/icons";
-import { api, QUESTION_TYPES, store, uiText } from "../../lib";
+import {
+  api,
+  columnsRawData,
+  QUESTION_TYPES,
+  store,
+  uiText,
+  transformRawData,
+} from "../../lib";
 import { ApproverDetailTable, RawDataTable } from "../../components";
 import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
 import { getTimeDifferenceText } from "../../util/date";
-import { SubmissionTypeIcon } from "../../components/Icons";
 import UploadAttachmentModal from "./UploadAttachmentModal";
 const { TabPane } = Tabs;
-
-const columnsRawData = [
-  {
-    title: "",
-    dataIndex: "key",
-    key: "key",
-    render: (_, __, a) => {
-      return a + 1;
-    },
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-    render: (name, row) => {
-      return (
-        <div>
-          {name}
-          <span className="monitoring-icon">
-            <SubmissionTypeIcon type={row?.submission_type} />
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    title: "Administration",
-    dataIndex: "administration",
-    key: "administration",
-    align: "center",
-  },
-  {
-    title: "Date",
-    dataIndex: "created",
-    key: "created",
-  },
-  {
-    title: "Upload By",
-    dataIndex: "created_by",
-    key: "created_by",
-  },
-  Table.EXPAND_COLUMN,
-];
 
 const summaryColumns = [
   {
@@ -87,7 +50,7 @@ const summaryColumns = [
   },
 ];
 
-const UploadDetail = ({ record, setReload }) => {
+const UploadDetail = ({ record: batch, setReload }) => {
   const [values, setValues] = useState([]);
   const [rawValues, setRawValues] = useState([]);
   const [columns, setColumns] = useState(summaryColumns);
@@ -133,7 +96,7 @@ const UploadDetail = ({ record, setReload }) => {
     });
     api
       .put(
-        `form-pending-data/${record.form?.id}?pending_data_id=${data.id}`,
+        `form-pending-data/${batch.form?.id}?pending_data_id=${data.id}`,
         formData
       )
       .then(() => {
@@ -159,12 +122,12 @@ const UploadDetail = ({ record, setReload }) => {
 
   const fetchAttachments = useCallback(async () => {
     try {
-      const response = await api.get(`/batch/attachments/${record.id}`);
+      const response = await api.get(`/batch/attachments/${batch.id}`);
       setAttachments(response.data);
     } catch (error) {
       console.error("Error fetching attachments:", error);
     }
-  }, [record.id]);
+  }, [batch.id]);
 
   useEffect(() => {
     fetchAttachments();
@@ -172,12 +135,12 @@ const UploadDetail = ({ record, setReload }) => {
 
   const fetchComments = useCallback(async () => {
     try {
-      const response = await api.get(`/batch/comment/${record.id}`);
+      const response = await api.get(`/batch/comment/${batch.id}`);
       setComments(response.data);
     } catch (error) {
       console.error("Error fetching comments:", error);
     }
-  }, [record.id]);
+  }, [batch.id]);
 
   useEffect(() => {
     fetchComments();
@@ -191,7 +154,7 @@ const UploadDetail = ({ record, setReload }) => {
       setColumns(summaryColumns);
     } else {
       setExpandedRowKeys([]);
-      setColumns(columnsRawData);
+      setColumns([...columnsRawData, Table.EXPAND_COLUMN]);
     }
     setSelectedTab(e);
   };
@@ -200,7 +163,7 @@ const UploadDetail = ({ record, setReload }) => {
     setLoading(true);
     if (selectedTab === "data-summary") {
       api
-        .get(`/batch/summary/${record.id}`)
+        .get(`/batch/summary/${batch.id}`)
         .then((res) => {
           const data = res.data.map((r, i) => {
             return { key: `Q-${i}`, ...r };
@@ -216,9 +179,9 @@ const UploadDetail = ({ record, setReload }) => {
     }
     if (selectedTab === "raw-data") {
       api
-        .get(`/form-pending-data-batch/${record.id}`)
+        .get(`/form-pending-data-batch/${batch.id}`)
         .then((res) => {
-          setColumns(columnsRawData);
+          setColumns([...columnsRawData, Table.EXPAND_COLUMN]);
           setRawValues(
             res.data.map((x) => ({
               key: x.id,
@@ -234,7 +197,7 @@ const UploadDetail = ({ record, setReload }) => {
           setLoading(false);
         });
     }
-  }, [selectedTab, record]);
+  }, [selectedTab, batch]);
 
   const onDeleteAttachment = (attachmentId) => {
     Modal.confirm({
@@ -339,18 +302,14 @@ const UploadDetail = ({ record, setReload }) => {
     setRawValues(prev);
   };
 
-  const initData = (recordId) => {
+  const initData = (record) => {
     setRawValues((rv) =>
-      rv.map((rI) => (rI.id === recordId ? { ...rI, loading: true } : rI))
+      rv.map((rI) => (rI.id === record?.id ? { ...rI, loading: true } : rI))
     );
-    if (questionGroups.length < 1) {
-      const qg = window.forms.find((f) => f.id === record.form?.id).content
-        .question_group;
-      setQuestionGroups(qg);
-      fetchData(recordId, qg);
-    } else {
-      fetchData(recordId, questionGroups);
-    }
+    const qg = window.forms.find((f) => f.id === record?.form).content
+      .question_group;
+    setQuestionGroups(qg);
+    fetchData(record?.id, qg);
   };
 
   const fetchData = (recordId, questionGroups) => {
@@ -358,27 +317,7 @@ const UploadDetail = ({ record, setReload }) => {
     api
       .get(`pending-data/${recordId}`)
       .then((res) => {
-        const data = questionGroups.map((qg) => {
-          return {
-            ...qg,
-            question: qg.question.map((q) => {
-              const findValue = res.data.find(
-                (d) => d.question === q.id
-              )?.value;
-              const findOldValue = res.data.find(
-                (d) => d.question === q.id
-              )?.last_value;
-              return {
-                ...q,
-                value: findValue || findValue === 0 ? findValue : null,
-                lastValue:
-                  findOldValue || findOldValue === 0 ? findOldValue : null,
-                history:
-                  res.data.find((d) => d.question === q.id)?.history || false,
-              };
-            }),
-          };
-        });
+        const data = transformRawData(questionGroups, res.data);
         setRawValues((rv) =>
           rv.map((rI) =>
             rI.id === recordId ? { ...rI, data, loading: false } : rI
@@ -407,12 +346,12 @@ const UploadDetail = ({ record, setReload }) => {
   };
 
   const isEditable =
-    (record.approvers || []).filter((a) => a.status_text === "Rejected")
-      .length > 0;
+    (batch.approvers || []).filter((a) => a.status_text === "Rejected").length >
+    0;
 
   return (
     <div id="upload-detail">
-      <ApproverDetailTable data={record?.approvers} />
+      <ApproverDetailTable data={batch?.approvers} />
       <Tabs centered activeKey={selectedTab} onTabClick={handleTabSelect}>
         <TabPane tab={text.uploadTab1} key="data-summary" />
         <TabPane tab={text.uploadTab2} key="raw-data" />
@@ -497,7 +436,7 @@ const UploadDetail = ({ record, setReload }) => {
                       onClick={(e) => {
                         setExpandedRowKeys([record.id]);
                         if (!record.data?.length) {
-                          initData(record.id);
+                          initData(record);
                         }
                         onExpand(record, e);
                       }}
@@ -515,7 +454,7 @@ const UploadDetail = ({ record, setReload }) => {
               );
             } else {
               if (!record.data?.length) {
-                initData(record.id);
+                initData(record);
               }
               setExpandedRowKeys((prevExpandedKeys) => [
                 ...prevExpandedKeys,
@@ -628,7 +567,7 @@ const UploadDetail = ({ record, setReload }) => {
           fetchComments();
         }}
         editData={editAttachment}
-        batch={record}
+        batch={batch}
       />
       <div className="detail-list-header">
         <h3>{text.notesFeedback}</h3>

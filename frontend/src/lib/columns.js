@@ -175,3 +175,68 @@ export const columnsPending = [
     width: 100,
   },
 ];
+
+export const columnsRawData = [
+  {
+    title: "",
+    dataIndex: "key",
+    key: "key",
+    render: (_, __, a) => {
+      return a + 1;
+    },
+  },
+  {
+    title: "Type",
+    dataIndex: "parent",
+    key: "parent",
+    render: (parent) =>
+      parent?.id ? (
+        <Tag color="orange">Monitoring</Tag>
+      ) : (
+        <Tag color="purple">Registration</Tag>
+      ),
+  },
+  {
+    title: "Name",
+    dataIndex: "name",
+    key: "name",
+    render: (name, row) => (
+      <div>
+        <div style={{ marginBottom: 8 }}>{name}</div>
+        {row?.parent?.id && (
+          <div>
+            {row.parent.is_pending ? (
+              <Tag color="purple" className="label">
+                {row?.parent?.name}
+              </Tag>
+            ) : (
+              <Link
+                to={`/control-center/data/${row.parent.form}/monitoring/${row.parent.id}`}
+              >
+                <Tag color="purple" className="label">
+                  {row?.parent?.name}
+                </Tag>
+              </Link>
+            )}
+          </div>
+        )}
+      </div>
+    ),
+  },
+  {
+    title: "Administration",
+    dataIndex: "administration",
+    key: "administration",
+    align: "center",
+  },
+  {
+    title: "Date",
+    dataIndex: "created",
+    key: "created",
+  },
+  {
+    title: "Upload By",
+    dataIndex: "created_by",
+    key: "created_by",
+  },
+];

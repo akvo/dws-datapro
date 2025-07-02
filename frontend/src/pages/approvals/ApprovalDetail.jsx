@@ -25,59 +25,15 @@ import {
   QUESTION_TYPES,
   APPROVAL_STATUS_APPROVED,
   APPROVAL_STATUS_REJECTED,
+  columnsRawData,
+  transformRawData,
 } from "../../lib";
 import { RawDataTable } from "../../components";
 import { isEqual, flatten } from "lodash";
 import { useNotification } from "../../util/hooks";
 import { getTimeDifferenceText } from "../../util/date";
-import { SubmissionTypeIcon } from "../../components/Icons";
 const { TextArea } = Input;
 const { TabPane } = Tabs;
-
-const columnsRawData = [
-  {
-    title: "",
-    dataIndex: "key",
-    key: "key",
-    width: 40,
-    render: (_, __, a) => {
-      return a + 1;
-    },
-  },
-  {
-    title: "Name",
-    dataIndex: "name",
-    key: "name",
-    render: (name, row) => {
-      return (
-        <div>
-          {name}
-          <span className="monitoring-icon">
-            <SubmissionTypeIcon type={row?.submission_type} />
-          </span>
-        </div>
-      );
-    },
-  },
-  {
-    title: "Administration",
-    dataIndex: "administration",
-    key: "administration",
-    align: "center",
-  },
-  {
-    title: "Date",
-    dataIndex: "created",
-    key: "created",
-  },
-  {
-    title: "Upload By",
-    dataIndex: "created_by",
-    key: "created_by",
-    width: 200,
-  },
-  Table.EXPAND_COLUMN,
-];
 
 const summaryColumns = [
   {
@@ -108,7 +64,7 @@ const summaryColumns = [
 ];
 
 const ApprovalDetail = ({
-  record,
+  record: batch,
   approve,
   setReload,
   expandedParentKeys,
@@ -129,7 +85,7 @@ const ApprovalDetail = ({
   const [questionGroups, setQuestionGroups] = useState([]);
   const { notify } = useNotification();
   const [checkedState, setCheckedState] = useState(
-    new Array(record.form?.approval_instructions?.action.length).fill(false)
+    new Array(batch.form?.approval_instructions?.action.length).fill(false)
   );
   const [resetButton, setresetButton] = useState({});
   const [attachments, setAttachments] = useState([]);
@@ -141,16 +97,16 @@ const ApprovalDetail = ({
   }, [activeLang]);
 
   const allowApprove = useMemo(() => {
-    return record?.approver?.some((a) => a?.allow_approve);
-  }, [record?.approver]);
+    return batch?.approver?.some((a) => a?.allow_approve);
+  }, [batch?.approver]);
 
   //for checking the null value
   const approveButtonEnable = useMemo(() => {
-    if (record.form?.approval_instructions === null) {
+    if (batch.form?.approval_instructions === null) {
       return false;
     }
     return !checkedState.every(Boolean);
-  }, [record, checkedState]);
+  }, [batch, checkedState]);
 
   const handleSave = (data) => {
     setSaving(data.id);
@@ -172,7 +128,7 @@ const ApprovalDetail = ({
     });
     api
       .put(
-        `form-pending-data/${record.form?.id}?pending_data_id=${data.id}`,
+        `form-pending-data/${batch.form?.id}?pending_data_id=${data.id}`,
         formData
       )
       .then(() => {
@@ -220,9 +176,7 @@ const ApprovalDetail = ({
     api
       .post("pending-data/approve", payload)
       .then(() => {
-        setExpandedParentKeys(
-          expandedParentKeys.filter((e) => e !== record.id)
-        );
+        setExpandedParentKeys(expandedParentKeys.filter((e) => e !== batch.id));
         setReload(batch?.id);
         setApproving(null);
       })
@@ -234,10 +188,10 @@ const ApprovalDetail = ({
 
   useEffect(() => {
     setSelectedTab("data-summary");
-    api.get(`/batch/comment/${record.id}`).then((res) => {
+    api.get(`/batch/comment/${batch.id}`).then((res) => {
       setComments(res.data);
     });
-  }, [record]);
+  }, [batch]);
 
   const handleTabSelect = (e) => {
     if (loading) {
@@ -247,7 +201,7 @@ const ApprovalDetail = ({
       setColumns(summaryColumns);
     } else {
       setExpandedRowKeys([]);
-      setColumns(columnsRawData);
+      setColumns([...columnsRawData, Table.EXPAND_COLUMN]);
     }
     setSelectedTab(e);
   };
@@ -256,7 +210,7 @@ const ApprovalDetail = ({
     setLoading(true);
     if (selectedTab === "data-summary") {
       api
-        .get(`/batch/summary/${record.id}`)
+        .get(`/batch/summary/${batch.id}`)
         .then((res) => {
           const data = res.data.map((r, i) => {
             return { key: `Q-${i}`, ...r };
@@ -272,9 +226,9 @@ const ApprovalDetail = ({
     }
     if (selectedTab === "raw-data") {
       api
-        .get(`/form-pending-data-batch/${record.id}`)
+        .get(`/form-pending-data-batch/${batch.id}`)
         .then((res) => {
-          setColumns(columnsRawData);
+          setColumns([...columnsRawData, Table.EXPAND_COLUMN]);
           setRawValues(
             res.data.map((x) => ({
               key: x.id,
@@ -290,7 +244,7 @@ const ApprovalDetail = ({
           setLoading(false);
         });
     }
-  }, [selectedTab, record]);
+  }, [selectedTab, batch]);
 
   const updateCell = (key, parentId, value) => {
     setresetButton({ ...resetButton, [key]: true });
@@ -364,18 +318,14 @@ const ApprovalDetail = ({
     setRawValues(prev);
   };
 
-  const initData = (recordId) => {
+  const initData = (record) => {
     setRawValues((rv) =>
-      rv.map((rI) => (rI.id === recordId ? { ...rI, loading: true } : rI))
+      rv.map((rI) => (rI.id === record?.id ? { ...rI, loading: true } : rI))
     );
-    if (questionGroups.length < 1) {
-      const qg = window.forms.find((f) => f.id === record.form?.id).content
-        .question_group;
-      setQuestionGroups(qg);
-      fetchData(recordId, qg);
-    } else {
-      fetchData(recordId, questionGroups);
-    }
+    const qg = window.forms.find((f) => f.id === record?.form).content
+      .question_group;
+    setQuestionGroups(qg);
+    fetchData(record?.id, qg);
   };
 
   const fetchData = (recordId, questionGroups) => {
@@ -383,30 +333,7 @@ const ApprovalDetail = ({
     api
       .get(`pending-data/${recordId}`)
       .then((res) => {
-        const data = questionGroups.map((qg) => {
-          return {
-            ...qg,
-            question: qg.question
-              .filter((item) => !item?.display_only)
-              .map((q) => {
-                const findValue = res.data.find(
-                  (d) => d.question === q.id
-                )?.value;
-                const findOldValue = res.data.find(
-                  (d) => d.question === q.id
-                )?.last_value;
-                return {
-                  ...q,
-                  value: findValue || findValue === 0 ? findValue : null,
-                  lastValue:
-                    findOldValue || findOldValue === 0 ? findOldValue : null,
-
-                  history:
-                    res.data.find((d) => d.question === q.id)?.history || false,
-                };
-              }),
-          };
-        });
+        const data = transformRawData(questionGroups, res.data);
         setRawValues((rv) =>
           rv.map((rI) =>
             rI.id === recordId ? { ...rI, data, loading: false } : rI
@@ -444,12 +371,12 @@ const ApprovalDetail = ({
 
   const fetchAttachments = useCallback(async () => {
     try {
-      const response = await api.get(`/batch/attachments/${record.id}`);
+      const response = await api.get(`/batch/attachments/${batch.id}`);
       setAttachments(response.data);
     } catch (error) {
       console.error("Error fetching attachments:", error);
     }
-  }, [record.id]);
+  }, [batch.id]);
 
   useEffect(() => {
     fetchAttachments();
@@ -541,7 +468,7 @@ const ApprovalDetail = ({
                       onClick={(e) => {
                         setExpandedRowKeys([record.id]);
                         if (!record.data?.length) {
-                          initData(record.id);
+                          initData(record);
                         }
                         onExpand(record, e);
                       }}
@@ -559,7 +486,7 @@ const ApprovalDetail = ({
               );
             } else {
               if (!record.data?.length) {
-                initData(record.id);
+                initData(record);
               }
               setExpandedRowKeys((prevExpandedKeys) => [
                 ...prevExpandedKeys,
@@ -676,20 +603,18 @@ const ApprovalDetail = ({
       <Row justify="space-between">
         {approvalTab !== "approved" && (
           <Col style={{ marginTop: "20px" }} span={24}>
-            <p>{record.form?.approval_instructions?.text}</p>
+            <p>{batch.form?.approval_instructions?.text}</p>
             <Space direction="vertical">
-              {record.form?.approval_instructions?.action?.map(
-                (item, index) => (
-                  <div key={index}>
-                    <Checkbox
-                      checked={checkedState[index]}
-                      onChange={() => handleCheckboxChange(index)}
-                    >
-                      {item}
-                    </Checkbox>
-                  </div>
-                )
-              )}
+              {batch.form?.approval_instructions?.action?.map((item, index) => (
+                <div key={index}>
+                  <Checkbox
+                    checked={checkedState[index]}
+                    onChange={() => handleCheckboxChange(index)}
+                  >
+                    {item}
+                  </Checkbox>
+                </div>
+              ))}
             </Space>
           </Col>
         )}
@@ -697,7 +622,7 @@ const ApprovalDetail = ({
           <Space style={{ marginTop: "20px", float: "right" }}>
             <Button
               type="danger"
-              onClick={() => handleApprove(record, APPROVAL_STATUS_REJECTED)}
+              onClick={() => handleApprove(batch, APPROVAL_STATUS_REJECTED)}
               disabled={!allowApprove || approveButtonEnable}
               shape="round"
               loading={approving === APPROVAL_STATUS_REJECTED}
@@ -706,7 +631,7 @@ const ApprovalDetail = ({
             </Button>
             <Button
               type="primary"
-              onClick={() => handleApprove(record, APPROVAL_STATUS_APPROVED)}
+              onClick={() => handleApprove(batch, APPROVAL_STATUS_APPROVED)}
               disabled={!allowApprove || approveButtonEnable}
               shape="round"
               loading={approving === APPROVAL_STATUS_APPROVED}
