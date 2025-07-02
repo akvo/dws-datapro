@@ -161,7 +161,7 @@ const CreateBatchModal = ({
       />
       {dataError?.length > 0 && (
         <div style={{ color: "#ef7575", marginTop: 10 }}>
-          <ul>
+          <ul style={{ listStyleType: "none", paddingLeft: 0 }}>
             {dataError.map((error, index) => (
               <li key={index}>
                 <i>{error}</i>
