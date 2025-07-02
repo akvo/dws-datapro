@@ -44,6 +44,7 @@ from .serializers import (
     MobileApkSerializer,
     MobileAssignmentSerializer,
     MobileDataPointDownloadListSerializer,
+    SyncDeviceFormDataSerializer,
 )
 from .models import MobileAssignment, MobileApk
 from api.v1.v1_forms.models import Forms, Questions, QuestionTypes
@@ -117,18 +118,7 @@ def get_mobile_form_details(request: Request, version, form_id):
 
 
 @extend_schema(
-    request=inline_serializer(
-        name="SyncDeviceFormData",
-        fields={
-            "formId": serializers.IntegerField(),
-            "name": serializers.CharField(),
-            "duration": serializers.IntegerField(),
-            "submittedAt": serializers.DateTimeField(),
-            "submitter": serializers.CharField(),
-            "geo": serializers.ListField(child=serializers.IntegerField()),
-            "answers": serializers.DictField(),
-        },
-    ),
+    request=SyncDeviceFormDataSerializer,
     responses={200: DefaultResponseSerializer},
     tags=["Mobile Device Form"],
     summary="Submit pending form data",
@@ -139,7 +129,9 @@ def sync_pending_form_data(request, version):
     form = get_object_or_404(Forms, pk=request.data.get("formId"))
     assignment = cast(MobileAssignmentToken, request.auth).assignment
     user = assignment.user
-    administration = assignment.administrations.first()
+    administration = assignment.administrations.order_by(
+        "level__level"
+    ).first()
     if user.user_user_role.exists():
         user_role = user.user_user_role.filter(
             role__role_role_access__data_access=DataAccessTypes.submit
