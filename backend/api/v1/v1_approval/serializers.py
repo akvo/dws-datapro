@@ -39,6 +39,7 @@ from utils.custom_serializer_fields import (
     CustomBooleanField,
     CustomFileField,
 )
+from api.v1.v1_data.serializers import ParentFormDataSerializer
 from utils.default_serializers import CommonDataSerializer
 from utils.email_helper import send_email, EmailTypes
 from utils.functions import update_date_time_format
@@ -194,6 +195,7 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
     created = serializers.SerializerMethodField()
     administration = serializers.ReadOnlyField(source="administration.name")
     answer_history = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField()
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_created_by(self, instance: FormData):
@@ -211,6 +213,12 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
         ).count()
         return True if history > 0 else False
 
+    @extend_schema_field(ParentFormDataSerializer)
+    def get_parent(self, instance: FormData):
+        if instance.parent:
+            return ParentFormDataSerializer(instance.parent).data
+        return None
+
     class Meta:
         model = FormData
         fields = [
@@ -225,6 +233,7 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
             "created_by",
             "created",
             "answer_history",
+            "parent",
         ]
 
 
