@@ -35,6 +35,8 @@ from api.v1.v1_data.serializers import (
     ListPendingDataAnswerSerializer,
     ListPendingFormDataSerializer,
     SubmitPendingFormSerializer,
+    SubmitDraftFormSerializer,
+    SubmitUpdateDraftFormSerializer,
     SubmitFormDataAnswerSerializer,
     FormDataSerializer,
 )
@@ -646,4 +648,218 @@ class PendingFormDataView(APIView):
                 approval.save()
         return Response(
             {"message": "update success"}, status=status.HTTP_200_OK
+        )
+
+
+class DraftFormDataListView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={
+            (200, "application/json"): inline_serializer(
+                "DraftDataListResponse",
+                fields={
+                    "current": serializers.IntegerField(),
+                    "total": serializers.IntegerField(),
+                    "total_page": serializers.IntegerField(),
+                    "data": ListFormDataSerializer(many=True),
+                },
+            )
+        },
+        tags=["Draft Data"],
+        parameters=[
+            OpenApiParameter(
+                name="page",
+                required=False,
+                type=OpenApiTypes.NUMBER,
+                location=OpenApiParameter.QUERY,
+            ),
+            OpenApiParameter(
+                name="search",
+                required=False,
+                type=OpenApiTypes.STR,
+                location=OpenApiParameter.QUERY,
+            ),
+        ],
+        summary="To get list of draft form data",
+    )
+    def get(self, request, form_id, version):
+        form = get_object_or_404(Forms, pk=form_id)
+        page_size = REST_FRAMEWORK.get("PAGE_SIZE")
+
+        # Filter draft data for this form and user
+        queryset = FormData.objects_draft.filter(
+            form=form,
+            created_by=request.user
+        ).order_by("-created")
+
+        # Apply search filter if provided
+        search = request.GET.get("search")
+        if search:
+            queryset = queryset.filter(name__icontains=search)
+
+        paginator = PageNumberPagination()
+        instance = paginator.paginate_queryset(queryset, request)
+
+        data = {
+            "current": int(request.GET.get("page", "1")),
+            "total": queryset.count(),
+            "total_page": ceil(queryset.count() / page_size),
+            "data": ListFormDataSerializer(
+                instance=instance, many=True
+            ).data,
+        }
+        return Response(data, status=status.HTTP_200_OK)
+
+    @extend_schema(
+        request=SubmitDraftFormSerializer,
+        responses={201: DefaultResponseSerializer},
+        tags=["Draft Data"],
+        summary="Submit draft form data",
+    )
+    def post(self, request, form_id, version):
+        form = get_object_or_404(Forms, pk=form_id)
+        serializer = SubmitDraftFormSerializer(
+            data=request.data, context={"user": request.user, "form": form}
+        )
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "message": validate_serializers_message(serializer.errors),
+                    "details": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer.save()
+        return Response(
+            {"message": "Draft created successfully"},
+            status=status.HTTP_201_CREATED
+        )
+
+
+class DraftFormDataDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses=FormDataSerializer,
+        tags=["Draft Data"],
+        summary="Get draft form data by ID",
+    )
+    def get(self, request, data_id, version):
+        draft_data = get_object_or_404(
+            FormData, pk=data_id, is_draft=True
+        )
+        if draft_data.created_by_id != request.user.id:
+            return Response(
+                {"message": "You are not allowed to perform this action"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        return Response(
+            FormDataSerializer(instance=draft_data).data,
+            status=status.HTTP_200_OK
+        )
+
+    @extend_schema(
+        request=SubmitDraftFormSerializer,
+        responses={200: DefaultResponseSerializer},
+        tags=["Draft Data"],
+        summary="Edit draft form data",
+    )
+    def put(self, request, data_id, version):
+        draft_data = get_object_or_404(
+            FormData, pk=data_id, is_draft=True
+        )
+        if draft_data.created_by_id != request.user.id:
+            return Response(
+                {"message": "You are not allowed to perform this action"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # Create a new SubmitUpdateDraftFormSerializer for updates
+        serializer = SubmitUpdateDraftFormSerializer(
+            instance=draft_data,
+            data=request.data,
+            context={"user": request.user, "form": draft_data.form}
+        )
+        if not serializer.is_valid():
+            return Response(
+                {
+                    "message": validate_serializers_message(serializer.errors),
+                    "details": serializer.errors,
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        serializer.save()
+        return Response(
+            {"message": "Draft updated successfully"},
+            status=status.HTTP_200_OK
+        )
+
+    @extend_schema(
+        responses={
+            204: OpenApiResponse(description="Deletion with no response")
+        },
+        tags=["Draft Data"],
+        summary="Delete draft form data",
+    )
+    def delete(self, request, data_id, version):
+        draft_data = get_object_or_404(
+            FormData, pk=data_id, is_draft=True
+        )
+        if draft_data.created_by_id != request.user.id:
+            return Response(
+                {"detail": "You do not have permission to perform this action."},  # noqa: E501
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Hard delete the draft data
+        draft_data.hard_delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+class PublishDraftFormDataView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    @extend_schema(
+        responses={200: DefaultResponseSerializer},
+        tags=["Draft Data"],
+        summary="Publish draft form data",
+    )
+    def post(self, request, data_id, version):
+        draft_data = get_object_or_404(
+            FormData, pk=data_id, is_draft=True
+        )
+        if draft_data.created_by_id != request.user.id:
+            return Response(
+                {"detail": "You do not have permission to perform this action."},  # noqa: E501
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # Check if user is super admin or if form has approval
+        user = request.user
+        is_super_admin = user.is_superuser
+        direct_to_data = is_super_admin
+
+        # Publish the draft data (mark as not draft)
+        draft_data.publish()
+
+        # Check if the form requires approval and user is not super admin
+        if not direct_to_data and draft_data.has_approval:
+            # Set as pending for approval
+            draft_data.is_pending = True
+        else:
+            # Direct to published data
+            draft_data.is_pending = False
+
+        draft_data.save()
+
+        # Save to file if it's published and not pending and not a child form
+        if not draft_data.is_pending and not draft_data.parent:
+            draft_data.save_to_file
+
+        return Response(
+            {"message": "Draft published successfully"},
+            status=status.HTTP_200_OK
         )

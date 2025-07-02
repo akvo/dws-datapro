@@ -1,5 +1,6 @@
 import requests
 from django.db.models import Q
+from django.utils import timezone
 
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import extend_schema_field, inline_serializer
@@ -594,3 +595,189 @@ class SubmitPendingFormSerializer(serializers.Serializer):
             obj_data.save_to_file
 
         return obj_data
+
+
+class SubmitDraftFormSerializer(SubmitPendingFormSerializer):
+    """
+    Serializer for creating draft form data.
+    Extends SubmitPendingFormSerializer but sets is_draft=True
+    and doesn't save to file.
+    """
+
+    def create(self, validated_data):
+        data = validated_data.get("data")
+        data["form"] = self.context.get("form")
+        data["created_by"] = self.context.get("user")
+
+        # Create the form data object
+        obj_data = self.fields.get("data").create(data)
+
+        # If the form is a child form, it should have a parent
+        if data.get("uuid") and obj_data.form.parent:
+            obj_data.uuid = data["uuid"]
+            # find parent data by uuid and parent form
+            parent_data = FormData.objects.filter(
+                uuid=data["uuid"],
+                form__parent__isnull=True,
+            ).first()
+            if parent_data:
+                # if parent data exists, link the child data
+                obj_data.parent = parent_data
+                obj_data.geo = parent_data.geo
+                obj_data.administration = parent_data.administration
+            obj_data.save()
+        # Mark as draft
+        obj_data.mark_as_draft()
+
+        answers = []
+
+        for answer in validated_data.get("answer"):
+            question = answer.get("question")
+            name = None
+            value = None
+            option = None
+
+            if question.type in [
+                QuestionTypes.geo,
+                QuestionTypes.option,
+                QuestionTypes.multiple_option,
+            ]:
+                option = answer.get("value")
+            elif question.type in [
+                QuestionTypes.text,
+                QuestionTypes.photo,
+                QuestionTypes.date,
+                QuestionTypes.autofield,
+                QuestionTypes.attachment,
+                QuestionTypes.signature,
+            ]:
+                name = answer.get("value")
+            elif question.type == QuestionTypes.cascade:
+                id = answer.get("value")
+                val = None
+                if question.api:
+                    ep = question.api.get("endpoint")
+                    if "organisation" in ep:
+                        name = Organisation.objects.filter(pk=id).values_list(
+                            'name', flat=True).first()
+                        val = name
+                    if "entity-data" in ep:
+                        name = EntityData.objects.filter(pk=id).values_list(
+                            'name', flat=True).first()
+                        val = name
+                    if "entity-data" not in ep and "organisation" not in ep:
+                        ep = ep.split("?")[0]
+                        ep = f"{ep}?id={id}"
+                        val = requests.get(ep).json()
+                        val = val[0].get("name")
+
+                if question.extra:
+                    cs_type = question.extra.get("type")
+                    if cs_type == "entity":
+                        name = EntityData.objects.filter(pk=id).values_list(
+                            'name', flat=True).first()
+                        val = name
+                name = val
+            else:
+                value = answer.get("value")
+
+            answers.append(Answers(
+                data=obj_data,
+                question=question,
+                name=name,
+                value=value,
+                options=option,
+                created_by=self.context.get("user"),
+                index=answer.get("index", 0)
+            ))
+
+        Answers.objects.bulk_create(answers)
+
+        # Don't save to file for drafts
+        return obj_data
+
+
+class SubmitUpdateDraftFormSerializer(SubmitDraftFormSerializer):
+    """
+    Serializer for updating existing draft form data.
+    """
+
+    def update(self, instance, validated_data):
+        data = validated_data.get("data")
+
+        # Update the FormData instance
+        instance.name = data.get("name", instance.name)
+        admin_id = data.get("administration", instance.administration_id)
+        instance.administration_id = admin_id
+        instance.geo = data.get("geo", instance.geo)
+        instance.updated = timezone.now()
+        instance.updated_by = self.context.get("user")
+        instance.save()
+
+        # Clear existing answers and create new ones
+        instance.data_answer.all().delete()
+
+        answers = []
+        for answer in validated_data.get("answer"):
+            question = answer.get("question")
+            name = None
+            value = None
+            option = None
+
+            if question.type in [
+                QuestionTypes.geo,
+                QuestionTypes.option,
+                QuestionTypes.multiple_option,
+            ]:
+                option = answer.get("value")
+            elif question.type in [
+                QuestionTypes.text,
+                QuestionTypes.photo,
+                QuestionTypes.date,
+                QuestionTypes.autofield,
+                QuestionTypes.attachment,
+                QuestionTypes.signature,
+            ]:
+                name = answer.get("value")
+            elif question.type == QuestionTypes.cascade:
+                id = answer.get("value")
+                val = None
+                if question.api:
+                    ep = question.api.get("endpoint")
+                    if "organisation" in ep:
+                        name = Organisation.objects.filter(pk=id).values_list(
+                            'name', flat=True).first()
+                        val = name
+                    if "entity-data" in ep:
+                        name = EntityData.objects.filter(pk=id).values_list(
+                            'name', flat=True).first()
+                        val = name
+                    if "entity-data" not in ep and "organisation" not in ep:
+                        ep = ep.split("?")[0]
+                        ep = f"{ep}?id={id}"
+                        val = requests.get(ep).json()
+                        val = val[0].get("name")
+
+                if question.extra:
+                    cs_type = question.extra.get("type")
+                    if cs_type == "entity":
+                        name = EntityData.objects.filter(pk=id).values_list(
+                            'name', flat=True).first()
+                        val = name
+                name = val
+            else:
+                # for administration,number question type
+                value = answer.get("value")
+
+            answers.append(Answers(
+                data=instance,
+                question=question,
+                name=name,
+                value=value,
+                options=option,
+                created_by=self.context.get("user"),
+                index=answer.get("index", 0)
+            ))
+
+        Answers.objects.bulk_create(answers)
+        return instance
