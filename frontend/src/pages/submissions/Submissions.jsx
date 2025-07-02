@@ -18,7 +18,7 @@ import { useNotification } from "../../util/hooks";
 import UploadDetail from "./UploadDetail";
 import BatchDetail from "./BatchDetail";
 import { DataFilters } from "../../components";
-import { isEmpty, union, xor } from "lodash";
+import { isEmpty, union, xor, without } from "lodash";
 
 const { TabPane } = Tabs;
 const { confirm } = Modal;
@@ -184,7 +184,14 @@ const Submissions = () => {
 
   const hasSelected = !isEmpty(selectedRowKeys);
   const onSelectTableRow = (val) => {
-    setSelectedRowKeys(val);
+    const { id } = val;
+    const ids = [...selectedRowKeys, id];
+    if (val?.parent?.id && val?.parent?.is_pending) {
+      ids.push(val.parent.id);
+    }
+    selectedRowKeys.includes(id)
+      ? setSelectedRowKeys(without(selectedRowKeys, id))
+      : setSelectedRowKeys(ids);
   };
 
   const onSelectAllTableRow = (isSelected) => {
@@ -265,7 +272,7 @@ const Submissions = () => {
                 dataTab === "pending-submission"
                   ? {
                       selectedRowKeys: selectedRowKeys,
-                      onChange: onSelectTableRow,
+                      onSelect: onSelectTableRow,
                       onSelectAll: onSelectAllTableRow,
                       handleDelete: handleDelete,
                       getCheckboxProps: (record) => ({

@@ -98,9 +98,13 @@ const PanelSubmissions = () => {
   const hasSelected = !isEmpty(selectedRowKeys);
   const onSelectTableRow = (val) => {
     const { id } = val;
+    const ids = [...selectedRowKeys, id];
+    if (val?.parent?.id && val?.parent?.is_pending) {
+      ids.push(val.parent.id);
+    }
     selectedRowKeys.includes(id)
       ? setSelectedRowKeys(without(selectedRowKeys, id))
-      : setSelectedRowKeys([...selectedRowKeys, id]);
+      : setSelectedRowKeys(ids);
   };
 
   const onSelectAllTableRow = (isSelected) => {
