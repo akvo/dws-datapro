@@ -2,6 +2,7 @@
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { SYNC_FORM_SUBMISSION_TASK_NAME } from './constants';
 
 const registerForPushNotificationsAsync = async () => {
   if (Platform.OS === 'android') {
@@ -35,7 +36,7 @@ const sendPushNotification = async (type = 'sync-form-version') => {
   };
   let notificationBody = null;
   switch (type) {
-    case 'sync-form-submission':
+    case SYNC_FORM_SUBMISSION_TASK_NAME:
       notificationBody = {
         content: {
           title: 'Sync submission completed',
