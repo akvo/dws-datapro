@@ -60,6 +60,7 @@ from api.v1.v1_files.serializers import (
     AttachmentsSerializer,
 )
 from api.v1.v1_profile.constants import DataAccessTypes
+from api.v1.v1_profile.models import Administration
 from api.v1.v1_files.functions import handle_upload
 from utils.custom_helper import CustomPasscode
 from utils.default_serializers import DefaultResponseSerializer
@@ -484,6 +485,13 @@ class MobileAssignmentViewSet(ModelViewSet):
             "administrations", "forms"
         ).filter(user=user)
         adm_q = Q()
+        if user.is_superuser:
+            adm = Administration.objects.filter(
+                parent__isnull=True
+            ).first()
+            adm_q = Q(
+                administrations__path__startswith=f"{adm.id}."
+            )
         for ur in user.user_user_role.all():
             adm = ur.administration
             path = adm.path \

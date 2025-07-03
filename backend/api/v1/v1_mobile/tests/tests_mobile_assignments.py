@@ -237,3 +237,32 @@ class MobileAssignmentTestCase(TestCase, ProfileTestHelperMixin):
         self.assertEqual(
                 len(data['administrations']),
                 assignment.administrations.count())
+
+    def test_list_with_superuser(self):
+        # Create mobile assignments for testing
+        parent_adm = Administration.objects.filter(
+            level__level=3
+        ).order_by("?").first()
+        form = Forms.objects.get(pk=1)
+        for adm in parent_adm.parent_administration.all():
+            mobile = MobileAssignment.objects.create_assignment(
+                user=self.user, name=f'Assignment for {adm.name}'
+            )
+            mobile.administrations.add(adm)
+            mobile.forms.add(form)
+        superuser = self.create_user(
+            email="super@akvo.org",
+            role_level=self.IS_SUPER_ADMIN
+        )
+        superuser.set_password("password")
+        superuser.save()
+
+        super_token = self.get_auth_token(superuser.email, "password")
+        response = self.client.get(
+            '/api/v1/mobile-assignments',
+            content_type="application/json",
+            HTTP_AUTHORIZATION=f'Bearer {super_token}'
+        )
+        self.assertEqual(response.status_code, 200)
+        data = response.json().get('data')
+        self.assertTrue(len(data) > 0, "Superuser should see all assignments")
