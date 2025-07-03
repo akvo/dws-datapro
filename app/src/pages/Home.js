@@ -17,8 +17,9 @@ import {
   AuthState,
 } from '../store';
 import { crudForms, crudUsers } from '../database/crud';
-import { api, cascades, i18n } from '../lib';
+import { api, backgroundTask, cascades, i18n } from '../lib';
 import crudJobs, { SYNC_DATAPOINT_JOB_NAME, jobStatus } from '../database/crud/crud-jobs';
+import { SYNC_FORM_SUBMISSION_TASK_NAME, SYNC_STATUS } from '../lib/constants';
 
 const Home = ({ navigation, route }) => {
   const params = route?.params || null;
@@ -38,6 +39,7 @@ const Home = ({ navigation, route }) => {
   const passcode = AuthState.useState((s) => s.authenticationCode);
   const isOnline = UIState.useState((s) => s.online);
   const syncWifiOnly = UserState.useState((s) => s.syncWifiOnly);
+  const statusBar = UIState.useState((s) => s.statusBar);
 
   const activeLang = UIState.useState((s) => s.lang);
   const trans = i18n.text(activeLang);
@@ -133,6 +135,19 @@ const Home = ({ navigation, route }) => {
     await syncAllForms(myForms, newForms);
   };
 
+  const runSyncSubmisionManually = async () => {
+    const activeJob = await crudJobs.getActiveJob(db, SYNC_FORM_SUBMISSION_TASK_NAME);
+    if (activeJob?.status === jobStatus.PENDING) {
+      await crudJobs.updateJob(db, activeJob.id, {
+        status: jobStatus.ON_PROGRESS,
+      });
+      await backgroundTask.syncFormSubmission(activeJob);
+    }
+    UIState.update((s) => {
+      s.isManualSynced = true;
+    });
+  };
+
   const handleOnSync = async () => {
     setSyncLoading(true);
     try {
@@ -147,7 +162,7 @@ const Home = ({ navigation, route }) => {
         s.inProgress = true;
         s.added = true;
       });
-      setSyncLoading(false);
+      await runSyncSubmisionManually();
     } catch (error) {
       ToastAndroid.show(`[ERROR SYNC DATAPOINT]: ${error}`, ToastAndroid.LONG);
       Sentry.captureMessage('[Home] Unable to sync data-points');
@@ -173,11 +188,6 @@ const Home = ({ navigation, route }) => {
         setAppLang(activeLang);
       }
 
-      if (isManualSynced) {
-        UIState.update((s) => {
-          s.isManualSynced = false;
-        });
-      }
       try {
         const results = await crudForms.selectLatestFormVersion(db, { user: currentUserId });
         const forms = results
@@ -343,7 +353,9 @@ const Home = ({ navigation, route }) => {
         icon={{ name: 'sync', color: 'white' }}
         customStyle={{ marginBottom: 16 }}
         backgroundColor="#1651b6"
-        disabled={!isOnline || syncLoading || syncDisabled}
+        disabled={
+          !isOnline || syncLoading || syncDisabled || statusBar?.type === SYNC_STATUS.on_progress
+        }
       />
     </BaseLayout>
   );
