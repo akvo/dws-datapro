@@ -35,7 +35,6 @@ from api.v1.v1_data.serializers import (
     ListPendingDataAnswerSerializer,
     ListPendingFormDataSerializer,
     SubmitPendingFormSerializer,
-    SubmitDraftFormSerializer,
     SubmitUpdateDraftFormSerializer,
     SubmitFormDataAnswerSerializer,
     FormDataSerializer,
@@ -712,15 +711,20 @@ class DraftFormDataListView(APIView):
         return Response(data, status=status.HTTP_200_OK)
 
     @extend_schema(
-        request=SubmitDraftFormSerializer,
+        request=SubmitPendingFormSerializer,
         responses={201: DefaultResponseSerializer},
         tags=["Draft Data"],
         summary="Submit draft form data",
     )
     def post(self, request, form_id, version):
         form = get_object_or_404(Forms, pk=form_id)
-        serializer = SubmitDraftFormSerializer(
-            data=request.data, context={"user": request.user, "form": form}
+        serializer = SubmitPendingFormSerializer(
+            data=request.data,
+            context={
+                "user": request.user,
+                "form": form,
+                "is_draft": True  # Indicate this is a draft submission
+            }
         )
         if not serializer.is_valid():
             return Response(
@@ -761,7 +765,7 @@ class DraftFormDataDetailView(APIView):
         )
 
     @extend_schema(
-        request=SubmitDraftFormSerializer,
+        request=SubmitUpdateDraftFormSerializer,
         responses={200: DefaultResponseSerializer},
         tags=["Draft Data"],
         summary="Edit draft form data",
@@ -776,7 +780,6 @@ class DraftFormDataDetailView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # Create a new SubmitUpdateDraftFormSerializer for updates
         serializer = SubmitUpdateDraftFormSerializer(
             instance=draft_data,
             data=request.data,
