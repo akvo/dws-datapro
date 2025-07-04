@@ -1,8 +1,3 @@
-import {
-  // FileSyncOutlined,
-  FileTextOutlined,
-} from "@ant-design/icons";
-
 export const ResetIcon = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -18,10 +13,6 @@ export const ResetIcon = () => (
     />
   </svg>
 );
-
-export const SubmissionTypeIcon = ({ style }) => {
-  return <FileTextOutlined style={style} />;
-};
 
 export const AkvoIcon = ({ width = 81, height = 30 }) => (
   <svg

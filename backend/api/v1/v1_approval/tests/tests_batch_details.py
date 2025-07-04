@@ -102,3 +102,20 @@ class DataBatchDetailsTestCase(TestCase, ProfileTestHelperMixin):
             response_json[0]["uuid"],
             self.data.uuid
         )
+        self.assertEqual(
+            list(response_json[0]),
+            [
+                "id",
+                "uuid",
+                "name",
+                "form",
+                "administration",
+                "geo",
+                "submitter",
+                "duration",
+                "created_by",
+                "created",
+                "answer_history",
+                "parent",
+            ]
+        )

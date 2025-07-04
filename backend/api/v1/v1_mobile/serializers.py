@@ -7,7 +7,13 @@ from drf_spectacular.types import OpenApiTypes
 from django.db.models import Q
 from api.v1.v1_mobile.authentication import MobileAssignmentToken
 from api.v1.v1_profile.models import Administration, Entity
-from utils.custom_serializer_fields import CustomCharField
+from utils.custom_serializer_fields import (
+    CustomCharField,
+    CustomIntegerField,
+    CustomListField,
+    CustomDateTimeField,
+    CustomPrimaryKeyRelatedField,
+)
 from api.v1.v1_mobile.models import MobileAssignment, MobileApk
 from utils.custom_helper import CustomPasscode, generate_random_string
 
@@ -204,3 +210,37 @@ class MobileApkSerializer(serializers.Serializer):
     class Meta:
         model = MobileApk
         fields = ["apk_version", "apk_url", "created_at"]
+
+
+class SyncDeviceFormDataSerializer(serializers.Serializer):
+    formId = CustomPrimaryKeyRelatedField(
+        queryset=Forms.objects.none()
+    )
+    name = CustomCharField(max_length=255)
+    duration = CustomIntegerField(
+        min_value=0, max_value=86400000, default=0
+    )
+    submittedAt = CustomDateTimeField()
+    geo = CustomListField(child=serializers.IntegerField())
+    uuid = serializers.UUIDField(required=False, allow_null=True)
+    answers = serializers.DictField()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fields.get("formId").queryset = Forms.objects.all()
+
+    def validate(self, attrs):
+        if not attrs.get("answers"):
+            raise serializers.ValidationError("Answers cannot be empty.")
+        return attrs
+
+    class Meta:
+        fields = [
+            "formId",
+            "name",
+            "duration",
+            "submittedAt",
+            "geo",
+            "uuid",
+            "answers",
+        ]

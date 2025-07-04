@@ -39,6 +39,7 @@ from utils.custom_serializer_fields import (
     CustomBooleanField,
     CustomFileField,
 )
+from api.v1.v1_data.serializers import ParentFormDataSerializer
 from utils.default_serializers import CommonDataSerializer
 from utils.email_helper import send_email, EmailTypes
 from utils.functions import update_date_time_format
@@ -194,6 +195,7 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
     created = serializers.SerializerMethodField()
     administration = serializers.ReadOnlyField(source="administration.name")
     answer_history = serializers.SerializerMethodField()
+    parent = serializers.SerializerMethodField()
 
     @extend_schema_field(OpenApiTypes.STR)
     def get_created_by(self, instance: FormData):
@@ -211,6 +213,12 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
         ).count()
         return True if history > 0 else False
 
+    @extend_schema_field(ParentFormDataSerializer)
+    def get_parent(self, instance: FormData):
+        if instance.parent:
+            return ParentFormDataSerializer(instance.parent).data
+        return None
+
     class Meta:
         model = FormData
         fields = [
@@ -225,6 +233,7 @@ class ListPendingFormDataSerializer(serializers.ModelSerializer):
             "created_by",
             "created",
             "answer_history",
+            "parent",
         ]
 
 
@@ -633,6 +642,12 @@ class CreateBatchSerializer(serializers.Serializer):
                 raise ValidationError(
                     "One or more data items were not submitted by the user."
                 )
+            if item.parent and item.parent.is_pending:
+                if item.parent.id not in [d.id for d in data]:
+                    raise ValidationError(
+                        "Registration data must be included in the batch "
+                        "if it is pending."
+                    )
         return data
 
     def validate_files(self, files):
@@ -650,9 +665,20 @@ class CreateBatchSerializer(serializers.Serializer):
             raise ValidationError(
                 {"data": "No form found for this batch"}
             )
-        form = attrs.get("data")[0].form
+        # Get form from the data that have form parent_id is None
+        find_form = list(
+            set(
+                data.form for data in attrs.get("data")
+                if data.form.parent is None
+            )
+        )
+        form = find_form[0] if len(find_form) > 0 \
+            else attrs.get("data")[0].form
         for pending in attrs.get("data"):
-            if pending.form_id != form.id:
+            if (
+                pending.form_id != form.id and
+                not form.children.filter(pk=pending.form_id).exists()
+            ):
                 raise ValidationError({
                     "data": (
                         "Mismatched form ID for one or more"
