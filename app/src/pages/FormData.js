@@ -128,7 +128,6 @@ const FormDataPage = ({ navigation, route }) => {
       ...route?.params,
       dataPointId: id,
       newSubmission: false,
-      submission_type: selectedData?.submission_type,
     });
   };
 

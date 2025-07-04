@@ -17,9 +17,9 @@ import {
   AuthState,
 } from '../store';
 import { crudForms, crudUsers } from '../database/crud';
-import { api, backgroundTask, cascades, i18n } from '../lib';
+import { api, cascades, i18n } from '../lib';
 import crudJobs, { SYNC_DATAPOINT_JOB_NAME, jobStatus } from '../database/crud/crud-jobs';
-import { SYNC_FORM_SUBMISSION_TASK_NAME, SYNC_STATUS } from '../lib/constants';
+import { SYNC_STATUS } from '../lib/constants';
 
 const Home = ({ navigation, route }) => {
   const params = route?.params || null;
@@ -136,13 +136,6 @@ const Home = ({ navigation, route }) => {
   };
 
   const runSyncSubmisionManually = async () => {
-    const activeJob = await crudJobs.getActiveJob(db, SYNC_FORM_SUBMISSION_TASK_NAME);
-    if (activeJob?.status === jobStatus.PENDING) {
-      await crudJobs.updateJob(db, activeJob.id, {
-        status: jobStatus.ON_PROGRESS,
-      });
-      await backgroundTask.syncFormSubmission(activeJob);
-    }
     UIState.update((s) => {
       s.isManualSynced = true;
     });

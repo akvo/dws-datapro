@@ -3,7 +3,7 @@ import { View, StyleSheet, Text, TouchableOpacity } from 'react-native';
 import { Switch } from '@rneui/themed';
 import * as Crypto from 'expo-crypto';
 import * as Sentry from '@sentry/react-native';
-import * as SQLite from 'expo-sqlite';
+import { useSQLiteContext } from 'expo-sqlite';
 import * as TaskManager from 'expo-task-manager';
 import { BaseLayout } from '../../components';
 import { config } from './config';
@@ -12,7 +12,7 @@ import DialogForm from './DialogForm';
 import { backgroundTask, i18n } from '../../lib';
 import { accuracyLevels } from '../../lib/loc';
 import { crudConfig } from '../../database/crud';
-import { DATABASE_NAME, SYNC_FORM_SUBMISSION_TASK_NAME } from '../../lib/constants';
+import { SYNC_FORM_SUBMISSION_TASK_NAME } from '../../lib/constants';
 
 const SettingsForm = ({ route }) => {
   const [edit, setEdit] = useState(null);
@@ -51,6 +51,7 @@ const SettingsForm = ({ route }) => {
   const nonEnglish = lang !== 'en';
   const curConfig = config.find((c) => c.id === route?.params?.id);
   const pageTitle = nonEnglish ? i18n.transform(lang, curConfig)?.name : route?.params?.name;
+  const db = useSQLiteContext();
 
   const editState = useMemo(() => {
     if (edit && edit?.key) {
@@ -72,9 +73,6 @@ const SettingsForm = ({ route }) => {
   };
 
   const handleUpdateOnDB = async (field, value) => {
-    const dbUpdate = await SQLite.openDatabaseAsync(DATABASE_NAME, {
-      useNewConnection: true,
-    });
     const configFields = [
       'apVersion',
       'authenticationCode',
@@ -87,16 +85,15 @@ const SettingsForm = ({ route }) => {
       'geoLocationTimeout',
     ];
     if (configFields.includes(field)) {
-      await crudConfig.updateConfig(dbUpdate, { [field]: value });
+      await crudConfig.updateConfig(db, { [field]: value });
     }
     if (field === 'name') {
-      await crudConfig.updateConfig(dbUpdate, { name: value });
+      await crudConfig.updateConfig(db, { name: value });
     }
     if (field === 'password') {
       const encrypted = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA1, value);
-      await crudConfig.updateConfig(dbUpdate, { password: encrypted });
+      await crudConfig.updateConfig(db, { password: encrypted });
     }
-    await dbUpdate.closeAsync();
   };
 
   const handleOnRestarTask = async (v) => {
