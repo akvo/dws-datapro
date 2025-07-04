@@ -46,6 +46,8 @@ from .serializers import (
     MobileAssignmentSerializer,
     MobileDataPointDownloadListSerializer,
     SyncDeviceFormDataSerializer,
+    SyncDeviceParamsSerializer,
+    DraftFormDataSerializer,
 )
 from .models import MobileAssignment, MobileApk
 from api.v1.v1_forms.models import Forms, Questions, QuestionTypes
@@ -141,12 +143,28 @@ def get_mobile_form_details(request: Request, version, form_id):
             type=OpenApiTypes.BOOL,
             location=OpenApiParameter.QUERY,
         ),
+        OpenApiParameter(
+            name="id",
+            required=False,
+            type=OpenApiTypes.NUMBER,
+            location=OpenApiParameter.QUERY,
+        ),
     ],
     summary="Submit pending form data",
 )
 @api_view(["POST"])
 @permission_classes([IsMobileAssignment])
 def sync_pending_form_data(request, version):
+    params = SyncDeviceParamsSerializer(
+        data=request.GET
+    )
+    if not params.is_valid():
+        return Response(
+            {
+                "message": validate_serializers_message(params.errors)
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
     form = get_object_or_404(Forms, pk=request.data.get("formId"))
     assignment = cast(MobileAssignmentToken, request.auth).assignment
     user = assignment.user
@@ -220,7 +238,10 @@ def sync_pending_form_data(request, version):
         form=form,
         created_by=user,
         uuid=request.data.get("uuid"),
+        form__parent__isnull=True,
     ).first()
+    if params.validated_data.get("id"):
+        draft_exists = params.validated_data.get("id")
     if draft_exists:
         serializer = SubmitUpdateDraftFormSerializer(
             instance=draft_exists,
@@ -572,3 +593,15 @@ def get_datapoint_download_list(request, version):
         assignment.last_synced_at = timezone.now()
         assignment.save()
     return response
+
+
+class DraftFormDataViewSet(ModelViewSet):
+    serializer_class = DraftFormDataSerializer
+    permission_classes = [IsMobileAssignment]
+    pagination_class = Pagination
+
+    def get_queryset(self):
+        user = self.request.auth.assignment.user
+        return FormData.objects_draft.filter(
+            created_by=user
+        ).order_by("-created")

@@ -7,6 +7,7 @@ from drf_spectacular.types import OpenApiTypes
 from django.db.models import Q
 from api.v1.v1_mobile.authentication import MobileAssignmentToken
 from api.v1.v1_profile.models import Administration, Entity
+from api.v1.v1_data.models import FormData
 from utils.custom_serializer_fields import (
     CustomCharField,
     CustomIntegerField,
@@ -244,3 +245,85 @@ class SyncDeviceFormDataSerializer(serializers.Serializer):
             "uuid",
             "answers",
         ]
+
+
+class SyncDeviceParamsSerializer(serializers.Serializer):
+    id = CustomPrimaryKeyRelatedField(
+        queryset=FormData.objects_draft.none(),
+        required=False
+    )
+    is_draft = serializers.BooleanField(default=False)
+    is_published = serializers.BooleanField(default=False)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.fields.get("id").queryset = FormData.objects_draft.all()
+
+    class Meta:
+        fields = [
+            "id",
+            "is_draft",
+            "is_published",
+        ]
+
+
+class DraftFormDataSerializer(serializers.ModelSerializer):
+    form = CustomPrimaryKeyRelatedField(
+        queryset=Forms.objects.all(),
+        source="form_id"
+    )
+    administration = CustomPrimaryKeyRelatedField(
+        queryset=Administration.objects.all(),
+        source="administration_id"
+    )
+    submittedAt = CustomDateTimeField(
+        source="created",
+        read_only=True,
+    )
+    json = serializers.SerializerMethodField(
+        read_only=True,
+        help_text="JSON representation of the answers."
+    )
+    repeats = serializers.SerializerMethodField(
+        read_only=True,
+        help_text="Number of times the form has been repeated."
+    )
+
+    def get_json(self, obj):
+        # Create a dictionary to hold the answers
+        # question_id: answer_value pairs
+        answers = {}
+        for answer in obj.data_answer.order_by(
+            "question__question_group_id", "question__order"
+        ).all():
+            question_id = answer.question.id
+            if question_id not in answers:
+                answers[question_id] = []
+            answers[question_id].append(answer.value)
+        return answers
+
+    def get_repeats(self, obj):
+        # Create a dictionary to count repeats based on question group IDs
+        repeats_count = {}
+        for answer in obj.data_answer.filter(
+            question__question_group__repeatable=True
+        ).all():
+            group_id = answer.question.question_group_id
+            if group_id:
+                repeats_count[group_id] = repeats_count.get(group_id, 0) + 1
+        return repeats_count
+
+    class Meta:
+        model = FormData
+        fields = [
+            "id",
+            "form",
+            "administration",
+            "name",
+            "geo",
+            "submittedAt",
+            "duration",
+            "json",
+            "repeats",
+        ]
+        read_only_fields = ["id", "submittedAt", "json", "repeats"]
