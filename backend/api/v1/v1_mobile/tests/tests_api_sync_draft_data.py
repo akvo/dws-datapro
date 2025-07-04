@@ -104,7 +104,7 @@ class MobileAssignmentApiSyncNewDraftTest(
         draft = FormData.objects_draft.first()
         self.assertIsNotNone(draft)
 
-    def test_sync_update_existing_draft(self):
+    def test_sync_update_existing_draft_with_form_and_uuid(self):
         # Create an initial draft submission
         draft = FormData.objects.create(
             form=self.form,
@@ -164,6 +164,66 @@ class MobileAssignmentApiSyncNewDraftTest(
         answer_101 = draft.data_answer.filter(question_id=101).first()
         self.assertIsNotNone(answer_101)
         self.assertEqual(answer_101.name, "John Update")
+
+    def test_sync_update_existing_draft_with_param_id(self):
+        # Create an initial draft submission
+        draft = FormData.objects.create(
+            form=self.form,
+            name="Initial Draft",
+            duration=1000,
+            geo=self.geo,
+            uuid=self.uuid,
+            created_by=self.user,
+            administration=self.administration,
+        )
+        draft.mark_as_draft()
+
+        add_fake_answers(draft)
+
+        draft.refresh_from_db()
+
+        payload = {
+            "formId": self.form.id,
+            "name": "Update Draft #1",
+            "duration": 3000,
+            "submittedAt": "2025-07-03T00:00:00.000Z",
+            "geo": self.geo,
+            "uuid": self.uuid,
+            "answers": {
+                101: "John With Param ID",
+                102: ["male"],
+                103: 6129912345,
+                104: self.administration.id,
+                105: self.geo,
+                106: ["children"],
+                107: "http://example.com/image.jpg",
+                108: "2025-07-01T00:00:00.000Z",
+                114: ["no"],
+            },
+        }
+        response = self.client.post(
+            f"/api/v1/device/sync?is_draft=true&id={draft.id}",
+            payload,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {self.mobile_token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        data = response.json()
+        self.assertEqual(
+            data,
+            {"message": "ok"},
+        )
+
+        draft_total = FormData.objects_draft.count()
+        self.assertEqual(draft_total, 1)
+        draft = FormData.objects_draft.first()
+        self.assertIsNotNone(draft)
+        self.assertEqual(draft.name, "Update Draft #1")
+        self.assertEqual(draft.duration, 3000)
+
+        answer_101 = draft.data_answer.filter(question_id=101).first()
+        self.assertIsNotNone(answer_101)
+        self.assertEqual(answer_101.name, "John With Param ID")
 
     def test_sync_publish_draft(self):
         # Create an initial draft submission
@@ -253,4 +313,106 @@ class MobileAssignmentApiSyncNewDraftTest(
         self.assertEqual(
             data["message"],
             "Valid string value is required for Question:101",
+        )
+
+    def test_sync_update_draft_with_invalid_data(self):
+        """
+        Test updating an existing draft submission with invalid data.
+        """
+        # Create an initial draft submission
+        draft = FormData.objects.create(
+            form=self.form,
+            name="Initial Draft",
+            duration=1000,
+            geo=self.geo,
+            uuid=self.uuid,
+            created_by=self.user,
+            administration=self.administration,
+        )
+        draft.mark_as_draft()
+
+        add_fake_answers(draft)
+
+        draft.refresh_from_db()
+
+        payload = {
+            "formId": self.form.id,
+            "name": "New Draft #2",
+            "duration": 2000,
+            "submittedAt": "2021-01-01T00:00:00.000Z",
+            "geo": self.geo,
+            "uuid": self.uuid,
+            "answers": {
+                101: ["John"],  # Invalid name
+                102: ["male"],
+                103: 6129912345,
+                104: self.administration.id,
+                105: self.geo,
+                106: ["parent", "children"],
+                107: "http://example.com/image.jpg",
+                108: "2025-07-01T00:00:00.000Z",
+                114: ["no"],
+            },
+        }
+
+        response = self.client.post(
+            "/api/v1/device/sync?is_draft=true",
+            payload,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {self.mobile_token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_sync_update_draft_with_invalid_param_id(self):
+        """
+        Test updating an existing draft submission with an invalid param id.
+        """
+        # Create an initial draft submission
+        draft = FormData.objects.create(
+            form=self.form,
+            name="Initial Draft",
+            duration=1000,
+            geo=self.geo,
+            uuid=self.uuid,
+            created_by=self.user,
+            administration=self.administration,
+        )
+        draft.mark_as_draft()
+
+        add_fake_answers(draft)
+
+        draft.refresh_from_db()
+
+        payload = {
+            "formId": self.form.id,
+            "name": "New Draft #2",
+            "duration": 2000,
+            "submittedAt": "2021-01-01T00:00:00.000Z",
+            "geo": self.geo,
+            "uuid": self.uuid,
+            "answers": {
+                101: "John invalid ID",
+                102: ["male"],
+                103: 6129912345,
+                104: self.administration.id,
+                105: self.geo,
+                106: ["children"],
+                107: "http://example.com/image.jpg",
+                108: "2025-07-01T00:00:00.000Z",
+                114: ["no"],
+            },
+        }
+
+        response = self.client.post(
+            "/api/v1/device/sync?is_draft=true&id=999999",
+            payload,
+            content_type="application/json",
+            **{"HTTP_AUTHORIZATION": f"Bearer {self.mobile_token}"},
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        data = response.json()
+        self.assertIn("message", data)
+        self.assertEqual(
+            data["message"],
+            'Invalid pk "999999" - object does not exist.',
         )
