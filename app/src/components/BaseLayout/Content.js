@@ -17,11 +17,7 @@ const Content = ({ children = null, data = [], columns = 1, action = null }) => 
                 testID={`card-touchable-${d?.id}`}
                 style={{ width: '100%' }}
               >
-                <Card
-                  title={d?.name}
-                  subTitles={d?.subtitles}
-                  submissionType={d?.submission_type}
-                />
+                <Card title={d?.name} subTitles={d?.subtitles} />
               </TouchableOpacity>
             ) : (
               <View key={d?.id} testID={`card-non-touchable-${d?.id}`} style={{ width: '100%' }}>
