@@ -178,7 +178,13 @@ const syncFormSubmission = async (activeJob = {}) => {
     const attachments = await handleOnUploadFiles(data, '/attachments', [
       QUESTION_TYPES.attachment,
     ]);
-    const syncProcess = data.map(async (d) => {
+    const totalData = data.length;
+    let success = 0;
+    let failed = 0;
+    data.forEach(async (d) => {
+      if (d?.syncedAt) {
+        return;
+      }
       try {
         const geo = d.geo ? d.geo.split('|')?.map((x) => parseFloat(x)) : [];
         const answerValues = JSON.parse(d.json.replace(/''/g, "'"));
@@ -198,7 +204,6 @@ const syncFormSubmission = async (activeJob = {}) => {
           submitter: session.name,
           geo,
           answers: answerValues,
-          submission_type: d.submission_type,
         };
 
         // Handle UUID
@@ -216,66 +221,47 @@ const syncFormSubmission = async (activeJob = {}) => {
           // update data point
           await crudDataPoints.updateDataPoint(db, {
             ...d,
-            submissionType: d?.submission_type,
             syncedAt: new Date().toISOString(),
           });
         }
-        return {
-          datapoint: d.id,
-          status: res.status,
-          success: true,
-        };
+        success += 1;
       } catch (error) {
+        failed += 1;
         Sentry.captureException(error);
         // Mark datapoint as not submitted
         await crudDataPoints.saveToDraft(db, d.id);
-        return {
-          datapoint: d.id,
-          status: 'error',
-          message: error.message,
-          success: false,
-        };
+      }
+
+      if (activeJob?.id) {
+        // Delete job after processing
+        await crudJobs.deleteJob(db, activeJob.id);
+      }
+
+      if (success === totalData) {
+        UIState.update((s) => {
+          s.refreshPage = true;
+          s.isManualSynced = false;
+          s.statusBar = {
+            type: SYNC_STATUS.success,
+            bgColor: '#16a34a',
+            icon: 'checkmark-done',
+          };
+        });
+        notification.sendPushNotification(SYNC_FORM_SUBMISSION_TASK_NAME);
+      }
+
+      if (failed) {
+        UIState.update((s) => {
+          s.statusBar = {
+            type: SYNC_STATUS.failed,
+            bgColor: '#ec003f',
+            icon: 'alert-sharp',
+            failedCount: failed,
+          };
+        });
       }
     });
 
-    const results = await Promise.allSettled(syncProcess);
-    const hasFailures = results.some(
-      (result) =>
-        result.status === 'rejected' ||
-        (result.status === 'fulfilled' && result.value?.success === false),
-    );
-    if (hasFailures) {
-      // Delete job on any failure
-      if (activeJob?.id) {
-        await crudJobs.deleteJob(db, activeJob.id);
-      }
-      UIState.update((s) => {
-        s.statusBar = {
-          type: SYNC_STATUS.failed,
-          bgColor: '#ec003f',
-          icon: 'alert-sharp',
-        };
-      });
-    } else {
-      // All succeeded
-      UIState.update((s) => {
-        s.refreshPage = true;
-        s.isManualSynced = false;
-        s.statusBar = {
-          type: SYNC_STATUS.success,
-          bgColor: '#16a34a',
-          icon: 'checkmark-done',
-        };
-      });
-
-      if (activeJob?.id) {
-        notification.sendPushNotification(SYNC_FORM_SUBMISSION_TASK_NAME);
-        // delete the job when it's succeed
-        await crudJobs.deleteJob(db, activeJob.id);
-      }
-    }
-
-    await db.closeAsync();
     return BackgroundFetch.BackgroundFetchResult.NewData;
   } catch (error) {
     Sentry.captureMessage(`[background-task] syncFormSubmission failed`);
@@ -286,7 +272,6 @@ const syncFormSubmission = async (activeJob = {}) => {
       await crudJobs.deleteJob(db, activeJob.id);
     }
 
-    await db.closeAsync();
     return Promise.reject(
       new Error({ errorCode: error?.response?.status, message: error?.message }),
     );
