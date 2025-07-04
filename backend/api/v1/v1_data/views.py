@@ -48,6 +48,7 @@ from api.v1.v1_approval.constants import DataApprovalStatus
 
 from mis.settings import REST_FRAMEWORK
 from utils.custom_permissions import (
+    IsSubmitter,
     IsEditor,
     IsSuperAdminOrFormUser,
     PublicGet,
@@ -651,7 +652,7 @@ class PendingFormDataView(APIView):
 
 
 class DraftFormDataListView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSubmitter]
 
     @extend_schema(
         responses={
@@ -743,7 +744,7 @@ class DraftFormDataListView(APIView):
 
 
 class DraftFormDataDetailView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSubmitter]
 
     @extend_schema(
         responses=FormDataSerializer,
@@ -823,7 +824,7 @@ class DraftFormDataDetailView(APIView):
 
 
 class PublishDraftFormDataView(APIView):
-    permission_classes = [IsAuthenticated]
+    permission_classes = [IsAuthenticated, IsSubmitter]
 
     @extend_schema(
         responses={200: DefaultResponseSerializer},

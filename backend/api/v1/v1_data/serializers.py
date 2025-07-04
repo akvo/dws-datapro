@@ -70,6 +70,47 @@ class SubmitFormDataAnswerSerializer(serializers.ModelSerializer):
         return value
 
     def validate(self, attrs):
+        # Skip validation if this is a draft
+        is_draft = self.context.get("is_draft", False)
+        if is_draft:
+            # If the form is a draft, skip validation for value
+            # but ensure that the question is provided and
+            # value is correct type
+            if not attrs.get("question"):
+                raise ValidationError(
+                    "Question is required for Answer"
+                )
+            if attrs.get("value") is None:
+                attrs["value"] = ""
+            question = attrs.get("question")
+            if question.type in [
+                QuestionTypes.geo,
+                QuestionTypes.option,
+                QuestionTypes.multiple_option,
+            ] and not isinstance(attrs.get("value"), list):
+                raise ValidationError(
+                    "Valid list value is required for Question:{0}".format(
+                        question.id
+                    )
+                )
+            if isinstance(attrs.get("value"), list) and question.type in [
+                QuestionTypes.text,
+                QuestionTypes.photo,
+                QuestionTypes.date,
+                QuestionTypes.attachment,
+                QuestionTypes.signature,
+                QuestionTypes.autofield,
+                QuestionTypes.number,
+                QuestionTypes.administration,
+                QuestionTypes.cascade,
+            ]:
+                raise ValidationError(
+                    "Valid string value is required for Question:{0}".format(
+                        question.id
+                    )
+                )
+            return attrs
+
         if attrs.get("value") == "":
             raise ValidationError(
                 "Value is required for Question:{0}".format(
