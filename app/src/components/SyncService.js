@@ -16,6 +16,7 @@ import { SYNC_FORM_SUBMISSION_TASK_NAME, SYNC_STATUS } from '../lib/constants';
  */
 const SyncService = () => {
   const isOnline = UIState.useState((s) => s.online);
+  const isManualSynced = UIState.useState((s) => s.isManualSynced);
   const syncInterval = BuildParamsState.useState((s) => s.dataSyncInterval);
   const syncInSecond = parseInt(syncInterval, 10) * 1000;
   const db = useSQLiteContext();
@@ -94,6 +95,11 @@ const SyncService = () => {
     if (!syncInSecond || !isOnline) {
       return;
     }
+    if (isManualSynced) {
+      // If manual sync is triggered, run the sync immediately
+      onSync();
+      return;
+    }
     const syncTimer = setInterval(() => {
       // Perform sync operation
       onSync();
@@ -103,7 +109,7 @@ const SyncService = () => {
     return () =>
       // Clear the interval when the component unmounts
       clearInterval(syncTimer);
-  }, [syncInSecond, isOnline, onSync]);
+  }, [syncInSecond, isOnline, isManualSynced, onSync]);
 
   const onSyncDataPoint = useCallback(async () => {
     const activeJob = await crudJobs.getActiveJob(db, SYNC_DATAPOINT_JOB_NAME);

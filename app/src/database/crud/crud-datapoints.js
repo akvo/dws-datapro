@@ -5,9 +5,14 @@ const selectDataPointById = async (db, { id }) => {
   if (!current) {
     return false;
   }
+  let jsonVal = JSON.parse(current.json.replace(/''/g, "'"));
+  // If json is a string that starts with '{', parse it as JSON
+  if (typeof jsonVal === 'string' && jsonVal.startsWith('{')) {
+    jsonVal = JSON.parse(jsonVal);
+  }
   return {
     ...current,
-    json: JSON.parse(current.json.replace(/''/g, "'")),
+    json: jsonVal,
   };
 };
 
@@ -32,8 +37,7 @@ const dataPointsQuery = () => ({
         FROM datapoints
         JOIN forms ON datapoints.form = forms.id
         WHERE datapoints.submitted = ${submitted} AND datapoints.syncedAt IS NULL
-        ORDER BY datapoints.createdAt ASC
-        LIMIT 1`,
+        ORDER BY datapoints.createdAt ASC`,
     );
     return rows;
   },

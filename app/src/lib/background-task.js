@@ -165,7 +165,6 @@ const syncFormSubmission = async (activeJob = {}) => {
     return BackgroundFetch.BackgroundFetchResult.NoData;
   }
   try {
-    let sendNotification = false;
     // get token
     const session = await crudUsers.getActiveUser(db);
     // set token
@@ -220,7 +219,6 @@ const syncFormSubmission = async (activeJob = {}) => {
             submissionType: d?.submission_type,
             syncedAt: new Date().toISOString(),
           });
-          sendNotification = true;
         }
         return {
           datapoint: d.id,
@@ -262,7 +260,7 @@ const syncFormSubmission = async (activeJob = {}) => {
       // All succeeded
       UIState.update((s) => {
         s.refreshPage = true;
-        s.isManualSynced = true;
+        s.isManualSynced = false;
         s.statusBar = {
           type: SYNC_STATUS.success,
           bgColor: '#16a34a',
@@ -270,11 +268,8 @@ const syncFormSubmission = async (activeJob = {}) => {
         };
       });
 
-      if (sendNotification) {
-        notification.sendPushNotification('sync-form-submission');
-      }
-
       if (activeJob?.id) {
+        notification.sendPushNotification(SYNC_FORM_SUBMISSION_TASK_NAME);
         // delete the job when it's succeed
         await crudJobs.deleteJob(db, activeJob.id);
       }

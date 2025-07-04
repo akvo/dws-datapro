@@ -57,7 +57,7 @@ const RootNavigator = () => {
       }
     });
     return () => {
-      Notifications.removeNotificationSubscription(responseListener);
+      responseListener.remove();
     };
   }, []);
 
